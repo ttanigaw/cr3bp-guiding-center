@@ -4,11 +4,11 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Guiding-center physics core and initial fixed-step RK4 integrator implemented and under validation.
+Guiding-center physics core, fixed-step RK4 integration, and representative co-orbital presets are implemented and under automated validation.
 
-A minimal React page is implemented. The reduced guiding-center equations, disturbing function, analytic derivatives, reduced Hamiltonian, body-distance diagnostics, tidal parameter, and trajectory integrator are implemented independently of the UI.
+A minimal React page is still present. Physics, integration, diagnostics, and example initial conditions are kept independent of the UI.
 
-The next implementation goal is to validate representative horseshoe and tadpole initial conditions, then begin the first trajectory visualization.
+The next implementation goal is the first rotating-frame trajectory visualization using the validated presets.
 
 ---
 
@@ -83,9 +83,10 @@ Implemented:
 - Vitest DOM mounting smoke test;
 - `src/physics/guidingCenter.ts` with pure functions for body distances, the disturbing function, its analytic derivatives, guiding-center rates, the reduced Hamiltonian, and the local tidal-strength parameter;
 - `src/physics/integrator.ts` with a transparent classical fourth-order Runge-Kutta stepper and fixed-step trajectory integration;
-- unit tests for analytic derivatives, the `mu = 0` limit, reflection symmetry in `phi`, body distances, input-domain checks, analytic `mu = 0` integration, final-step handling, Hamiltonian conservation, and invalid integration settings.
+- `src/physics/presets.ts` with reproducible horseshoe, L4 tadpole, and L5 tadpole examples;
+- unit and regression tests for the physics core, integrator, and preset orbit topology.
 
-The physics and integrator functions are independent of React and visualization code.
+The physics, integrator, and preset definitions are independent of React and visualization code.
 
 Current source structure:
 
@@ -93,6 +94,7 @@ Current source structure:
       physics/
         guidingCenter.ts
         integrator.ts
+        presets.ts
       components/
       App.tsx
 
@@ -110,7 +112,23 @@ The requested `dt` is used for full steps, and the final step is shortened when 
 
 The integrator rejects invalid time-step settings, caps the maximum number of steps, propagates domain errors from the physics model, and rejects non-finite or non-positive-radius numerical states.
 
-Adaptive integration may be considered later if fixed-step integration is insufficient near horseshoe turns. No adaptive method is currently implemented.
+The current validated example presets use `dt = 0.05`. Adaptive integration may be considered later if fixed-step integration is insufficient near horseshoe turns.
+
+---
+
+## Representative orbit presets
+
+All current presets use `mu = 0.001`.
+
+- Horseshoe: `r0 = 1.02`, `phi0 = pi`, `dt = 0.05`, `tMax = 250`.
+- L4 tadpole: `r0 = 1`, `phi0 = +80 deg`, `dt = 0.05`, `tMax = 160`.
+- L5 tadpole: `r0 = 1`, `phi0 = -80 deg`, `dt = 0.05`, `tMax = 160`.
+
+These values are reproducible demonstration cases for this reduced model, not universal physical initial conditions.
+
+The horseshoe regression test requires the trajectory to cross both sides of corotation in radius, span more than 5 radians in co-orbital angle while remaining away from conjunction, keep the tidal-strength indicator below 0.02, and conserve the reduced Hamiltonian to an absolute error below `1e-9`.
+
+The tadpole tests require bounded leading/trailing libration around the corresponding triangular region, radial excursions near `r = 1`, and reduced-Hamiltonian error below `1e-10` for both L4 and L5 examples. Reflection symmetry of the equations involves time reversal as well as `phi -> -phi`, so forward-time L4 and L5 samples are not required to match point by point.
 
 ---
 
@@ -120,29 +138,17 @@ Browser check previously passed in Chromium for the placeholder application, wit
 
 GitHub Actions CI is configured to repeat `npm ci`, `npm test`, and `npm run build` automatically on pull requests and pushes to `main`.
 
-Physics-core validation includes:
+Physics-core validation includes analytic-derivative finite-difference checks, exact `mu = 0` limits, reflection symmetry, body-distance checks, and input-domain checks.
 
-1. analytic disturbing-function derivatives checked against centered numerical finite differences at a representative non-singular state;
-2. exact `mu = 0` limiting behavior for the disturbing function, derivatives, radial rate, angular rate, reduced Hamiltonian, and tidal parameter;
-3. expected reflection symmetry under `phi -> -phi`;
-4. barycentric body-distance checks;
-5. rejection of non-positive `r`, out-of-range `mu`, and non-finite inputs.
+Integrator validation includes reproduction of the analytic `mu = 0` solution, exact landing on `tMax`, reduced-Hamiltonian conservation for a perturbed orbit, and rejection of invalid integration settings.
 
-Integrator validation includes:
-
-1. reproduction of the analytic `mu = 0` solution;
-2. exact landing on `tMax` when `tMax` is not an integer multiple of `dt`;
-3. reduced-Hamiltonian conservation for a representative perturbed orbit (`mu = 0.001`, `r0 = 1.05`, `phi0 = 0.5`, `dt = 0.05`, `tMax = 200`) with maximum absolute error required to remain below `1e-10`;
-4. rejection of invalid integration settings and excessive step counts.
+Representative-orbit validation now covers horseshoe topology, bounded L4/L5 tadpole topology on the appropriate leading/trailing sides, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
 
 The next validation tasks are:
 
-1. find stable representative initial conditions for horseshoe motion;
-2. find stable representative initial conditions for L4 and L5 tadpole motion;
-3. examine approximation-validity indicators near horseshoe turns;
-4. assess whether the initial fixed time step is adequate across representative examples.
-
-Quantitative comparison with the full PCR3BP will be performed in a later development stage.
+1. expose Hamiltonian and validity diagnostics in the application;
+2. assess rendering/down-sampling requirements for interactive visualization;
+3. quantify guiding-center accuracy against the full PCR3BP in a later development stage.
 
 ---
 
@@ -162,23 +168,22 @@ The intended application architecture is a static browser application with all n
 
 The following issues remain open:
 
-- determine suitable default initial conditions for a clear horseshoe trajectory;
-- determine suitable default initial conditions for L4 and L5 tadpole trajectories;
-- choose the final numerical time step or integration tolerance after representative-orbit testing;
+- choose the final user-facing time step or integration tolerance policy;
 - determine how approximation-validity warnings should be presented;
 - quantify the accuracy of the guiding-center approximation near horseshoe U-turns;
 - define a low-free-eccentricity initialization procedure for future full-PCR3BP comparison;
+- decide whether long trajectories should be down-sampled for rendering;
 - decide which plotting library or rendering approach should be used.
 
-No hard validity threshold for close encounters has been adopted yet.
+No hard validity threshold for close encounters has been adopted yet. The preset `epsilon_tide` bounds are regression guards, not physical validity thresholds.
 
 ---
 
 ## Next recommended task
 
-Validate representative horseshoe and tadpole trajectories using the new RK4 integrator, including Hamiltonian-error and close-approach diagnostics.
+Build the first rotating-frame trajectory visualization using the validated presets, while keeping the UI coupled only to the public physics/integrator interfaces.
 
-Once representative initial conditions are documented and numerically stable, begin the first rotating-frame trajectory visualization without coupling the UI directly to the governing equations.
+Start with a static trajectory view and body markers before adding animation and additional diagnostic plots.
 
 ---
 
