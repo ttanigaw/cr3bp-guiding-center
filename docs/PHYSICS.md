@@ -18,9 +18,9 @@ We consider the planar circular restricted three-body problem.
 
 There are two massive bodies,
 
-$$
+```math
 m_1,\qquad m_2,
-$$
+```
 
 which move on circular orbits about their common center of mass.
 
@@ -28,35 +28,35 @@ A third body has negligible mass and therefore does not affect the motion of $m_
 
 Define
 
-$$
+```math
 M=m_1+m_2,
-$$
+```
 
 and the dimensionless mass ratio
 
-$$
+```math
 \mu=\frac{m_2}{m_1+m_2}.
-$$
+```
 
 Thus,
 
-$$
+```math
 m_1=(1-\mu)M,
 \qquad
 m_2=\mu M.
-$$
+```
 
 Usually,
 
-$$
+```math
 0<\mu\le\frac12,
-$$
+```
 
 and the intended regime of the guiding-center approximation is primarily
 
-$$
+```math
 \mu\ll1.
-$$
+```
 
 ---
 
@@ -64,25 +64,21 @@ $$
 
 We adopt the standard nondimensional units of the circular restricted three-body problem:
 
-$$
+```math
 a=1,
-$$
-
-$$
+\qquad
 G(m_1+m_2)=1,
-$$
-
-$$
+\qquad
 n=1,
-$$
+```
 
 where $a$ is the separation between the two massive bodies and $n$ is their orbital angular frequency.
 
 The orbital period of the binary is therefore
 
-$$
+```math
 T=2\pi.
-$$
+```
 
 All lengths, times, angular frequencies, and gravitational potentials used in the application are expressed in these units.
 
@@ -92,49 +88,47 @@ All lengths, times, angular frequencies, and gravitational potentials used in th
 
 We use a Cartesian coordinate system rotating with angular velocity
 
-$$
+```math
 \boldsymbol{\Omega}=\mathbf e_z.
-$$
+```
 
 The origin is the center of mass of the two massive bodies.
 
 The primary and secondary remain fixed at
 
-$$
+```math
 \mathbf r_1=(-\mu,0),
-$$
-
-$$
+\qquad
 \mathbf r_2=(1-\mu,0).
-$$
+```
 
 The position of the massless third body is
 
-$$
+```math
 (x,y).
-$$
+```
 
 We also introduce rotating-frame polar coordinates
 
-$$
+```math
 x=r\cos\phi,
 \qquad
 y=r\sin\phi.
-$$
+```
 
 Here $\phi$ is measured in the rotating frame.
 
 If $\theta$ is the inertial azimuth,
 
-$$
+```math
 \theta=\phi+t,
-$$
+```
 
 so that
 
-$$
+```math
 \dot\theta=1+\dot\phi.
-$$
+```
 
 ---
 
@@ -142,32 +136,34 @@ $$
 
 The distance to $m_1$ is
 
-$$
+```math
 r_1=
 \sqrt{(x+\mu)^2+y^2},
-$$
+```
 
 or equivalently,
 
-$$
-r_1^2=
+```math
+r_1^2
+=
 r^2+\mu^2+2\mu r\cos\phi.
-$$
+```
 
 The distance to $m_2$ is
 
-$$
+```math
 r_2=
 \sqrt{(x-1+\mu)^2+y^2},
-$$
+```
 
-or
+or equivalently,
 
-$$
-r_2^2=
+```math
+r_2^2
+=
 r^2+(1-\mu)^2
 -2(1-\mu)r\cos\phi.
-$$
+```
 
 ---
 
@@ -175,7 +171,7 @@ $$
 
 The effective potential in the rotating frame is
 
-$$
+```math
 \Omega(x,y)
 =
 \frac12(x^2+y^2)
@@ -183,25 +179,25 @@ $$
 \frac{1-\mu}{r_1}
 +
 \frac{\mu}{r_2}.
-$$
+```
 
 The exact planar equations of motion are
 
-$$
+```math
 \ddot x-2\dot y
 =
 \frac{\partial\Omega}{\partial x},
-$$
+```
 
-$$
+```math
 \ddot y+2\dot x
 =
 \frac{\partial\Omega}{\partial y}.
-$$
+```
 
 Explicitly,
 
-$$
+```math
 \ddot x-2\dot y
 =
 x
@@ -209,9 +205,9 @@ x
 (1-\mu)\frac{x+\mu}{r_1^3}
 -
 \mu\frac{x-1+\mu}{r_2^3},
-$$
+```
 
-$$
+```math
 \ddot y+2\dot x
 =
 y
@@ -219,7 +215,7 @@ y
 (1-\mu)\frac{y}{r_1^3}
 -
 \mu\frac{y}{r_2^3}.
-$$
+```
 
 These equations retain all planar degrees of freedom of the PCR3BP, including eccentric or epicyclic motion.
 
@@ -229,21 +225,21 @@ These equations retain all planar degrees of freedom of the PCR3BP, including ec
 
 In rotating-frame polar coordinates,
 
-$$
+```math
 x=r\cos\phi,
 \qquad
 y=r\sin\phi,
-$$
+```
 
 the exact equations are
 
-$$
+```math
 \ddot r-r\dot\phi^2-2r\dot\phi
 =
 \frac{\partial\Omega}{\partial r},
-$$
+```
 
-$$
+```math
 r\ddot\phi
 +
 2\dot r\dot\phi
@@ -252,37 +248,37 @@ r\ddot\phi
 =
 \frac1r
 \frac{\partial\Omega}{\partial\phi}.
-$$
+```
 
 Equivalently, defining the gravitational part
 
-$$
+```math
 U(r,\phi)
 =
 \frac{1-\mu}{r_1}
 +
 \frac{\mu}{r_2},
-$$
+```
 
 the azimuthal equation can be written as an exact angular-momentum equation.
 
 The inertial-frame specific angular momentum is
 
-$$
+```math
 j
 =
 r^2(1+\dot\phi).
-$$
+```
 
 It satisfies
 
-$$
+```math
 \boxed{
 \dot j
 =
 \frac{\partial U}{\partial\phi}
 }.
-$$
+```
 
 This relation is exact.
 
@@ -292,15 +288,15 @@ This relation is exact.
 
 We write
 
-$$
+```math
 U(r,\phi)
 =
 \frac1r+\mathcal R(r,\phi),
-$$
+```
 
 where
 
-$$
+```math
 \boxed{
 \mathcal R(r,\phi)
 =
@@ -310,29 +306,29 @@ $$
 -
 \frac1r
 }.
-$$
+```
 
 This decomposition is algebraically exact for any $\mu$.
 
 However, treating $\mathcal R$ as a perturbation to the Keplerian potential is intended mainly for
 
-$$
+```math
 \mu\ll1
-$$
+```
 
 and away from very close encounters with the secondary.
 
 In the limit
 
-$$
+```math
 \mu\rightarrow0,
-$$
+```
 
 we have
 
-$$
+```math
 \mathcal R\rightarrow0.
-$$
+```
 
 ---
 
@@ -340,9 +336,9 @@ $$
 
 The full PCR3BP has four planar phase-space variables,
 
-$$
+```math
 (r,\phi,\dot r,\dot\phi),
-$$
+```
 
 and therefore contains an independent eccentricity or epicyclic degree of freedom.
 
@@ -350,21 +346,21 @@ Even when a particle is initialized close to a circular orbit, perturbations fro
 
 The resulting motion can schematically be written as
 
-$$
+```math
 r_{\rm physical}(t)
 =
 r_{\rm gc}(t)
 +
 \delta r_{\rm epi}(t),
-$$
+```
 
 where
 
-$$
+```math
 \delta r_{\rm epi}
 \sim
 e\cos(\kappa t+\psi).
-$$
+```
 
 The goal of the reduced model is to remove this free epicyclic component and evolve only the slow guiding-center motion.
 
@@ -378,66 +374,66 @@ The approximation assumes that the orbit remains close to the family of circular
 
 For the Kepler potential
 
-$$
+```math
 U_0=\frac1r,
-$$
+```
 
 the specific angular momentum of a circular orbit is
 
-$$
+```math
 j_{\rm c}(r)=\sqrt r.
-$$
+```
 
 The guiding-center approximation imposes
 
-$$
+```math
 \boxed{
 j=\sqrt r
 }
-$$
+```
 
 at all times.
 
 This does not imply
 
-$$
+```math
 \dot r=0.
-$$
+```
 
 Instead, the angular momentum is allowed to evolve under the perturbing torque, and the guiding-center radius changes accordingly.
 
 Differentiating
 
-$$
+```math
 j=\sqrt r
-$$
+```
 
 gives
 
-$$
+```math
 \dot j
 =
 \frac{1}{2\sqrt r}\dot r.
-$$
+```
 
 Since the axisymmetric term $1/r$ has no $\phi$-dependence,
 
-$$
+```math
 \dot j
 =
 \frac{\partial\mathcal R}{\partial\phi}.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \boxed{
 \dot r
 =
 2\sqrt r
 \frac{\partial\mathcal R}{\partial\phi}
 }.
-$$
+```
 
 This equation describes radial migration of the guiding center caused by the gravitational torque.
 
@@ -449,7 +445,7 @@ Using the inertial specific angular momentum $j$, the rotating-frame Hamiltonian
 
 The resulting guiding-center Hamiltonian is
 
-$$
+```math
 \boxed{
 H_{\rm gc}(j,\phi)
 =
@@ -457,39 +453,39 @@ H_{\rm gc}(j,\phi)
 -j
 -\mathcal R(j^2,\phi)
 }.
-$$
+```
 
 The canonical variables are
 
-$$
+```math
 (\phi,j).
-$$
+```
 
 Hamilton's equations are
 
-$$
+```math
 \dot\phi
 =
 \frac{\partial H_{\rm gc}}{\partial j},
-$$
+```
 
-$$
+```math
 \dot j
 =
 -\frac{\partial H_{\rm gc}}{\partial\phi}.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \dot j
 =
 \frac{\partial\mathcal R}{\partial\phi},
-$$
+```
 
 and
 
-$$
+```math
 \dot\phi
 =
 \frac1{j^3}
@@ -497,28 +493,28 @@ $$
 -
 2j
 \frac{\partial\mathcal R}{\partial r}.
-$$
+```
 
 Using
 
-$$
+```math
 j=\sqrt r,
-$$
+```
 
 we obtain the main reduced equations used by the application:
 
-$$
+```math
 \boxed{
 \dot r
 =
 2\sqrt r
 \frac{\partial\mathcal R}{\partial\phi}
 }
-$$
+```
 
 and
 
-$$
+```math
 \boxed{
 \dot\phi
 =
@@ -528,7 +524,7 @@ r^{-3/2}
 2\sqrt r
 \frac{\partial\mathcal R}{\partial r}
 }.
-$$
+```
 
 These two first-order equations constitute the default guiding-center model.
 
@@ -538,7 +534,7 @@ These two first-order equations constitute the default guiding-center model.
 
 The azimuthal derivative is
 
-$$
+```math
 \boxed{
 \frac{\partial\mathcal R}{\partial\phi}
 =
@@ -549,11 +545,11 @@ $$
 \frac1{r_2^3}
 \right)
 }.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \boxed{
 \dot r
 =
@@ -565,11 +561,11 @@ r^{3/2}\sin\phi
 \frac1{r_2^3}
 \right)
 }.
-$$
+```
 
 The radial derivative is
 
-$$
+```math
 \boxed{
 \frac{\partial\mathcal R}{\partial r}
 =
@@ -581,11 +577,11 @@ $$
 \mu
 \frac{r-(1-\mu)\cos\phi}{r_2^3}
 }.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \boxed{
 \begin{aligned}
 \dot\phi
@@ -606,7 +602,7 @@ r^{-3/2}
 \right].
 \end{aligned}
 }
-$$
+```
 
 These explicit expressions should be used directly in the numerical implementation unless there is a specific reason to evaluate the derivatives numerically.
 
@@ -616,56 +612,56 @@ These explicit expressions should be used directly in the numerical implementati
 
 Near the corotation radius,
 
-$$
+```math
 r=1+\xi,
 \qquad
 |\xi|\ll1.
-$$
+```
 
 Then,
 
-$$
+```math
 r^{-3/2}-1
 \simeq
 -\frac32\xi.
-$$
+```
 
 The guiding-center equations become approximately
 
-$$
+```math
 \dot\xi
 \simeq
 2
 \frac{\partial\mathcal R}{\partial\phi},
-$$
+```
 
-$$
+```math
 \dot\phi
 \simeq
 -\frac32\xi
 -
 2
 \frac{\partial\mathcal R}{\partial r}.
-$$
+```
 
 An even simpler approximation neglects the perturbative contribution to the azimuthal frequency:
 
-$$
+```math
 \boxed{
 \dot\xi
 \simeq
 2
 \frac{\partial\mathcal R}{\partial\phi}
 }
-$$
+```
 
-$$
+```math
 \boxed{
 \dot\phi
 \simeq
 -\frac32\xi
 }.
-$$
+```
 
 This simplified model corresponds approximately to Keplerian shear plus gravitational torque.
 
@@ -677,45 +673,45 @@ It may be useful for educational visualization, but it is not the default numeri
 
 The guiding-center azimuthal equation is
 
-$$
+```math
 \dot\phi
 =
 r^{-3/2}-1
 -
 2\sqrt r
 \frac{\partial\mathcal R}{\partial r}.
-$$
+```
 
 The first term,
 
-$$
+```math
 r^{-3/2}-1,
-$$
+```
 
 is the differential Keplerian angular velocity relative to the rotating frame.
 
 Thus,
 
-$$
+```math
 r>1
 \quad\Rightarrow\quad
 \dot\phi<0
-$$
+```
 
 in the unperturbed problem, while
 
-$$
+```math
 r<1
 \quad\Rightarrow\quad
 \dot\phi>0.
-$$
+```
 
 The second term,
 
-$$
+```math
 -2\sqrt r
 \frac{\partial\mathcal R}{\partial r},
-$$
+```
 
 is the correction to the guiding-center angular frequency caused by the perturbing gravitational potential.
 
@@ -725,33 +721,27 @@ This term may become important during a horseshoe turn and should be retained in
 
 ## 15. Conserved quantity of the reduced system
 
-Because the reduced system is Hamiltonian in the canonical variables
+Because the reduced system is Hamiltonian in the canonical variables $(\phi,j)$, the quantity
 
-$$
-(\phi,j),
-$$
-
-the quantity
-
-$$
+```math
 H_{\rm gc}
 =
 -\frac{1}{2j^2}
 -j
 -\mathcal R(j^2,\phi)
-$$
+```
 
 is conserved.
 
 Using
 
-$$
+```math
 j=\sqrt r,
-$$
+```
 
 this becomes
 
-$$
+```math
 \boxed{
 H_{\rm gc}(r,\phi)
 =
@@ -759,17 +749,11 @@ H_{\rm gc}(r,\phi)
 -\sqrt r
 -\mathcal R(r,\phi)
 }.
-$$
+```
 
 This conserved quantity should be used as an important numerical diagnostic.
 
-For a sufficiently accurate integration,
-
-$$
-H_{\rm gc}(t)
-$$
-
-should remain nearly constant.
+For a sufficiently accurate integration, $H_{\rm gc}(t)$ should remain nearly constant.
 
 ---
 
@@ -781,7 +765,7 @@ Instead, it is intended to reproduce the slow co-orbital motion of the guiding c
 
 The expected qualitative relationship is
 
-$$
+```math
 \text{full PCR3BP trajectory}
 =
 \text{guiding-center motion}
@@ -789,7 +773,7 @@ $$
 \text{epicyclic motion}
 +
 \text{higher-order corrections}.
-$$
+```
 
 The reduced model should retain features such as:
 
@@ -815,9 +799,9 @@ The guiding-center model relies on the following assumptions.
 
 The intended regime is primarily
 
-$$
+```math
 \mu\ll1.
-$$
+```
 
 This makes the non-axisymmetric part of the potential a perturbation to the central Keplerian potential.
 
@@ -835,9 +819,9 @@ The guiding center is assumed to evolve more slowly than the local orbital perio
 
 The model should not be trusted arbitrarily close to
 
-$$
+```math
 r_2=0.
-$$
+```
 
 Near a true close encounter, the perturbation is no longer weak and the separation between slow guiding-center motion and fast epicyclic motion becomes questionable.
 
@@ -847,37 +831,37 @@ Near a true close encounter, the perturbation is no longer weak and the separati
 
 Near the secondary, let the separation be
 
-$$
+```math
 d\sim r_2.
-$$
+```
 
 The secondary potential scales as
 
-$$
+```math
 \frac{\mu}{d}.
-$$
+```
 
 For a characteristic Hill-scale separation,
 
-$$
+```math
 d\sim r_{\rm H}\sim\mu^{1/3},
-$$
+```
 
 the perturbing potential scales as
 
-$$
+```math
 \frac{\mu}{d}
 \sim
 \mu^{2/3},
-$$
+```
 
 while the perturbing gravitational acceleration scales as
 
-$$
+```math
 \frac{\mu}{d^2}
 \sim
 \mu^{1/3}.
-$$
+```
 
 Thus, even when the perturbing potential remains formally small, its spatial gradient can become dynamically important during a horseshoe turn.
 
@@ -889,66 +873,64 @@ This is one reason the torque term can significantly change the guiding-center r
 
 The default reduced-system state vector is
 
-$$
+```math
 \mathbf y
 =
 (r,\phi).
-$$
+```
 
 Its evolution is
 
-$$
+```math
 \frac{d\mathbf y}{dt}
 =
 \begin{pmatrix}
 f_r(r,\phi)\\
 f_\phi(r,\phi)
 \end{pmatrix},
-$$
+```
 
 where
 
-$$
+```math
 f_r
 =
 2\sqrt r
 \frac{\partial\mathcal R}{\partial\phi},
-$$
+```
 
-$$
+```math
 f_\phi
 =
 r^{-3/2}-1
 -
 2\sqrt r
 \frac{\partial\mathcal R}{\partial r}.
-$$
+```
 
 For visualization in the rotating Cartesian plane,
 
-$$
+```math
 x=r\cos\phi,
-$$
-
-$$
+\qquad
 y=r\sin\phi.
-$$
+```
 
 The angular momentum associated with the reduced model is
 
-$$
+```math
 j=\sqrt r.
-$$
+```
 
 The gravitational torque is
 
-$$
+```math
 \tau
 =
 \dot j
 =
 \frac{\partial\mathcal R}{\partial\phi}.
-$$
+```
 
 These quantities may all be displayed in the application.
 
@@ -962,11 +944,11 @@ The implementation should monitor at least the following quantities.
 
 Define
 
-$$
+```math
 \Delta H_{\rm gc}(t)
 =
 H_{\rm gc}(t)-H_{\rm gc}(0).
-$$
+```
 
 The relative or absolute drift should remain small compared with the physical variations being visualized.
 
@@ -974,9 +956,9 @@ The relative or absolute drift should remain small compared with the physical va
 
 Monitor
 
-$$
+```math
 r_{2,\min}.
-$$
+```
 
 If the trajectory approaches too close to the secondary, the application should warn that the guiding-center approximation may no longer be reliable.
 
@@ -984,9 +966,9 @@ If the trajectory approaches too close to the secondary, the application should 
 
 The numerical solution must satisfy
 
-$$
+```math
 r>0.
-$$
+```
 
 A trajectory producing $r\le0$ indicates numerical failure or use far outside the intended model domain.
 
@@ -1013,16 +995,16 @@ The exact initialization prescription for this comparison mode should be documen
 
 The default physical model of the application is
 
-$$
+```math
 \boxed{
 \dot r
 =
 2\sqrt r
 \frac{\partial\mathcal R}{\partial\phi}
 }
-$$
+```
 
-$$
+```math
 \boxed{
 \dot\phi
 =
@@ -1032,11 +1014,11 @@ r^{-3/2}
 2\sqrt r
 \frac{\partial\mathcal R}{\partial r}
 }
-$$
+```
 
 with
 
-$$
+```math
 \mathcal R
 =
 \frac{1-\mu}{r_1}
@@ -1044,20 +1026,20 @@ $$
 \frac{\mu}{r_2}
 -
 \frac1r,
-$$
+```
 
-$$
+```math
 r_1^2
 =
 r^2+\mu^2+2\mu r\cos\phi,
-$$
+```
 
-$$
+```math
 r_2^2
 =
 r^2+(1-\mu)^2
 -2(1-\mu)r\cos\phi.
-$$
+```
 
 The intended interpretation is a zero-free-eccentricity, co-orbital guiding-center approximation to the planar circular restricted three-body problem.
 
