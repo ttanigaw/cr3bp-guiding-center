@@ -4,12 +4,11 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Initial web application development scaffold completed.
+Guiding-center physics core implemented and under validation.
 
-A minimal React page is implemented; physics, integration, and visualization have not started.
+A minimal React page is implemented. The reduced guiding-center equations, disturbing function, analytic derivatives, reduced Hamiltonian, body-distance diagnostics, and tidal parameter are now implemented independently of the UI.
 
-The development scaffold supports continuing work from a fresh checkout or Codespace.
-The next implementation goal is the independent physics module and its tests.
+The next implementation goal is the numerical integrator and reduced-Hamiltonian conservation testing.
 
 ---
 
@@ -22,10 +21,10 @@ The following project documents have been prepared:
 - `docs/APP_SPEC.md`
 - `docs/PROJECT_STATE.md`
 
-`README.md` is present and includes local development and Codespaces instructions.
+`README.md` includes local development and Codespaces instructions.
 
 React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured.
-Dependencies are pinned with an npm lockfile. GitHub Pages deployment is not configured.
+Dependencies are pinned with an npm lockfile. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not configured.
 
 ---
 
@@ -76,11 +75,16 @@ Full PCR3BP comparison is intentionally deferred until the reduced model has bee
 
 ## Implementation status
 
-Implemented: minimal React entry point and placeholder page, CSS, strict TypeScript
-checking, Vite configuration, and a Vitest DOM mounting smoke test.
+Implemented:
 
-`src/physics/` and `src/components/` contain only directory placeholders. No equations,
-integrator, plotting library, or visualization have been added.
+- minimal React entry point and placeholder page;
+- CSS and strict TypeScript checking;
+- Vite configuration;
+- Vitest DOM mounting smoke test;
+- `src/physics/guidingCenter.ts` with pure functions for body distances, the disturbing function, its analytic derivatives, guiding-center rates, the reduced Hamiltonian, and the local tidal-strength parameter;
+- unit tests for analytic derivatives, the `mu = 0` limit, reflection symmetry in `phi`, body distances, and input-domain checks.
+
+The physics functions are independent of React and visualization code.
 
 Planned source structure:
 
@@ -103,7 +107,7 @@ No numerical integrator has been implemented yet.
 
 The initial candidate is a transparent explicit fourth-order Runge-Kutta method.
 
-Before accepting the implementation, it should be tested using:
+Before accepting the integrator, it should be tested using:
 
 - `mu = 0`;
 - conservation of the reduced Hamiltonian;
@@ -116,26 +120,28 @@ Adaptive integration may be considered later if fixed-step integration is insuff
 
 ## Validation status
 
-Browser check passed in Chromium: the placeholder page renders, with no runtime
-errors or horizontal overflow at a 375px viewport. Vite was restarted after the
-clean dependency install to refresh its dependency cache.
+Browser check passed in Chromium for the placeholder application, with no runtime errors or horizontal overflow at a 375px viewport.
 
-Scaffold checks passed: `npm ci`, `npm test` (one DOM smoke test), and
-`npm run build` (TypeScript check and production bundle). The dev-container image
-built successfully; its base image is pinned by version and digest. A fresh GitHub
-Codespaces creation has not been exercised in this session.
+Scaffold checks previously passed: `npm ci`, `npm test`, and `npm run build`; the dev-container image also built successfully. GitHub Actions CI is configured to repeat the install, test, and build checks automatically on pull requests and pushes to `main`.
 
-No numerical validation has been performed yet; no numerical code exists, so
-trajectory and numerical-instability checks are not applicable to this scaffold.
+Physics-core validation currently includes:
 
-The first validation tasks should include:
+1. analytic disturbing-function derivatives checked against centered numerical finite differences at a representative non-singular state;
+2. exact `mu = 0` limiting behavior for the disturbing function, derivatives, radial rate, angular rate, reduced Hamiltonian, and tidal parameter;
+3. expected reflection symmetry under `phi -> -phi`;
+4. barycentric body-distance checks;
+5. rejection of non-positive `r`, out-of-range `mu`, and non-finite inputs.
 
-1. verifying the analytic derivatives of the disturbing function against numerical finite differences;
-2. checking the `mu = 0` limit;
-3. checking reduced-Hamiltonian conservation;
-4. finding stable example initial conditions for horseshoe motion;
-5. finding stable example initial conditions for L4 and L5 tadpole motion;
-6. examining the approximation-validity indicators near horseshoe turns.
+Reduced-Hamiltonian conservation along trajectories has not yet been tested because the numerical integrator is not implemented.
+
+The next validation tasks are:
+
+1. implement a transparent numerical integrator;
+2. check reduced-Hamiltonian conservation;
+3. test simple near-corotation trajectories;
+4. find stable example initial conditions for horseshoe motion;
+5. find stable example initial conditions for L4 and L5 tadpole motion;
+6. examine approximation-validity indicators near horseshoe turns.
 
 Quantitative comparison with the full PCR3BP will be performed in a later development stage.
 
@@ -171,11 +177,9 @@ No hard validity threshold for close encounters has been adopted yet.
 
 ## Next recommended task
 
-Implement the guiding-center physics module independently of the UI, using the
-analytic expressions in `docs/PHYSICS.md`, with derivative and limiting-case tests.
+Implement the numerical integrator independently of the UI, initially using a transparent fixed-step fourth-order Runge-Kutta method.
 
-Then implement the numerical integrator, verify reduced-Hamiltonian conservation,
-and only then begin trajectory visualization.
+Then verify reduced-Hamiltonian conservation and simple limiting cases before beginning trajectory visualization.
 
 ---
 
