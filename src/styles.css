@@ -8,7 +8,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 main {
   max-width: 96rem;
@@ -30,7 +30,7 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; }
   align-items: start;
 }
 
-.control-card, .trajectory-card, .diagnostics-card {
+.control-card, .trajectory-card, .diagnostics-card, .playback-card {
   margin: 0;
   padding: 1.25rem;
   border: 1px solid #d7e0ea;
@@ -58,25 +58,35 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; }
 .calculate-button:hover { background: #1d527f; }
 .calculation-error { margin: 0.85rem 0 0; padding: 0.7rem 0.8rem; border: 1px solid #e5b6b6; border-radius: 0.6rem; color: #7b2525; background: #fff5f5; font-size: 0.84rem; }
 
-.control-note, .plot-note, .diagnostic-note { margin-bottom: 0; color: #708095; font-size: 0.82rem; }
+.control-note, .plot-note, .diagnostic-note, .playback-note { margin-bottom: 0; color: #708095; font-size: 0.82rem; }
 .control-note { margin-top: 1rem; }
 .plot-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: end; margin-bottom: 0.75rem; }
-.plot-heading h2, .diagnostics-card h2 { margin-bottom: 0; }
+.plot-heading h2, .diagnostics-card h2, .playback-card h2 { margin-bottom: 0; }
+
+.playback-card { display: grid; gap: 0.85rem; }
+.playback-controls { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: end; }
+.playback-controls button { padding: 0.52rem 0.8rem; border: 1px solid #b8c8d8; border-radius: 0.55rem; color: #17324b; background: #f7fafc; font-weight: 700; cursor: pointer; }
+.playback-controls button:hover:not(:disabled) { border-color: #7799b8; background: #edf5fc; }
+.playback-controls button:disabled { opacity: 0.45; cursor: default; }
+.playback-controls label { display: grid; gap: 0.25rem; margin-left: 0.2rem; color: #52657a; font-size: 0.76rem; font-weight: 700; }
+.playback-controls select { min-width: 5rem; padding: 0.5rem 0.55rem; border: 1px solid #b8c8d8; border-radius: 0.55rem; color: #17324b; background: #ffffff; }
+.playback-status { margin: 0; color: #253e55; font-variant-numeric: tabular-nums; font-weight: 700; }
 
 .trajectory-plot { display: block; width: 100%; aspect-ratio: 1; border-radius: 0.8rem; background: #f8fbfe; }
 .axis { stroke: #d8e2ec; stroke-width: 0.006; }
 .corotation, .reference-orbit { fill: none; stroke: #b7c5d4; stroke-width: 0.009; stroke-dasharray: 0.035 0.025; }
 .trajectory-path { fill: none; stroke: #2d6faa; stroke-width: 0.015; stroke-linecap: round; stroke-linejoin: round; }
-.inertial-trajectory-path { stroke-width: 0.01; opacity: 0.72; }
+.inertial-trajectory-path { stroke-width: 0.012; opacity: 0.68; }
 .primary-body { fill: #1d2b3a; }
 .secondary-body { fill: #c46e2e; }
 .lagrange-point { fill: #7a67ad; }
-.initial-position { fill: #2d6faa; stroke: #ffffff; stroke-width: 0.01; }
+.current-position { fill: #0f8a7a; stroke: #ffffff; stroke-width: 0.012; }
 
 .plot-legend { display: flex; flex-wrap: wrap; gap: 0.8rem 1.2rem; margin-top: 0.9rem; color: #64758a; font-size: 0.82rem; }
 .plot-legend span { display: inline-flex; gap: 0.4rem; align-items: center; }
 .legend-swatch { display: inline-block; width: 0.65rem; height: 0.65rem; border-radius: 999px; }
 .trajectory-swatch { background: #2d6faa; }
+.current-swatch { background: #0f8a7a; }
 .primary-swatch { background: #1d2b3a; }
 .secondary-swatch { background: #c46e2e; }
 .lagrange-swatch { background: #7a67ad; }
