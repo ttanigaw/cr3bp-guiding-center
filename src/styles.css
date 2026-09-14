@@ -15,7 +15,8 @@ body {
   min-width: 320px;
 }
 
-button {
+button,
+input {
   font: inherit;
 }
 
@@ -65,13 +66,14 @@ h2 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
+  grid-template-columns: minmax(16rem, 21rem) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
 
 .control-card,
-.trajectory-card {
+.trajectory-card,
+.diagnostics-card {
   margin: 0;
   border: 1px solid #d7e0ea;
   border-radius: 1rem;
@@ -79,8 +81,16 @@ h2 {
   box-shadow: 0 1rem 2.5rem rgba(32, 55, 80, 0.08);
 }
 
-.control-card {
+.control-card,
+.trajectory-card,
+.diagnostics-card {
   padding: 1.25rem;
+}
+
+.result-stack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .preset-list {
@@ -115,39 +125,84 @@ h2 {
   font-size: 0.86rem;
 }
 
-.parameter-grid {
+.parameter-form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem 1rem;
-  margin: 1.35rem 0;
+  gap: 0.85rem;
+  margin-top: 1.35rem;
 }
 
-.parameter-grid div {
-  min-width: 0;
-}
-
-.parameter-grid dt {
-  color: #718095;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.parameter-grid dd {
-  margin: 0.1rem 0 0;
-  font-variant-numeric: tabular-nums;
+.parameter-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: #42566b;
+  font-size: 0.84rem;
   font-weight: 650;
 }
 
+.parameter-form input {
+  width: 100%;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid #cbd7e3;
+  border-radius: 0.55rem;
+  color: #102033;
+  background: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.parameter-form input:focus {
+  outline: 2px solid #8db8df;
+  outline-offset: 1px;
+  border-color: #5b8fbd;
+}
+
+.input-with-unit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.input-with-unit > span {
+  color: #718095;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.calculate-button {
+  margin-top: 0.2rem;
+  padding: 0.72rem 1rem;
+  border: 0;
+  border-radius: 0.65rem;
+  color: #ffffff;
+  background: #245f96;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calculate-button:hover {
+  background: #1d527f;
+}
+
+.calculation-error {
+  margin: 0.85rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e5b6b6;
+  border-radius: 0.6rem;
+  color: #7b2525;
+  background: #fff5f5;
+  font-size: 0.84rem;
+}
+
 .control-note,
-.plot-note {
+.plot-note,
+.diagnostic-note {
   margin-bottom: 0;
   color: #708095;
   font-size: 0.82rem;
 }
 
-.trajectory-card {
-  padding: 1.25rem;
+.control-note {
+  margin-top: 1rem;
 }
 
 .plot-heading {
@@ -158,7 +213,8 @@ h2 {
   margin-bottom: 0.75rem;
 }
 
-.plot-heading h2 {
+.plot-heading h2,
+.diagnostics-card h2 {
   margin-bottom: 0;
 }
 
@@ -234,6 +290,43 @@ h2 {
 .primary-swatch { background: #1d2b3a; }
 .secondary-swatch { background: #c46e2e; }
 .lagrange-swatch { background: #7a67ad; }
+
+.diagnostics-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.diagnostics-grid div {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: #f7fafc;
+}
+
+.diagnostics-grid dt {
+  color: #718095;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.diagnostics-grid dd {
+  margin: 0.18rem 0 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .diagnostics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 760px) {
   main {
