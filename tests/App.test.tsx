@@ -3,11 +3,22 @@ import { createRoot } from 'react-dom/client'
 import { expect, it } from 'vitest'
 import App from '../src/App'
 
-it('renders both frame views, recalculates explicitly, and reports diagnostics', async () => {
+it('renders both frame views, shares playback controls, recalculates explicitly, and reports diagnostics', async () => {
   const container = document.createElement('div')
   document.body.append(container)
   const root = createRoot(container)
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+
+  let scheduledFrame: FrameRequestCallback | null = null
+  const originalRequestAnimationFrame = globalThis.requestAnimationFrame
+  const originalCancelAnimationFrame = globalThis.cancelAnimationFrame
+  globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
+    scheduledFrame = callback
+    return 1
+  }
+  globalThis.cancelAnimationFrame = () => {
+    scheduledFrame = null
+  }
 
   try {
     await act(async () => root.render(<App />))
@@ -19,16 +30,36 @@ it('renders both frame views, recalculates explicitly, and reports diagnostics',
     expect(container.textContent).toContain('Rotating frame')
     expect(container.textContent).toContain('Inertial frame')
     expect(container.textContent).toContain('θ = φ + t')
+    expect(container.textContent).toContain('Playback')
+    expect(container.textContent).toContain('recent trail = 2 binary periods')
     expect(container.textContent).toContain('Diagnostics')
     expect(container.textContent).toContain('Max |ΔH|')
     expect(container.textContent).toContain('Min secondary distance')
     expect(container.querySelector('.trajectory-path')).not.toBeNull()
     expect(container.querySelector('.inertial-trajectory-path')).not.toBeNull()
+    expect(container.querySelectorAll('.current-position')).toHaveLength(2)
     expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
 
+    const buttons = () => Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
+    const findButton = (label: string) => buttons().find((button) => button.textContent === label)
+
+    await act(async () => findButton('Play')?.click())
+    expect(container.textContent).toContain('playing')
+
+    const firstFrame = scheduledFrame
+    await act(async () => firstFrame?.(0))
+    const secondFrame = scheduledFrame
+    await act(async () => secondFrame?.(500))
+    expect(container.textContent).toContain('0.50 binary periods')
+
+    await act(async () => findButton('Pause')?.click())
+    expect(container.textContent).toContain('paused')
+
+    await act(async () => findButton('Reset')?.click())
+    expect(container.textContent).toContain('0.00 binary periods')
+
     const tMaxInput = container.querySelector<HTMLInputElement>('input[name="tMax"]')
-    const calculateButton = Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
-      .find((button) => button.textContent === 'Calculate')
+    const calculateButton = findButton('Calculate')
 
     expect(tMaxInput).not.toBeNull()
     expect(calculateButton).toBeDefined()
@@ -51,6 +82,7 @@ it('renders both frame views, recalculates explicitly, and reports diagnostics',
 
     expect(container.textContent).toContain('1.6')
     expect(container.textContent).toContain('201')
+    expect(container.textContent).toContain('0.00 binary periods')
 
     const muInput = container.querySelector<HTMLInputElement>('input[name="mu"]')
     await act(async () => {
@@ -73,5 +105,7 @@ it('renders both frame views, recalculates explicitly, and reports diagnostics',
     await act(async () => root.unmount())
     container.remove()
     Reflect.deleteProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT')
+    globalThis.requestAnimationFrame = originalRequestAnimationFrame
+    globalThis.cancelAnimationFrame = originalCancelAnimationFrame
   }
 })
