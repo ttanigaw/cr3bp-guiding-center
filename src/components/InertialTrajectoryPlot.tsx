@@ -13,8 +13,10 @@ interface InertialTrajectoryPlotProps {
 }
 
 const VIEW_LIMIT = 1.35
+const AXIS_LIMIT = 1.22
+const AXIS_LABEL_OFFSET = 1.28
 const MAX_PATH_POINTS = 1200
-const TRAIL_DURATION = 4 * Math.PI
+const TRAIL_DURATION = Math.PI
 
 function sampledPoints(trajectory: TrajectoryPoint[]): TrajectoryPoint[] {
   if (trajectory.length <= MAX_PATH_POINTS) {
@@ -69,7 +71,7 @@ export default function InertialTrajectoryPlot({
           <p className="eyebrow">Inertial frame</p>
           <h2 id="inertial-trajectory-title">Guiding-center trajectory</h2>
         </div>
-        <p className="plot-note">θ = φ + t · recent trail = 2 binary periods</p>
+        <p className="plot-note">θ = φ + t · recent trail = 0.5 binary period</p>
       </div>
 
       <svg
@@ -80,13 +82,28 @@ export default function InertialTrajectoryPlot({
       >
         <title id="inertial-svg-title">Animated inertial-frame guiding-center trajectory</title>
         <desc id="inertial-svg-description">
-          Current reduced guiding-center position with a recent trail. The primary, secondary, L4,
-          and L5 rotate with the same animation time.
+          Current reduced guiding-center position with a recent half-orbit trail. The primary,
+          secondary, L4, and L5 rotate with the same animation time. Positive inertial X and Y
+          directions are marked with arrows.
         </desc>
 
-        <line className="axis" x1={-VIEW_LIMIT} x2={VIEW_LIMIT} y1="0" y2="0" />
-        <line className="axis" x1="0" x2="0" y1={-VIEW_LIMIT} y2={VIEW_LIMIT} />
+        <defs>
+          <marker id="inertial-axis-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 6 3 L 0 6 z" className="axis-arrowhead" />
+          </marker>
+        </defs>
+
         <circle className="reference-orbit" cx="0" cy="0" r="1" />
+
+        <line className="axis" x1={-AXIS_LIMIT} x2={AXIS_LIMIT} y1="0" y2="0" />
+        <line className="axis" x1="0" x2="0" y1={-AXIS_LIMIT} y2={AXIS_LIMIT} />
+        <line className="positive-axis" x1="0" y1="0" x2={AXIS_LIMIT} y2="0" markerEnd="url(#inertial-axis-arrow)" />
+        <line className="positive-axis" x1="0" y1="0" x2="0" y2={-AXIS_LIMIT} markerEnd="url(#inertial-axis-arrow)" />
+        <text className="axis-label" x={AXIS_LABEL_OFFSET} y="0">+X</text>
+        <text className="axis-label" x="0" y={-AXIS_LABEL_OFFSET}>+Y</text>
+
+        <polyline className="lagrange-geometry" points={`${primaryX},${primaryY} ${l4X},${l4Y} ${secondaryX},${secondaryY} ${primaryX},${primaryY}`} />
+        <polyline className="lagrange-geometry" points={`${primaryX},${primaryY} ${l5X},${l5Y} ${secondaryX},${secondaryY} ${primaryX},${primaryY}`} />
 
         <circle className="lagrange-point" cx={l4X} cy={l4Y} r="0.018" />
         <circle className="lagrange-point" cx={l5X} cy={l5Y} r="0.018" />
