@@ -9,15 +9,15 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
   const root = createRoot(container)
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 
-  let scheduledFrame: FrameRequestCallback | null = null
+  let runScheduledFrame: ((timestamp: number) => void) | undefined
   const originalRequestAnimationFrame = globalThis.requestAnimationFrame
   const originalCancelAnimationFrame = globalThis.cancelAnimationFrame
   globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
-    scheduledFrame = callback
+    runScheduledFrame = (timestamp: number) => callback(timestamp)
     return 1
   }
   globalThis.cancelAnimationFrame = () => {
-    scheduledFrame = null
+    runScheduledFrame = undefined
   }
 
   try {
@@ -46,10 +46,14 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
     await act(async () => findButton('Play')?.click())
     expect(container.textContent).toContain('playing')
 
-    const firstFrame = scheduledFrame
-    await act(async () => firstFrame?.(0))
-    const secondFrame = scheduledFrame
-    await act(async () => secondFrame?.(500))
+    const firstFrame = runScheduledFrame
+    if (firstFrame) {
+      await act(async () => firstFrame(0))
+    }
+    const secondFrame = runScheduledFrame
+    if (secondFrame) {
+      await act(async () => secondFrame(500))
+    }
     expect(container.textContent).toContain('0.50 binary periods')
 
     await act(async () => findButton('Pause')?.click())
