@@ -31,7 +31,7 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
     expect(container.textContent).toContain('Inertial frame')
     expect(container.textContent).toContain('θ = φ + t')
     expect(container.textContent).toContain('Playback')
-    expect(container.textContent).toContain('recent trail = 2 binary periods')
+    expect(container.textContent).toContain('recent trail = 0.5 binary period')
     expect(container.textContent).toContain('Diagnostics')
     expect(container.textContent).toContain('Max |ΔH|')
     expect(container.textContent).toContain('Min secondary distance')
@@ -39,6 +39,8 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
     expect(container.querySelector('.inertial-trajectory-path')).not.toBeNull()
     expect(container.querySelectorAll('.current-position')).toHaveLength(2)
     expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
+    expect(container.querySelectorAll('.lagrange-geometry')).toHaveLength(4)
+    expect(container.querySelectorAll('.axis-label')).toHaveLength(4)
 
     const buttons = () => Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
     const findButton = (label: string) => buttons().find((button) => button.textContent === label)
