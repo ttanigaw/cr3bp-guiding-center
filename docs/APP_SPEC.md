@@ -6,7 +6,7 @@ This document defines the functional and user-interface requirements of the `cr3
 
 The application is intended to visualize co-orbital motion in the planar circular restricted three-body problem (PCR3BP), with particular emphasis on the reduced guiding-center model defined in `docs/PHYSICS.md`.
 
-The main educational and scientific goal is to make horseshoe and tadpole motion understandable without the visual complication of free epicyclic oscillation.
+The main educational and scientific goal is to make horseshoe and tadpole motion understandable without the visual complication of free epicyclic oscillation, and to make the distinction between rotating-frame and inertial-frame descriptions directly visible.
 
 The application should run entirely in a web browser and should not require a server-side numerical backend.
 
@@ -64,9 +64,12 @@ The first release should allow a user to:
 3. choose the initial rotating-frame angle `phi0`;
 4. choose an integration duration;
 5. calculate the orbit;
-6. visualize the orbit in the rotating frame;
-7. inspect the radial and angular evolution;
-8. inspect basic numerical diagnostics.
+6. visualize the same reduced trajectory in both the rotating frame and the inertial frame;
+7. animate the two frame views with a shared time coordinate;
+8. inspect the radial and angular evolution;
+9. inspect basic numerical diagnostics.
+
+The inertial-frame view is a coordinate transformation of the same reduced guiding-center solution, not a separate dynamical model.
 
 The full PCR3BP comparison mode is planned for a later stage.
 
@@ -190,7 +193,7 @@ The first version does not need to recalculate continuously while parameters are
 
 ## 8. Primary visualization: rotating-frame orbit
 
-The main visualization should show the trajectory in the rotating Cartesian plane.
+The rotating-frame visualization should show the trajectory in the rotating Cartesian plane.
 
 Coordinates are obtained from the reduced variables using:
 
@@ -214,6 +217,57 @@ The plot limits should remain sufficiently stable during animation to avoid dist
 
 ---
 
+## 8.1 Companion visualization: inertial-frame orbit
+
+The application should provide an inertial-frame view alongside the rotating-frame view.
+
+The inertial azimuth is defined in `docs/PHYSICS.md` by:
+
+`theta = phi + t`
+
+with the binary angular frequency equal to unity in the adopted nondimensional units.
+
+The reduced guiding-center trajectory should therefore be displayed in inertial Cartesian coordinates using:
+
+`X = r cos(phi + t)`
+
+`Y = r sin(phi + t)`
+
+The inertial-frame view must be generated from the already calculated reduced trajectory. It must not trigger a second numerical integration or alter the governing equations.
+
+The phase convention should be:
+
+- at `t = 0`, the rotating and inertial Cartesian axes coincide;
+- the secondary begins on the positive inertial `X` axis;
+- positive time advances counterclockwise.
+
+The primary and secondary should move in the inertial frame according to:
+
+`X1 = -mu cos(t)`
+
+`Y1 = -mu sin(t)`
+
+`X2 = (1 - mu) cos(t)`
+
+`Y2 = (1 - mu) sin(t)`
+
+The inertial-frame plot should use equal aspect ratio and, where practical, comparable spatial limits to the rotating-frame plot so that the two representations are easy to compare.
+
+The view should make clear that the displayed third-body path is the guiding-center trajectory transformed into inertial coordinates, not the exact full-PCR3BP physical trajectory.
+
+For a static pre-animation view, the full transformed path may be shown. Because long integrations can produce many overlapping revolutions in the inertial frame, animation should not depend on displaying the entire inertial path at full opacity.
+
+The preferred animated inertial-frame presentation is:
+
+- current position emphasized;
+- primary and secondary moving at the same animation time;
+- an optional recent trailing path or subdued accumulated path;
+- no change to the underlying numerical trajectory.
+
+If L4 and L5 markers are shown in the inertial view, they should rotate with the binary at the same angular frequency rather than remain fixed on the screen.
+
+---
+
 ## 9. Body positions
 
 In the adopted nondimensional rotating frame:
@@ -221,7 +275,9 @@ In the adopted nondimensional rotating frame:
 - the primary is located at `(-mu, 0)`;
 - the secondary is located at `(1 - mu, 0)`.
 
-The secondary should be visually distinguishable from the primary.
+In the inertial frame, the same bodies follow the circular motion specified in Section 8.1.
+
+The secondary should be visually distinguishable from the primary in both frames.
 
 The size of the displayed symbols does not need to correspond to the physical radii of the bodies.
 
@@ -229,14 +285,14 @@ The size of the displayed symbols does not need to correspond to the physical ra
 
 ## 10. Lagrange-point markers
 
-The application should eventually display the Lagrange points.
+The application should display the Lagrange points where they aid interpretation.
 
 For the initial release, the highest priority is to display:
 
 - L4;
 - L5.
 
-Their positions in the standard PCR3BP coordinates are:
+Their positions in the standard rotating PCR3BP coordinates are:
 
 `x = 1/2 - mu`
 
@@ -251,6 +307,8 @@ for L4, and
 for L5.
 
 L1, L2, and L3 may be added later.
+
+In the inertial view, any displayed Lagrange-point markers should rotate with the binary and remain synchronized with the current animation time.
 
 ---
 
@@ -267,12 +325,19 @@ The UI should allow:
 - reset;
 - adjustment of playback speed.
 
-The displayed trajectory may show either:
+A single shared animation time should drive:
 
-- the full calculated path, with a moving marker; or
-- the path accumulated up to the current animation time.
+- the rotating-frame current-position marker;
+- the inertial-frame current-position marker;
+- the inertial primary and secondary positions;
+- any inertial Lagrange-point markers;
+- current-state markers on time-series and phase-space plots.
 
-The preferred initial implementation is to show the full path in a subdued style and emphasize the current position.
+The rotating-frame plot may show the full calculated path in a subdued style with a moving current-position marker.
+
+For the inertial-frame plot, a recent trailing path is preferred during animation because a full long-duration path may become visually dense after many binary revolutions. The length of the trail is a display parameter and must not modify the numerical solution.
+
+Reset should return the shared animation time to `t = 0` in every panel.
 
 ---
 
@@ -314,6 +379,8 @@ or:
 `0 <= phi < 2 pi`
 
 The selected convention should be used consistently throughout the application.
+
+The inertial angle `theta = phi + t` may be displayed later as an auxiliary quantity, but it is not required as a separate time-series plot for version 0.1 because the inertial orbit panel already visualizes it directly.
 
 ---
 
@@ -387,9 +454,9 @@ The wording should make clear that the warning concerns the validity of the appr
 
 ---
 
-## 17. Numerical integration
+## 17. Numerical integration and coordinate transforms
 
-The numerical solver should be implemented separately from the UI.
+The numerical solver should be implemented separately from the UI and visualization coordinate transforms.
 
 For the first implementation, a standard explicit Runge-Kutta method is acceptable.
 
@@ -406,6 +473,8 @@ The implementation should favor:
 
 The numerical method should not contain hidden smoothing.
 
+Rotating-to-inertial coordinate transformation should be implemented as a deterministic pure transformation of trajectory samples. It should be unit-tested independently of rendering.
+
 ---
 
 ## 18. Numerical failure handling
@@ -418,30 +487,29 @@ The solver should stop or return a clear error state if:
 
 The UI should display an understandable message rather than silently producing an invalid trajectory.
 
+A rendering problem in one frame should not silently change or recompute the numerical trajectory.
+
 ---
 
 ## 19. Default visualization layout
 
-A suitable desktop layout is:
+A suitable desktop layout should make the two coordinate descriptions directly comparable.
 
-- control panel on the left;
-- main rotating-frame orbit plot on the right;
-- diagnostic and secondary plots below.
+A preferred wide-screen arrangement is:
 
-A possible layout is:
+    -------------------------------------------------------------------
+    | Controls | Rotating-frame orbit | Inertial-frame orbit          |
+    -------------------------------------------------------------------
+    | r(t)                    | phi(t)                                |
+    -------------------------------------------------------------------
+    | Phase space             | Diagnostics                           |
+    -------------------------------------------------------------------
 
-    -------------------------------------------------
-    | Controls     | Rotating-frame orbit          |
-    |              |                               |
-    -------------------------------------------------
-    | r(t)         | phi(t)                        |
-    -------------------------------------------------
-    | Phase space  | Diagnostics                   |
-    -------------------------------------------------
+If three columns are too narrow for the available viewport, the controls may occupy a separate row or sidebar while the two square orbit panels remain adjacent.
 
-This layout is only a recommendation.
+The rotating and inertial orbit panels should have similar visual weight and, where practical, the same plot dimensions.
 
-Responsive behavior may rearrange panels on narrower screens.
+On narrower screens, responsive behavior may stack the panels vertically. The order should keep the rotating-frame and inertial-frame plots adjacent in the reading flow so that the comparison remains clear.
 
 ---
 
@@ -454,15 +522,19 @@ The interface should:
 - use a clean light or dark theme;
 - maintain good contrast;
 - avoid unnecessary animation;
-- use consistent symbols and labels;
+- use consistent symbols and labels between rotating and inertial views;
 - display mathematical variables using familiar notation where practical.
 
 The visualization should make it immediately clear:
 
+- which panel is rotating and which is inertial;
 - where the two massive bodies are;
 - where the third body is;
-- whether the orbit is horseshoe-like or tadpole-like;
+- whether the rotating-frame orbit is horseshoe-like or tadpole-like;
+- how the same motion appears in the inertial frame;
 - how the guiding-center radius changes.
+
+The same physical object should use the same visual symbol or color in both frame panels.
 
 ---
 
@@ -475,7 +547,8 @@ Where useful, the UI should explain that:
 - binary separation is `1`;
 - binary angular frequency is `1`;
 - binary orbital period is `2 pi`;
-- corotation radius is near `r = 1`.
+- corotation radius is near `r = 1`;
+- inertial azimuth satisfies `theta = phi + t`.
 
 The user should not have to infer these conventions from the source code.
 
@@ -483,7 +556,7 @@ The user should not have to infer these conventions from the source code.
 
 ## 22. Preset examples
 
-A later version should provide preset initial conditions.
+Preset initial conditions should be available for useful representative trajectories.
 
 Useful presets include:
 
@@ -515,6 +588,8 @@ A later release should provide a comparison mode between:
 The two trajectories should be visually distinguishable.
 
 The purpose is to demonstrate that the full trajectory contains epicyclic motion while the reduced solution follows the slow guiding-center evolution.
+
+The rotating/inertial frame selection and the reduced/full model comparison are conceptually separate. Adding the inertial view of the reduced model does not constitute full-PCR3BP comparison.
 
 The comparison mode must not be implemented until the initialization procedure for a low-free-eccentricity full PCR3BP orbit has been defined and documented.
 
@@ -577,6 +652,10 @@ Numerical accuracy and clarity take priority over frame rate or raw integration 
 
 Trajectory calculation and animation should remain responsive for typical educational examples.
 
+The inertial-frame transformation should be computed from the existing trajectory and should not duplicate the cost of numerical integration.
+
+Display-only down-sampling or trail-length limits may be used when needed, provided they do not alter the numerical solution or diagnostics.
+
 ---
 
 ## 28. Accessibility
@@ -585,7 +664,9 @@ Controls should have textual labels.
 
 The application should not rely solely on color to distinguish physically different objects or trajectories.
 
-Plots should include readable axis labels.
+Plots should include readable axis labels or equivalent descriptive labeling.
+
+Frame identity must be communicated textually, not only by the apparent motion of the bodies.
 
 Keyboard accessibility is desirable but is not required for the first prototype.
 
@@ -597,16 +678,17 @@ Version 0.1 is considered complete when the application can:
 
 1. accept `mu`, `r0`, `phi0`, and integration duration;
 2. numerically integrate the reduced guiding-center equations;
-3. display the orbit in the rotating `x-y` plane;
-4. display the primary and secondary;
-5. display the corotation circle;
-6. animate the calculated trajectory;
-7. display `r(t)`;
-8. display `phi(t)` or an equivalent angular diagnostic;
-9. display the `phi` versus `r - 1` phase-space trajectory;
-10. calculate the reduced Hamiltonian along the trajectory;
-11. report numerical failure clearly;
-12. run as a static web application suitable for GitHub Pages.
+3. display the reduced orbit in the rotating `x-y` plane;
+4. display the same reduced orbit in an inertial `X-Y` plane using `theta = phi + t`;
+5. display the primary and secondary correctly in both frames;
+6. display the corotation circle in the rotating view;
+7. animate the calculated trajectory with both frame views synchronized to the same time;
+8. display `r(t)`;
+9. display `phi(t)` or an equivalent angular diagnostic;
+10. display the `phi` versus `r - 1` phase-space trajectory;
+11. calculate the reduced Hamiltonian along the trajectory;
+12. report numerical failure clearly;
+13. run as a static web application suitable for GitHub Pages.
 
 Full PCR3BP comparison is not required for version 0.1.
 
@@ -616,11 +698,12 @@ Full PCR3BP comparison is not required for version 0.1.
 
 A reasonable next milestone is:
 
-- L4 and L5 markers;
-- validated horseshoe and tadpole presets;
+- additional Lagrange-point markers where useful;
+- near-separatrix and circulating presets;
 - approximation-validity diagnostics;
 - improved numerical controls;
-- improved responsive layout.
+- improved responsive layout;
+- optional control over inertial-frame trail length and display style.
 
 ---
 
@@ -643,3 +726,5 @@ The first goal is not to build a feature-rich application.
 The first goal is to establish a physically correct, numerically reliable, and easily understandable implementation of the guiding-center model.
 
 New features should be added only after the basic reduced dynamics have been validated.
+
+For the next visualization step, implement and test the rotating-to-inertial coordinate transform and a static inertial-frame companion panel before introducing shared animation. Once both static frame views are validated, add a single animation clock that drives both panels and the later diagnostic plots.
