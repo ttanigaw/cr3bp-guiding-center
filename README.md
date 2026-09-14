@@ -2,241 +2,130 @@
 
 A browser-based visualization tool for co-orbital motion in the planar circular restricted three-body problem (PCR3BP).
 
-The main focus of this project is a reduced guiding-center model that suppresses free epicyclic motion while retaining the slow co-orbital dynamics responsible for horseshoe and tadpole trajectories.
+The project focuses on a reduced guiding-center model that suppresses free epicyclic motion while retaining the slow co-orbital dynamics responsible for horseshoe and tadpole trajectories.
 
-The application is intended for educational and scientific visualization.
+## Current capabilities
 
----
+The browser application currently supports:
 
-## Project goals
+- direct input of mass ratio `mu`, initial guiding-center radius `r0`, initial rotating-frame angle `phi0`, and integration duration;
+- validated horseshoe, L4 tadpole, and L5 tadpole presets;
+- client-side fixed-step RK4 integration of the reduced guiding-center equations;
+- rotating-frame and inertial-frame visualizations of the same reduced trajectory;
+- shared animation controls for the two frame views;
+- a full rotating-frame orbit with a moving current-position marker;
+- an inertial-frame current position with a recent trail, rotating primary/secondary, and rotating L4/L5 markers;
+- reduced-Hamiltonian drift and minimum-secondary-distance diagnostics.
 
-The project aims to provide an intuitive visualization of co-orbital dynamics in a rotating frame.
+The inertial view is a coordinate transformation of the already calculated reduced solution. It does not perform a second dynamical integration.
 
-In particular, it is designed to show:
-
-- horseshoe motion;
-- tadpole motion around L4 and L5;
-- guiding-center radial migration;
-- angular-momentum exchange with the secondary;
-- the difference between reduced guiding-center motion and the full PCR3BP.
-
-A future comparison mode will show how free epicyclic motion appears in the full equations but is removed from the reduced guiding-center model.
-
----
+Time-series and phase-space plots are planned next. Full PCR3BP comparison is intentionally deferred until the reduced model has been validated further.
 
 ## Physical model
 
-The default model is a reduced guiding-center approximation to the planar circular restricted three-body problem.
-
-The reduced variables are:
-
-- guiding-center radius `r`;
-- rotating-frame co-orbital angle `phi`.
-
-The model removes the independent free-eccentricity degree of freedom through fast-angle averaging.
-
-The governing equations, assumptions, coordinate definitions, and validity conditions are documented in:
+The authoritative physical model is documented in:
 
 `docs/PHYSICS.md`
 
-That file is the authoritative source for the physical model.
+The reduced variables are the guiding-center radius `r` and rotating-frame co-orbital angle `phi`. In the adopted nondimensional units, the inertial azimuth is
 
----
+`theta = phi + t`.
 
-## Application specification
+The reduced radial variable is a guiding-center radius, not in general the instantaneous physical radius of a full PCR3BP trajectory.
 
-The planned application behavior and user-interface requirements are documented in:
+## Application specification and project state
+
+Application behavior and visualization requirements are defined in:
 
 `docs/APP_SPEC.md`
 
-The first release will focus on the reduced guiding-center model only.
-
-Planned version 0.1 features include:
-
-- user input for mass ratio `mu`;
-- initial guiding-center radius;
-- initial rotating-frame angle;
-- integration duration;
-- numerical integration in the browser;
-- rotating-frame orbit visualization;
-- orbit animation;
-- `r(t)` plot;
-- angular evolution plot;
-- `phi` versus `r - 1` phase-space plot;
-- reduced-Hamiltonian diagnostic;
-- basic approximation-validity diagnostics.
-
----
-
-## Project status
-
-Current development status is documented in:
+Current implementation status, validation notes, open questions, and the next recommended task are recorded in:
 
 `docs/PROJECT_STATE.md`
 
-This file is updated during development and should be read before starting substantial work.
-
----
+Contributors and coding agents should also read `AGENTS.md` before substantial work.
 
 ## Repository structure
 
-The intended structure is approximately:
-
-    AGENTS.md
-    README.md
-
-    docs/
-      PHYSICS.md
-      APP_SPEC.md
-      PROJECT_STATE.md
+The main source layout is:
 
     src/
       physics/
         guidingCenter.ts
-        cr3bp.ts
         integrator.ts
+        diagnostics.ts
+        presets.ts
+      visualization/
+        frames.ts
+        playback.ts
       components/
+        TrajectoryPlot.tsx
+        InertialTrajectoryPlot.tsx
       App.tsx
 
     tests/
+    docs/
 
-The exact source layout may evolve during implementation.
-
----
-
-## Development principles
-
-The project follows several priorities:
-
-1. physical correctness;
-2. numerical correctness;
-3. clarity and reproducibility;
-4. maintainability;
-5. visualization quality;
-6. performance optimization.
-
-Physics calculations should remain separate from user-interface code.
-
-The implementation should favor transparent numerical methods over opaque optimization.
-
----
+Physics, integration, frame transforms, playback helpers, and React rendering are kept separate so the numerical model can be tested independently of the UI.
 
 ## Local development
 
-The initial React + TypeScript + Vite scaffold is implemented. It displays a
-placeholder page; physics, integration, and trajectory plots are not implemented.
-
-Use Node.js 24.20.0 (also recorded in `.nvmrc`) and npm:
+Use Node.js 24.20.0, also recorded in `.nvmrc`:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`. The development server binds to all interfaces to
-support container port forwarding.
+The Vite development server uses port 5173 and binds to all interfaces.
+
+Useful commands:
 
 ```sh
-npm test            # run the Vitest smoke test once
-npm run test:watch  # watch tests during development
-npm run build      # TypeScript check and production bundle in dist/
-npm run preview    # serve the production bundle locally
+npm test
+npm run test:watch
+npm run build
+npm run preview
 ```
-
-Dependencies use exact versions and a committed `package-lock.json`; use `npm ci`
-for repeatable installs. Future physics modules belong in `src/physics/`, reusable
-UI components in `src/components/`, and tests in `tests/`.
 
 ## GitHub Codespaces
 
-Create a Codespace on the development branch, or reopen the repository in a dev
-container. `.devcontainer/` selects Node.js 24.20.0 on Debian Bookworm and runs
-`npm ci` after creation. Run `npm run dev`, then open forwarded port 5173 from the
-Ports panel. The server does not start automatically.
+Create or reopen a Codespace for the repository. The dev container installs dependencies automatically with `npm ci`.
 
-This configures development only; GitHub Pages deployment is still pending.
+Start the development server with:
 
----
+```sh
+npm run dev
+```
+
+Leave that process running, then open forwarded port 5173 from the VS Code **Ports** panel. Opening the application in the local desktop browser through the forwarded `*.app.github.dev` address is the normal Codespaces workflow.
 
 ## Development workflow
 
-GitHub is the canonical source of truth for the project.
+GitHub is the canonical source of truth. Codespaces, local workspaces, and chat sessions are replaceable working environments.
 
-Codespaces, local workspaces, Codex sessions, and ChatGPT conversations should be treated as replaceable working environments rather than persistent project records.
+Substantial changes should normally be developed on a branch, checked by GitHub Actions (`npm ci`, `npm test`, `npm run build`), reviewed, and then merged into `main`.
 
-Before making substantial changes, contributors and coding agents should read:
+Important design decisions and changes in implementation order must be recorded in the repository documentation rather than left only in chat history or commit messages.
 
-- `AGENTS.md`;
-- `docs/PHYSICS.md`;
-- `docs/APP_SPEC.md`;
-- `docs/PROJECT_STATE.md`.
+## Deployment
 
-Important project decisions should be recorded in the repository rather than left only in chat or session history.
+The intended deployment target is GitHub Pages. The application is entirely client-side and requires no numerical backend or database.
 
----
+GitHub Pages deployment is not yet configured.
 
-## Web deployment
+## Planned next features
 
-The intended deployment target is GitHub Pages.
+Near-term work includes:
 
-The application will be implemented as a static client-side web application.
+- `r(t)` visualization synchronized to animation time;
+- wrapped `phi(t)` visualization;
+- `phi` versus `r - 1` phase-space visualization;
+- current-state diagnostics synchronized to animation;
+- approximation-validity indicators;
+- GitHub Pages deployment.
 
-Numerical integration will be performed directly in the user's browser.
-
-No server-side numerical backend is planned for the initial versions.
-
----
-
-## Current development stage
-
-The project is currently in the specification and initial implementation stage.
-
-The reduced physical model and application requirements have been documented.
-
-The next major tasks are:
-
-1. implement the guiding-center physics functions and unit tests;
-2. implement and test the numerical integrator;
-3. validate conservation of the reduced Hamiltonian;
-4. find representative horseshoe and tadpole initial conditions;
-5. implement the first trajectory visualizations;
-6. configure GitHub Pages deployment.
-
----
-
-## Planned future features
-
-Possible later additions include:
-
-- full PCR3BP integration;
-- direct full-versus-reduced comparison;
-- visualization of epicyclic motion;
-- filtered or orbit-averaged full trajectories;
-- L1, L2, and L3 markers;
-- preset orbit examples;
-- shareable parameterized URLs;
-- CSV or JSON trajectory export;
-- improved approximation-validity diagnostics.
-
----
-
-## Documentation
-
-The main project documents are:
-
-- `AGENTS.md`  
-  Development rules for human and AI contributors.
-
-- `docs/PHYSICS.md`  
-  Physical model, derivation, assumptions, and validity conditions.
-
-- `docs/APP_SPEC.md`  
-  Application behavior and visualization requirements.
-
-- `docs/PROJECT_STATE.md`  
-  Current implementation status, open issues, and next tasks.
-
----
+Later work may add full PCR3BP integration, low-free-eccentricity initialization, direct full-versus-reduced comparison, additional Lagrange points, shareable URLs, and trajectory export.
 
 ## License
 
