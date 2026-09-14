@@ -1,14 +1,16 @@
 # Project State
 
-Last updated: 2026-09-14
+Last updated: 2026-09-15
 
 ## Current phase
 
 The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, and synchronized animation are implemented on `main`.
 
+The current development branch refines the visual interpretation after real-browser inspection. No governing equation, integration method, trajectory sample, or diagnostic definition is being changed.
+
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
-A browser review established that the inertial-frame panel is not physically informative as a standalone static picture. Its educational value comes from animation of the primary, secondary, Lagrange points, and guiding center together in inertial coordinates. Static inertial rendering is therefore treated only as a coordinate-transform validation stage.
+A browser review established that the inertial-frame panel is useful primarily as an animation rather than as a static full-path plot. Subsequent display choices therefore emphasize frame interpretation and instantaneous geometry.
 
 ---
 
@@ -22,7 +24,7 @@ GitHub is the canonical project record. The maintained documents are:
 - `docs/PROJECT_STATE.md`
 - `README.md`
 
-`README.md` describes the current application, local/Codespaces development, port forwarding, branch/PR workflow, and near-term feature plan.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` already requires synchronized rotating/inertial animation and a recent inertial trail, so the current work is recorded here as concrete visualization tuning rather than a change to the physical/application scope.
 
 GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not yet configured.
 
@@ -30,15 +32,13 @@ GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests 
 
 ## Physics and numerical model
 
-The authoritative physical model remains `docs/PHYSICS.md`.
-
 The reduced system evolves guiding-center radius `r` and rotating-frame angle `phi`. The inertial azimuth is
 
 `theta = phi + t`
 
 in nondimensional units with binary angular frequency 1.
 
-Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, and inertial trail duration are visualization operations only.
+Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, inertial trail duration, axis overlays, and auxiliary geometry lines are visualization operations only.
 
 The current solver is a transparent fixed-step classical RK4 integrator with UI time step `dt = 0.05`.
 
@@ -58,14 +58,29 @@ Current `main` includes:
 - one shared animation time for both frame panels;
 - current-position marker in the rotating frame;
 - moving inertial primary, secondary, L4/L5, and guiding-center marker;
-- a recent inertial trail of two binary periods rather than the dense full transformed path;
 - maximum reduced-Hamiltonian drift diagnostic;
 - minimum distance to the secondary;
 - explicit numerical-failure reporting.
 
 At `1x` playback, one binary orbital period is displayed per real second. Available speed multipliers are `0.25x`, `0.5x`, `1x`, `2x`, and `4x`.
 
-A successful recalculation pauses playback and resets the display time to `t = 0`. Pressing Play after reaching the end restarts from `t = 0`.
+A successful recalculation pauses playback and resets display time to `t = 0`. Pressing Play after reaching the end restarts from `t = 0`.
+
+---
+
+## Current visualization refinements
+
+The branch `feature/visual-polish` introduces the following display changes based on browser feedback:
+
+- playback time/status text uses a monospace font so changing digits do not visually shift following text;
+- the rotating-frame panel no longer uses screen-fixed rotating-frame `x/y` axes as its main coordinate overlay;
+- instead, it displays the inertial `+X/+Y` axes expressed in rotating-frame coordinates;
+- because the rotating frame advances counterclockwise relative to inertial space, these inertial axes appear to rotate clockwise with angle `-t` in the rotating panel;
+- the inertial-frame `+X/+Y` directions remain screen-fixed and are emphasized with arrows and labels;
+- faint auxiliary triangles connect the primary and secondary to L4 and L5 in both panels;
+- the inertial recent trail is shortened from two binary periods to `0.5` binary period (`pi` in nondimensional time) for improved readability.
+
+The triangle lines, coordinate-axis overlays, arrowheads, labels, and trail duration are display aids only. They are not part of the numerical state and must never feed back into the solver or diagnostics.
 
 ---
 
@@ -87,7 +102,7 @@ Relevant modules are:
         InertialTrajectoryPlot.tsx
       App.tsx
 
-`frames.ts` contains pure rotating/inertial coordinate transforms.
+`frames.ts` contains pure rotating/inertial coordinate transforms and now also provides the inertial positive-axis unit vectors expressed in rotating-frame coordinates.
 
 `playback.ts` contains display-only trajectory interpolation and recent-trail selection. Interpolation is used only for smooth rendering and is never fed back into the numerical solver or diagnostics.
 
@@ -99,21 +114,17 @@ Frame-transform tests verify:
 
 - rotating and inertial coordinates agree at `t = 0`;
 - a `phi = 0` point rotates by +90 degrees at `t = pi/2`;
+- inertial axes expressed in the rotating frame rotate clockwise as expected;
 - the binary rotates rigidly with angular frequency 1;
 - L4/L5 preserve equilateral geometry under inertial rotation.
 
-Playback tests verify:
+Playback tests verify display-time interpolation, endpoint clamping, and recent-trail selection.
 
-- display-time interpolation;
-- endpoint clamping;
-- recent-trail selection with interpolated boundaries;
-- correct behavior when the requested trail extends before the trajectory start.
+The DOM test exercises both frame views, current-position markers, Play/Pause/Reset, mocked playback-time advancement, explicit Calculate, reset-on-recalculation, diagnostics, invalid-input reporting, L4/L5 geometry overlays, and axis labels.
 
-The DOM test exercises both frame views, current-position markers, Play/Pause/Reset, mocked playback-time advancement, explicit Calculate, reset-on-recalculation, diagnostics, and invalid-input reporting.
+PR #11 introduced shared animation and passed CI after a TypeScript-only test typing issue was corrected. PR #12 updated the persistent project record after merge.
 
-PR #11 initially exposed a TypeScript-only test typing error after all Vitest tests passed. The test typing was corrected, and the subsequent CI run completed successfully with both `npm test` and `npm run build` passing. PR #11 was then merged to `main` (merge commit `69358d482656b24bd034e234e57aa5c70268575e`).
-
-The Codespace Vite server has also been verified to respond on `127.0.0.1:5173`; an earlier browser 404 was a Codespaces port-forwarding/access issue rather than an application failure.
+The Codespace Vite server has been verified to respond on `127.0.0.1:5173`; an earlier browser 404 was a Codespaces port-forwarding/access issue rather than an application failure.
 
 ---
 
@@ -135,7 +146,8 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 Open items include:
 
-- whether two binary periods is the best default inertial trail duration;
+- whether `0.5` binary period remains the best default inertial trail duration after browser inspection;
+- whether the axis-arrow and triangle-line visual weight is appropriate;
 - whether `1x = one binary period per real second` is the best default playback convention;
 - final user-facing time-step/tolerance policy;
 - approximation-validity warning presentation;
@@ -149,9 +161,15 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-First perform real-browser validation of the merged shared animation using the horseshoe, L4, and L5 presets. Check synchronization of both panels, inertial trail readability, playback speed, and narrow-screen layout.
+Run CI for `feature/visual-polish`. After merge, inspect horseshoe, L4, and L5 animations in a real browser, with particular attention to:
 
-If that validation is satisfactory, add synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots, preferably one feature branch at a time unless a shared plotting abstraction clearly justifies grouping them.
+1. readability of the rotating inertial-axis overlay;
+2. clarity of `+X/+Y` in the inertial panel;
+3. whether L4/L5 triangle lines are sufficiently subtle;
+4. whether a `0.5`-period inertial trail gives the right amount of motion history;
+5. whether monospace playback time removes distracting text motion.
+
+After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
 ---
 
