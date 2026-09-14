@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  inertialAxesInRotatingFrame,
   inertialBodyPositions,
   inertialCartesian,
   inertialLagrangePositions,
@@ -21,6 +22,15 @@ describe('frame coordinate transforms', () => {
 
     expect(inertial.x).toBeCloseTo(0, 14)
     expect(inertial.y).toBeCloseTo(1, 14)
+  })
+
+  it('shows inertial axes rotating clockwise in the rotating frame', () => {
+    const axes = inertialAxesInRotatingFrame(Math.PI / 2)
+
+    expect(axes.xPositive.x).toBeCloseTo(0, 14)
+    expect(axes.xPositive.y).toBeCloseTo(-1, 14)
+    expect(axes.yPositive.x).toBeCloseTo(1, 14)
+    expect(axes.yPositive.y).toBeCloseTo(0, 14)
   })
 
   it('rotates the binary rigidly in the inertial frame', () => {
