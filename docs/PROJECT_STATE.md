@@ -8,7 +8,7 @@ Guiding-center physics core, fixed-step RK4 integration, representative co-orbit
 
 The application now computes validated preset trajectories in the browser and renders them in an equal-axis rotating-frame SVG view. Physics, integration, presets, and visualization remain separated by module boundaries.
 
-The next implementation goal is to add user-editable physical controls and diagnostics before animation.
+The immediate infrastructure task is to verify that a fresh GitHub Codespace starts successfully after the dev-container permission fix described below. After that, the next application task is to add user-editable physical controls and diagnostics before animation.
 
 ---
 
@@ -25,6 +25,8 @@ The following project documents have been prepared:
 
 React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured.
 Dependencies are pinned with an npm lockfile. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not configured.
+
+A Codespaces startup failure was observed when the Dockerfile ended with `USER node`: Codespaces entered recovery mode and reported permission failures while creating `/home/codespace`. The Dockerfile has therefore been changed to leave the image default user unchanged, while `devcontainer.json` continues to set `remoteUser` to `node`. A fresh Codespaces creation or rebuild is still required to validate this fix end-to-end.
 
 ---
 
@@ -168,13 +170,14 @@ Integrator validation includes reproduction of the analytic `mu = 0` solution, e
 
 Representative-orbit validation covers horseshoe topology, bounded L4/L5 tadpole topology on the appropriate leading/trailing sides, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
 
-UI tests check that the static trajectory plot, body markers, L4/L5 markers, preset controls, and preset switching render in the DOM. A fresh interactive browser visual inspection of this new trajectory view has not yet been performed in this session.
+UI tests check that the static trajectory plot, body markers, L4/L5 markers, preset controls, and preset switching render in the DOM. A fresh interactive browser visual inspection of this new trajectory view has not yet been completed because the existing Codespace entered recovery mode before the dev-container permission fix.
 
 The next validation tasks are:
 
-1. expose Hamiltonian and validity diagnostics in the application;
-2. verify layout and SVG legibility in an interactive browser, including a narrow viewport;
-3. quantify guiding-center accuracy against the full PCR3BP in a later development stage.
+1. create or rebuild a Codespace from the fixed dev-container configuration and verify normal startup;
+2. run `npm run dev` and inspect the trajectory view in an interactive browser, including a narrow viewport;
+3. expose Hamiltonian and validity diagnostics in the application;
+4. quantify guiding-center accuracy against the full PCR3BP in a later development stage.
 
 ---
 
@@ -194,6 +197,7 @@ The intended application architecture is a static browser application with all n
 
 The following issues remain open:
 
+- verify the Codespaces permission fix with a fresh creation or container rebuild;
 - choose the final user-facing time step or integration tolerance policy;
 - determine how approximation-validity warnings should be presented;
 - quantify the accuracy of the guiding-center approximation near horseshoe U-turns;
@@ -207,9 +211,9 @@ No hard validity threshold for close encounters has been adopted yet. The preset
 
 ## Next recommended task
 
-Add user-editable `mu`, `r0`, `phi0`, and `tMax` controls with an explicit Calculate action and clear numerical failure reporting.
+First verify the repaired dev-container configuration by rebuilding or creating a Codespace and running the current application in a real browser.
 
-At the same time, expose the reduced-Hamiltonian error and minimum distance to the secondary for the calculated trajectory. Add animation only after this static calculation/diagnostic workflow is stable.
+After that, add user-editable `mu`, `r0`, `phi0`, and `tMax` controls with an explicit Calculate action and clear numerical failure reporting. At the same time, expose the reduced-Hamiltonian error and minimum distance to the secondary for the calculated trajectory. Add animation only after this static calculation/diagnostic workflow is stable.
 
 ---
 
