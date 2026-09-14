@@ -4,11 +4,12 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Project definition and physics specification.
+Initial web application development scaffold completed.
 
-Implementation of the web application has not started yet.
+A minimal React page is implemented; physics, integration, and visualization have not started.
 
-The immediate goal is to prepare the repository so that development can be continued consistently from ChatGPT, Codex CLI, GitHub Codespaces, or another computer without relying on previous chat history or local workspace state.
+The development scaffold supports continuing work from a fresh checkout or Codespace.
+The next implementation goal is the independent physics module and its tests.
 
 ---
 
@@ -21,11 +22,10 @@ The following project documents have been prepared:
 - `docs/APP_SPEC.md`
 - `docs/PROJECT_STATE.md`
 
-`README.md` has not yet been finalized.
+`README.md` is present and includes local development and Codespaces instructions.
 
-No application source code has been implemented yet.
-
-No development environment or GitHub Pages deployment workflow has been configured yet.
+React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured.
+Dependencies are pinned with an npm lockfile. GitHub Pages deployment is not configured.
 
 ---
 
@@ -76,7 +76,11 @@ Full PCR3BP comparison is intentionally deferred until the reduced model has bee
 
 ## Implementation status
 
-Not started.
+Implemented: minimal React entry point and placeholder page, CSS, strict TypeScript
+checking, Vite configuration, and a Vitest DOM mounting smoke test.
+
+`src/physics/` and `src/components/` contain only directory placeholders. No equations,
+integrator, plotting library, or visualization have been added.
 
 Planned source structure:
 
@@ -112,7 +116,17 @@ Adaptive integration may be considered later if fixed-step integration is insuff
 
 ## Validation status
 
-No numerical validation has been performed yet.
+Browser check passed in Chromium: the placeholder page renders, with no runtime
+errors or horizontal overflow at a 375px viewport. Vite was restarted after the
+clean dependency install to refresh its dependency cache.
+
+Scaffold checks passed: `npm ci`, `npm test` (one DOM smoke test), and
+`npm run build` (TypeScript check and production bundle). The dev-container image
+built successfully; its base image is pinned by version and digest. A fresh GitHub
+Codespaces creation has not been exercised in this session.
+
+No numerical validation has been performed yet; no numerical code exists, so
+trajectory and numerical-instability checks are not applicable to this scaffold.
 
 The first validation tasks should include:
 
@@ -157,18 +171,11 @@ No hard validity threshold for close encounters has been adopted yet.
 
 ## Next recommended task
 
-Prepare the initial application repository structure and development environment.
+Implement the guiding-center physics module independently of the UI, using the
+analytic expressions in `docs/PHYSICS.md`, with derivative and limiting-case tests.
 
-Recommended sequence:
-
-1. create or finalize `README.md`;
-2. create the React + TypeScript + Vite application;
-3. configure the Codespaces development environment;
-4. implement the physics functions independently of the UI;
-5. implement unit tests for the physics functions;
-6. implement the numerical integrator;
-7. verify the reduced-Hamiltonian conservation;
-8. only then begin trajectory visualization.
+Then implement the numerical integrator, verify reduced-Hamiltonian conservation,
+and only then begin trajectory visualization.
 
 ---
 

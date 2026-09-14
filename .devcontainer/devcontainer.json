@@ -1,0 +1,14 @@
+{
+  "name": "CR3BP Guiding-Center development",
+  "build": { "dockerfile": "Dockerfile" },
+  "remoteUser": "node",
+  "updateRemoteUserUID": true,
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite development server",
+      "onAutoForward": "notify"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #182a3a;
+  background: #f5f7fa;
+  line-height: 1.6;
+  font-synthesis: none;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 48rem;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
+
+h1 {
+  line-height: 1.2;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+}

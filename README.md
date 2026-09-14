@@ -121,6 +121,43 @@ The implementation should favor transparent numerical methods over opaque optimi
 
 ---
 
+## Local development
+
+The initial React + TypeScript + Vite scaffold is implemented. It displays a
+placeholder page; physics, integration, and trajectory plots are not implemented.
+
+Use Node.js 24.20.0 (also recorded in `.nvmrc`) and npm:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173`. The development server binds to all interfaces to
+support container port forwarding.
+
+```sh
+npm test            # run the Vitest smoke test once
+npm run test:watch  # watch tests during development
+npm run build      # TypeScript check and production bundle in dist/
+npm run preview    # serve the production bundle locally
+```
+
+Dependencies use exact versions and a committed `package-lock.json`; use `npm ci`
+for repeatable installs. Future physics modules belong in `src/physics/`, reusable
+UI components in `src/components/`, and tests in `tests/`.
+
+## GitHub Codespaces
+
+Create a Codespace on the development branch, or reopen the repository in a dev
+container. `.devcontainer/` selects Node.js 24.20.0 on Debian Bookworm and runs
+`npm ci` after creation. Run `npm run dev`, then open forwarded port 5173 from the
+Ports panel. The server does not start automatically.
+
+This configures development only; GitHub Pages deployment is still pending.
+
+---
+
 ## Development workflow
 
 GitHub is the canonical source of truth for the project.
@@ -158,13 +195,12 @@ The reduced physical model and application requirements have been documented.
 
 The next major tasks are:
 
-1. create the initial web application;
-2. implement the guiding-center physics functions;
-3. implement and test the numerical integrator;
-4. validate conservation of the reduced Hamiltonian;
-5. find representative horseshoe and tadpole initial conditions;
-6. implement the first trajectory visualizations;
-7. configure GitHub Pages deployment.
+1. implement the guiding-center physics functions and unit tests;
+2. implement and test the numerical integrator;
+3. validate conservation of the reduced Hamiltonian;
+4. find representative horseshoe and tadpole initial conditions;
+5. implement the first trajectory visualizations;
+6. configure GitHub Pages deployment.
 
 ---
 
