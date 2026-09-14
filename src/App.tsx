@@ -302,7 +302,12 @@ export default function App() {
           </section>
 
           <div className="orbit-panel-grid" aria-label="Rotating and inertial orbit comparison">
-            <TrajectoryPlot trajectory={result.trajectory} mu={result.mu} currentPoint={currentPoint} />
+            <TrajectoryPlot
+              trajectory={result.trajectory}
+              mu={result.mu}
+              currentPoint={currentPoint}
+              currentTime={currentPoint.t}
+            />
             <InertialTrajectoryPlot
               trajectory={result.trajectory}
               mu={result.mu}
