@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import InertialTrajectoryPlot from './components/InertialTrajectoryPlot'
 import TrajectoryPlot from './components/TrajectoryPlot'
 import { trajectoryDiagnostics, type TrajectoryDiagnostics } from './physics/diagnostics'
 import { integrateGuidingCenter, type TrajectoryPoint } from './physics/integrator'
@@ -209,7 +210,10 @@ export default function App() {
         </aside>
 
         <div className="result-stack">
-          <TrajectoryPlot trajectory={result.trajectory} mu={result.mu} />
+          <div className="orbit-panel-grid" aria-label="Rotating and inertial orbit comparison">
+            <TrajectoryPlot trajectory={result.trajectory} mu={result.mu} />
+            <InertialTrajectoryPlot trajectory={result.trajectory} mu={result.mu} />
+          </div>
 
           <section className="diagnostics-card" aria-labelledby="diagnostics-title">
             <div>
