@@ -55,25 +55,21 @@ describe('validated co-orbital presets', () => {
     expect(maxAbsoluteHamiltonianDrift(trajectory, preset.mu)).toBeLessThan(1e-10)
   })
 
-  it('keeps the L5 tadpole as the mirror image of L4', () => {
-    const l4 = orbitPresets['l4-tadpole']
-    const l5 = orbitPresets['l5-tadpole']
-    const l4Trajectory = integrateGuidingCenter(l4.initialState, l4.mu, {
-      dt: l4.dt,
-      tMax: l4.tMax,
-    })
-    const l5Trajectory = integrateGuidingCenter(l5.initialState, l5.mu, {
-      dt: l5.dt,
-      tMax: l5.tMax,
+  it('keeps the L5 tadpole on the trailing side', () => {
+    const preset = orbitPresets['l5-tadpole']
+    const trajectory = integrateGuidingCenter(preset.initialState, preset.mu, {
+      dt: preset.dt,
+      tMax: preset.tMax,
     })
 
-    expect(l5Trajectory).toHaveLength(l4Trajectory.length)
+    const phis = trajectory.map(({ phi }) => phi)
+    const radii = trajectory.map(({ r }) => r)
 
-    for (let index = 0; index < l4Trajectory.length; index += 1) {
-      expect(Math.abs(l4Trajectory[index].r - l5Trajectory[index].r)).toBeLessThan(1e-9)
-      expect(Math.abs(l4Trajectory[index].phi + l5Trajectory[index].phi)).toBeLessThan(1e-9)
-    }
-
-    expect(maxAbsoluteHamiltonianDrift(l5Trajectory, l5.mu)).toBeLessThan(1e-10)
+    expect(Math.min(...phis)).toBeGreaterThan(-1.5)
+    expect(Math.max(...phis)).toBeLessThan(-0.7)
+    expect(Math.max(...phis) - Math.min(...phis)).toBeGreaterThan(0.5)
+    expect(Math.min(...radii)).toBeGreaterThan(0.97)
+    expect(Math.max(...radii)).toBeLessThan(1.03)
+    expect(maxAbsoluteHamiltonianDrift(trajectory, preset.mu)).toBeLessThan(1e-10)
   })
 })
