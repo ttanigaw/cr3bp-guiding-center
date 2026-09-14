@@ -8,7 +8,9 @@ Guiding-center physics core, fixed-step RK4 integration, representative co-orbit
 
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
-The next application goal is to validate the two-panel layout in a real browser and then add one shared animation clock.
+A real-browser check established an important visualization-design point: the inertial-frame panel is not physically informative as a standalone static picture. Its intended educational value comes from seeing the primary, secondary, Lagrange points, and guiding center move together in inertial coordinates. Therefore static inertial rendering is now treated as an implementation/coordinate-transform validation stage rather than a user-facing validation milestone.
+
+The immediate application goal is one shared animation clock for both orbit panels. Real-browser visual validation of the inertial view should be repeated after that animation is implemented.
 
 ---
 
@@ -26,6 +28,8 @@ The guiding-center model is documented in `docs/PHYSICS.md`. It evolves guiding-
 
 The inertial azimuth is `theta = phi + t` in the adopted nondimensional units with binary angular frequency 1. The inertial panel therefore uses only a deterministic coordinate transform of the reduced solution.
 
+No physical-model change is required for animation. Playback speed and trail length are visualization parameters and must not alter the numerical trajectory.
+
 The reduced model remains provisional until quantitatively compared with the full PCR3BP.
 
 ---
@@ -35,6 +39,8 @@ The reduced model remains provisional until quantitatively compared with the ful
 Version 0.1 is defined in `docs/APP_SPEC.md`.
 
 Implemented portions include direct `mu`, `r0`, `phi0`, and duration input; explicit Calculate; reduced integration; rotating and inertial static orbit views; primary/secondary markers; corotation/reference orbit; L4/L5 markers; presets; numerical failure reporting; Hamiltonian drift; and minimum-secondary-distance diagnostics.
+
+The application specification already requires synchronized rotating/inertial animation and identifies a recent inertial trailing path as the preferred presentation. The latest browser review changes the development order, not the governing application requirement, so `APP_SPEC.md` does not require a physics or behavior rewrite at this point.
 
 Still required for version 0.1 are synchronized animation, `r(t)`, angular evolution, `phi` versus `r - 1`, current-state diagnostics during animation, and static GitHub Pages deployment.
 
@@ -61,13 +67,17 @@ Implemented modules include:
 
 `InertialTrajectoryPlot.tsx` transforms each already-calculated trajectory sample using `theta = phi + t`. Like the rotating plot, paths longer than 1200 displayed vertices are downsampled for rendering only; the numerical trajectory and diagnostics remain unchanged.
 
-The current static inertial plot shows the full transformed guiding-center path. Primary, secondary, L4, and L5 markers are shown at their `t = 0` positions because there is not yet an animation time. Their later motion will be driven by the shared animation clock.
+The current static inertial plot shows the full transformed guiding-center path. Primary, secondary, L4, and L5 markers are shown at their `t = 0` positions because there is not yet an animation time. This static presentation should be replaced by an animation-oriented view with a moving current position and recent trail.
+
+The next implementation should add shared playback state without changing the solver. A successful Calculate should pause playback and reset the shared animation time to `t = 0`.
 
 ---
 
 ## Numerical method status
 
 A transparent fixed-step classical RK4 integrator is implemented. The current UI uses fixed `dt = 0.05`. The inertial view reuses its output and adds no numerical integration cost beyond deterministic coordinate transformation and rendering.
+
+Animation may interpolate between stored trajectory samples for display only, provided that this interpolation is explicit, documented, independently tested, and never fed back into the numerical solution or trajectory diagnostics.
 
 ---
 
@@ -89,7 +99,17 @@ The inertial panel uses `X = r cos(phi + t)` and `Y = r sin(phi + t)`. At `t = 0
 
 Both panels use equal-axis SVG views with the same approximate limits `[-1.35, 1.35]`. On sufficiently wide screens they are displayed side by side with similar visual weight; below 1120 px they stack while remaining adjacent in reading order.
 
-The inertial full path is rendered somewhat thinner and more subdued because long integrations produce many overlapping revolutions. This is a display-only choice.
+The static inertial full path is visually dense for long integrations and is not considered the final presentation. During animation the rotating panel should retain the full reduced path as context while emphasizing the current position. The inertial panel should emphasize the current position and show only a recent trail (initial target: about two binary periods) rather than relying on the full transformed path.
+
+One shared animation time must drive:
+
+- the rotating-frame current guiding-center marker;
+- the inertial-frame current guiding-center marker;
+- inertial primary and secondary positions;
+- inertial L4 and L5 positions;
+- later current-state markers on `r(t)`, `phi(t)`, and phase-space plots.
+
+The initial playback control target is Play, Pause, Reset, and selectable speed. A nominal `1x` playback rate should correspond to one binary orbital period per real second; speed multipliers are display-only.
 
 ---
 
@@ -97,7 +117,7 @@ The inertial full path is rendered somewhat thinner and more subdued because lon
 
 GitHub Actions automatically runs install, tests, and build on pull requests.
 
-New frame-transform unit tests check:
+Frame-transform unit tests check:
 
 - inertial and rotating coordinates agree at `t = 0`;
 - a point at `phi = 0` rotates by +90 degrees after `t = pi/2`;
@@ -106,7 +126,16 @@ New frame-transform unit tests check:
 
 The DOM test checks that both rotating and inertial trajectory panels are rendered while retaining the explicit Calculate and error-reporting workflow.
 
-The static inertial panel has not yet been visually inspected in a fresh real browser after this implementation. That remains the next validation step.
+The user successfully verified that the Codespace Vite server itself responds through `127.0.0.1:5173`; earlier browser 404 behavior was a Codespaces port-forwarding/access issue rather than an application failure.
+
+The static inertial image was judged insufficient as an end-user visualization because its physical meaning depends on motion. Consequently the next meaningful real-browser validation is after shared animation is implemented.
+
+The next validation tasks are:
+
+1. unit-test any display-time interpolation and recent-trail selection;
+2. verify Play/Pause/Reset and speed controls without altering the integrated trajectory;
+3. inspect synchronized rotating/inertial animation for horseshoe, L4, and L5 presets in a real browser;
+4. verify the animated layout at a narrow viewport.
 
 ---
 
@@ -118,17 +147,17 @@ GitHub is the canonical repository. GitHub Pages remains the intended target and
 
 ## Known issues and open questions
 
-Open items include the final user-facing time-step/tolerance policy, approximation-validity warnings, the default inertial trail length during animation, guiding-center accuracy near horseshoe U-turns, future low-free-eccentricity full-PCR3BP initialization, and whether SVG remains sufficient as the number of plots grows.
+Open items include the final user-facing time-step/tolerance policy, approximation-validity warnings, whether two binary periods is the best default inertial trail duration, guiding-center accuracy near horseshoe U-turns, future low-free-eccentricity full-PCR3BP initialization, and whether SVG remains sufficient as the number of plots grows.
 
-The static inertial path can be visually dense for long integrations. This is expected and is why animation should prefer a recent trail or otherwise subdued accumulated path.
+No hard validity threshold for close encounters has been adopted yet. Playback interpolation and trail selection, if used, are visualization operations only and must remain separate from numerical diagnostics.
 
 ---
 
 ## Next recommended task
 
-First inspect the two orbit panels in a real desktop browser and at a narrow viewport, including horseshoe, L4, and L5 presets.
+Implement one shared animation clock with Play, Pause, Reset, and playback speed. It should drive the current guiding-center marker in both panels and the inertial primary, secondary, and L4/L5 markers. The rotating panel should retain the full orbit for context; the inertial panel should use a recent trail rather than the dense full transformed trajectory.
 
-After that validation, add one shared animation clock with play, pause, reset, and playback speed. It should drive the current-position marker in both panels and the inertial primary, secondary, and L4/L5 markers. The numerical trajectory must remain unchanged.
+After CI passes, inspect the animation in a real browser using horseshoe, L4, and L5 presets. Then proceed to synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
 ---
 
