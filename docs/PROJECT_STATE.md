@@ -4,44 +4,29 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Guiding-center physics core, fixed-step RK4 integration, representative co-orbital presets, static rotating-frame visualization, editable initial conditions, and basic trajectory diagnostics are implemented.
+Guiding-center physics core, fixed-step RK4 integration, representative co-orbital presets, editable initial conditions, trajectory diagnostics, and static rotating/inertial frame visualizations are implemented.
 
-The application computes trajectories in the browser from either validated presets or user-edited `mu`, `r0`, `phi0`, and `tMax`. Calculation occurs only when the user explicitly presses Calculate. Physics, integration, diagnostics, presets, and visualization remain separated by module boundaries.
+The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
-The visualization specification has now been extended so that version 0.1 should show the same reduced trajectory in both rotating and inertial frames before shared animation is added.
+The next application goal is to validate the two-panel layout in a real browser and then add one shared animation clock.
 
 ---
 
 ## Repository status
 
-The maintained project documents are:
+The maintained project documents are `AGENTS.md`, `docs/PHYSICS.md`, `docs/APP_SPEC.md`, and `docs/PROJECT_STATE.md`.
 
-- `AGENTS.md`
-- `docs/PHYSICS.md`
-- `docs/APP_SPEC.md`
-- `docs/PROJECT_STATE.md`
-
-`README.md` includes local development and Codespaces instructions.
-
-React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured. Dependencies are pinned with an npm lockfile. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not configured.
-
-The earlier Codespaces permission failure was fixed by removing `USER node` from the Dockerfile while keeping `remoteUser: node` in `devcontainer.json`. A fresh Codespace started normally, and `npm run dev` served the application successfully in a real browser.
+React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not yet configured.
 
 ---
 
 ## Physics model status
 
-The guiding-center model is documented in `docs/PHYSICS.md`.
+The guiding-center model is documented in `docs/PHYSICS.md`. It evolves guiding-center radius `r` and rotating-frame angle `phi`.
 
-The current reduced model evolves the guiding-center radius `r` and rotating-frame co-orbital angle `phi`. The reduced radial coordinate is a guiding-center radius rather than the instantaneous physical radius of the full PCR3BP trajectory.
+The inertial azimuth is `theta = phi + t` in the adopted nondimensional units with binary angular frequency 1. The inertial panel therefore uses only a deterministic coordinate transform of the reduced solution.
 
-The physical document already defines the inertial azimuth by
-
-`theta = phi + t`
-
-in the adopted nondimensional units with binary angular frequency equal to unity. Therefore the planned inertial-frame panel requires only a coordinate transformation of the existing reduced trajectory; it does not introduce a second dynamical model or a second integration.
-
-The model remains provisional until quantitatively compared with the full PCR3BP.
+The reduced model remains provisional until quantitatively compared with the full PCR3BP.
 
 ---
 
@@ -49,64 +34,40 @@ The model remains provisional until quantitatively compared with the full PCR3BP
 
 Version 0.1 is defined in `docs/APP_SPEC.md`.
 
-Implemented portions include:
+Implemented portions include direct `mu`, `r0`, `phi0`, and duration input; explicit Calculate; reduced integration; rotating and inertial static orbit views; primary/secondary markers; corotation/reference orbit; L4/L5 markers; presets; numerical failure reporting; Hamiltonian drift; and minimum-secondary-distance diagnostics.
 
-- direct input of `mu`, `r0`, `phi0` in degrees, and integration duration;
-- explicit Calculate action;
-- reduced guiding-center integration;
-- static rotating-frame trajectory visualization;
-- primary and secondary markers;
-- corotation circle;
-- L4 and L5 markers;
-- validated horseshoe/L4/L5 preset loading;
-- numerical failure reporting;
-- reduced-Hamiltonian drift diagnostic;
-- minimum-secondary-distance diagnostic.
-
-Version 0.1 now also requires:
-
-- a companion inertial-frame view of the same reduced trajectory;
-- synchronized rotating/inertial animation using one shared animation time;
-- `r(t)` visualization;
-- angular evolution visualization;
-- `phi` versus `r - 1` phase-space visualization;
-- current-state diagnostics during animation;
-- static deployment suitable for GitHub Pages.
-
-Full PCR3BP comparison remains deferred and is conceptually separate from rotating-versus-inertial visualization of the reduced model.
+Still required for version 0.1 are synchronized animation, `r(t)`, angular evolution, `phi` versus `r - 1`, current-state diagnostics during animation, and static GitHub Pages deployment.
 
 ---
 
 ## Implementation status
 
-Implemented:
+Implemented modules include:
 
-- responsive React application layout;
-- strict TypeScript checking and Vite configuration;
-- Vitest unit, regression, and DOM tests;
-- `src/physics/guidingCenter.ts` for the reduced physical model;
-- `src/physics/integrator.ts` for fixed-step RK4 integration;
-- `src/physics/diagnostics.ts` for trajectory diagnostics;
-- `src/physics/presets.ts` for validated example trajectories;
-- `src/components/TrajectoryPlot.tsx` for static equal-axis rotating-frame SVG rendering;
-- editable physical controls and explicit Calculate workflow in `App.tsx`;
-- clear user-facing calculation errors while retaining the last successful trajectory.
+    src/
+      physics/
+        guidingCenter.ts
+        integrator.ts
+        diagnostics.ts
+        presets.ts
+      visualization/
+        frames.ts
+      components/
+        TrajectoryPlot.tsx
+        InertialTrajectoryPlot.tsx
+      App.tsx
 
-The trajectory SVG downsamples long paths for rendering only; the numerical solution is not modified.
+`src/visualization/frames.ts` provides pure transformations for rotating Cartesian position, inertial guiding-center position, inertial binary-body positions, and inertial L4/L5 positions. React rendering does not define the frame transformation equations.
 
-The next implementation should introduce a pure rotating-to-inertial coordinate transform before adding any inertial rendering logic. The transform should be independent of React and separately unit-tested.
+`InertialTrajectoryPlot.tsx` transforms each already-calculated trajectory sample using `theta = phi + t`. Like the rotating plot, paths longer than 1200 displayed vertices are downsampled for rendering only; the numerical trajectory and diagnostics remain unchanged.
+
+The current static inertial plot shows the full transformed guiding-center path. Primary, secondary, L4, and L5 markers are shown at their `t = 0` positions because there is not yet an animation time. Their later motion will be driven by the shared animation clock.
 
 ---
 
 ## Numerical method status
 
-A transparent fixed-step classical fourth-order Runge-Kutta integrator is implemented.
-
-The requested `dt` is used for full steps, and the final step is shortened when necessary so the trajectory ends exactly at `tMax`.
-
-The current UI uses fixed `dt = 0.05`; this numerical setting is displayed but is not yet user-editable. The final user-facing time-step/tolerance policy remains open.
-
-The inertial-frame view must reuse the already calculated trajectory and must not trigger another numerical integration.
+A transparent fixed-step classical RK4 integrator is implemented. The current UI uses fixed `dt = 0.05`. The inertial view reuses its output and adds no numerical integration cost beyond deterministic coordinate transformation and rendering.
 
 ---
 
@@ -118,91 +79,59 @@ All current presets use `mu = 0.001`.
 - L4 tadpole: `r0 = 1`, `phi0 = +80 deg`, `dt = 0.05`, `tMax = 160`.
 - L5 tadpole: `r0 = 1`, `phi0 = -80 deg`, `dt = 0.05`, `tMax = 160`.
 
-These are reproducible demonstration cases for the reduced model, not universal physical initial conditions.
-
 ---
 
 ## Visualization status
 
-The rotating-frame visualization is implemented as an equal-axis SVG using
+The rotating panel uses `x = r cos(phi)` and `y = r sin(phi)`.
 
-- `x = r cos(phi)`;
-- `y = r sin(phi)`;
-- primary at `(-mu, 0)`;
-- secondary at `(1 - mu, 0)`;
-- corotation circle `r = 1`;
-- L4/L5 markers at the standard rotating-frame triangular coordinates.
+The inertial panel uses `X = r cos(phi + t)` and `Y = r sin(phi + t)`. At `t = 0`, the two Cartesian axis systems coincide. The binary and L4/L5 inertial transforms use the same positive counterclockwise rotation convention.
 
-The new specification adds a companion inertial-frame view using
+Both panels use equal-axis SVG views with the same approximate limits `[-1.35, 1.35]`. On sufficiently wide screens they are displayed side by side with similar visual weight; below 1120 px they stack while remaining adjacent in reading order.
 
-- `theta = phi + t`;
-- `X = r cos(theta)`;
-- `Y = r sin(theta)`.
-
-At `t = 0`, the rotating and inertial axes coincide. In the inertial panel the primary and secondary rotate counterclockwise with angular frequency 1. If L4/L5 markers are shown there, they rotate with the binary as well.
-
-The rotating and inertial panels should have similar visual weight and should be adjacent on sufficiently wide screens. On narrow screens they may stack, but should remain adjacent in reading order.
-
-For animation, both frame panels must share a single animation time. The rotating panel may show the full path in a subdued style. Because the inertial path overlaps itself after many binary revolutions, the preferred inertial animation uses the current position plus a recent trail or otherwise subdued accumulated path.
-
-The current implementation remains static and rotating-frame only.
+The inertial full path is rendered somewhat thinner and more subdued because long integrations produce many overlapping revolutions. This is a display-only choice.
 
 ---
 
 ## Validation status
 
-GitHub Actions automatically repeats `npm ci`, `npm test`, and `npm run build` on pull requests and pushes to `main`.
+GitHub Actions automatically runs install, tests, and build on pull requests.
 
-Physics-core validation includes analytic-derivative finite-difference checks, exact `mu = 0` limits, reflection symmetry, body-distance checks, and input-domain checks.
+New frame-transform unit tests check:
 
-Integrator validation includes reproduction of the analytic `mu = 0` solution, exact landing on `tMax`, reduced-Hamiltonian conservation, and rejection of invalid integration settings.
+- inertial and rotating coordinates agree at `t = 0`;
+- a point at `phi = 0` rotates by +90 degrees after `t = pi/2`;
+- primary and secondary rotate rigidly with binary angular frequency 1;
+- L4/L5 preserve their equilateral geometry under inertial rotation.
 
-Representative-orbit validation covers horseshoe topology, bounded L4/L5 tadpole topology, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide`.
+The DOM test checks that both rotating and inertial trajectory panels are rendered while retaining the explicit Calculate and error-reporting workflow.
 
-A fresh Codespace and the rotating-frame horseshoe/L4/L5 displays were inspected successfully in a real desktop browser. DOM tests also exercise the Calculate workflow, diagnostics rendering, and invalid-input errors.
-
-The next validation tasks are:
-
-1. unit-test the rotating-to-inertial coordinate transform, including the `t = 0` identity and one-quarter-period rotation cases;
-2. inspect the static inertial-frame panel next to the rotating panel in a real browser;
-3. verify layout at a narrow viewport;
-4. only then add and validate shared animation.
+The static inertial panel has not yet been visually inspected in a fresh real browser after this implementation. That remains the next validation step.
 
 ---
 
 ## Deployment status
 
-GitHub is the canonical project repository.
-
-The intended deployment target is GitHub Pages. GitHub Pages has not yet been configured.
+GitHub is the canonical repository. GitHub Pages remains the intended target and is not yet configured.
 
 ---
 
 ## Known issues and open questions
 
-The following issues remain open:
+Open items include the final user-facing time-step/tolerance policy, approximation-validity warnings, the default inertial trail length during animation, guiding-center accuracy near horseshoe U-turns, future low-free-eccentricity full-PCR3BP initialization, and whether SVG remains sufficient as the number of plots grows.
 
-- choose the final user-facing time step or integration tolerance policy;
-- determine how approximation-validity warnings should be presented;
-- choose the default inertial-frame trail length/display style during animation;
-- quantify the accuracy of the guiding-center approximation near horseshoe U-turns;
-- define a low-free-eccentricity initialization procedure for future full-PCR3BP comparison;
-- decide whether the SVG implementation remains sufficient once multiple diagnostic plots are added.
-
-No hard validity threshold for close encounters has been adopted yet. The preset `epsilon_tide` bounds are regression guards, not physical validity thresholds.
+The static inertial path can be visually dense for long integrations. This is expected and is why animation should prefer a recent trail or otherwise subdued accumulated path.
 
 ---
 
 ## Next recommended task
 
-Before animation, add a pure and tested rotating-to-inertial coordinate transformation and a static inertial-frame companion panel for the already calculated reduced trajectory.
+First inspect the two orbit panels in a real desktop browser and at a narrow viewport, including horseshoe, L4, and L5 presets.
 
-After both static frame views are validated in the browser, implement one shared animation clock that drives the current position in both frame panels and later the `r(t)`, wrapped `phi(t)`, phase-space, and current-state diagnostic markers.
+After that validation, add one shared animation clock with play, pause, reset, and playback speed. It should drive the current-position marker in both panels and the inertial primary, secondary, and L4/L5 markers. The numerical trajectory must remain unchanged.
 
 ---
 
 ## Session handoff rule
 
-Before ending any substantial development session, update this file with what was completed, what remains incomplete, known bugs or concerns, numerical or physical validation results, and the next recommended task.
-
-Do not rely on Codex session history, ChatGPT conversation history, or an uncommitted Codespace state to preserve project context. The GitHub repository is the persistent record of the project.
+Before ending substantial work, update this file with completed work, incomplete work, concerns, validation results, and the next recommended task. GitHub is the persistent project record; do not rely on chat or uncommitted workspace state.

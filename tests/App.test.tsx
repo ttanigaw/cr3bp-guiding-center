@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { expect, it } from 'vitest'
 import App from '../src/App'
 
-it('renders controls, recalculates explicitly, and reports diagnostics', async () => {
+it('renders both frame views, recalculates explicitly, and reports diagnostics', async () => {
   const container = document.createElement('div')
   document.body.append(container)
   const root = createRoot(container)
@@ -16,10 +16,15 @@ it('renders controls, recalculates explicitly, and reports diagnostics', async (
       'CR3BP Guiding-Center Visualizer',
     )
     expect(container.textContent).toContain('Calculate an orbit')
+    expect(container.textContent).toContain('Rotating frame')
+    expect(container.textContent).toContain('Inertial frame')
+    expect(container.textContent).toContain('θ = φ + t')
     expect(container.textContent).toContain('Diagnostics')
     expect(container.textContent).toContain('Max |ΔH|')
     expect(container.textContent).toContain('Min secondary distance')
     expect(container.querySelector('.trajectory-path')).not.toBeNull()
+    expect(container.querySelector('.inertial-trajectory-path')).not.toBeNull()
+    expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
 
     const tMaxInput = container.querySelector<HTMLInputElement>('input[name="tMax"]')
     const calculateButton = Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
