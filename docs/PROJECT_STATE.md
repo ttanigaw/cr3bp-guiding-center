@@ -128,7 +128,7 @@ These values are reproducible demonstration cases for this reduced model, not un
 
 The horseshoe regression test requires the trajectory to cross both sides of corotation in radius, span more than 5 radians in co-orbital angle while remaining away from conjunction, keep the tidal-strength indicator below 0.02, and conserve the reduced Hamiltonian to an absolute error below `1e-9`.
 
-The tadpole tests require bounded leading/trailing libration around the corresponding triangular region, radial excursions near `r = 1`, mirror symmetry between L4 and L5, and reduced-Hamiltonian error below `1e-10`.
+The tadpole tests require bounded leading/trailing libration around the corresponding triangular region, radial excursions near `r = 1`, and reduced-Hamiltonian error below `1e-10` for both L4 and L5 examples. Reflection symmetry of the equations involves time reversal as well as `phi -> -phi`, so forward-time L4 and L5 samples are not required to match point by point.
 
 ---
 
@@ -142,7 +142,7 @@ Physics-core validation includes analytic-derivative finite-difference checks, e
 
 Integrator validation includes reproduction of the analytic `mu = 0` solution, exact landing on `tMax`, reduced-Hamiltonian conservation for a perturbed orbit, and rejection of invalid integration settings.
 
-Representative-orbit validation now covers horseshoe topology, L4/L5 tadpole topology, L4/L5 mirror symmetry, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
+Representative-orbit validation now covers horseshoe topology, bounded L4/L5 tadpole topology on the appropriate leading/trailing sides, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
 
 The next validation tasks are:
 
