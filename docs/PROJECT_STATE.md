@@ -4,11 +4,11 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Guiding-center physics core implemented and under validation.
+Guiding-center physics core and initial fixed-step RK4 integrator implemented and under validation.
 
-A minimal React page is implemented. The reduced guiding-center equations, disturbing function, analytic derivatives, reduced Hamiltonian, body-distance diagnostics, and tidal parameter are now implemented independently of the UI.
+A minimal React page is implemented. The reduced guiding-center equations, disturbing function, analytic derivatives, reduced Hamiltonian, body-distance diagnostics, tidal parameter, and trajectory integrator are implemented independently of the UI.
 
-The next implementation goal is the numerical integrator and reduced-Hamiltonian conservation testing.
+The next implementation goal is to validate representative horseshoe and tadpole initial conditions, then begin the first trajectory visualization.
 
 ---
 
@@ -82,11 +82,12 @@ Implemented:
 - Vite configuration;
 - Vitest DOM mounting smoke test;
 - `src/physics/guidingCenter.ts` with pure functions for body distances, the disturbing function, its analytic derivatives, guiding-center rates, the reduced Hamiltonian, and the local tidal-strength parameter;
-- unit tests for analytic derivatives, the `mu = 0` limit, reflection symmetry in `phi`, body distances, and input-domain checks.
+- `src/physics/integrator.ts` with a transparent classical fourth-order Runge-Kutta stepper and fixed-step trajectory integration;
+- unit tests for analytic derivatives, the `mu = 0` limit, reflection symmetry in `phi`, body distances, input-domain checks, analytic `mu = 0` integration, final-step handling, Hamiltonian conservation, and invalid integration settings.
 
-The physics functions are independent of React and visualization code.
+The physics and integrator functions are independent of React and visualization code.
 
-Planned source structure:
+Current source structure:
 
     src/
       physics/
@@ -103,28 +104,23 @@ The exact structure may change if there is a clear implementation reason, but ph
 
 ## Numerical method status
 
-No numerical integrator has been implemented yet.
+A transparent fixed-step classical fourth-order Runge-Kutta integrator is implemented.
 
-The initial candidate is a transparent explicit fourth-order Runge-Kutta method.
+The requested `dt` is used for full steps, and the final step is shortened when necessary so the trajectory ends exactly at `tMax`.
 
-Before accepting the integrator, it should be tested using:
+The integrator rejects invalid time-step settings, caps the maximum number of steps, propagates domain errors from the physics model, and rejects non-finite or non-positive-radius numerical states.
 
-- `mu = 0`;
-- conservation of the reduced Hamiltonian;
-- simple near-corotation trajectories;
-- symmetry checks where appropriate.
-
-Adaptive integration may be considered later if fixed-step integration is insufficient near horseshoe turns.
+Adaptive integration may be considered later if fixed-step integration is insufficient near horseshoe turns. No adaptive method is currently implemented.
 
 ---
 
 ## Validation status
 
-Browser check passed in Chromium for the placeholder application, with no runtime errors or horizontal overflow at a 375px viewport.
+Browser check previously passed in Chromium for the placeholder application, with no runtime errors or horizontal overflow at a 375px viewport.
 
-Scaffold checks previously passed: `npm ci`, `npm test`, and `npm run build`; the dev-container image also built successfully. GitHub Actions CI is configured to repeat the install, test, and build checks automatically on pull requests and pushes to `main`.
+GitHub Actions CI is configured to repeat `npm ci`, `npm test`, and `npm run build` automatically on pull requests and pushes to `main`.
 
-Physics-core validation currently includes:
+Physics-core validation includes:
 
 1. analytic disturbing-function derivatives checked against centered numerical finite differences at a representative non-singular state;
 2. exact `mu = 0` limiting behavior for the disturbing function, derivatives, radial rate, angular rate, reduced Hamiltonian, and tidal parameter;
@@ -132,16 +128,19 @@ Physics-core validation currently includes:
 4. barycentric body-distance checks;
 5. rejection of non-positive `r`, out-of-range `mu`, and non-finite inputs.
 
-Reduced-Hamiltonian conservation along trajectories has not yet been tested because the numerical integrator is not implemented.
+Integrator validation includes:
+
+1. reproduction of the analytic `mu = 0` solution;
+2. exact landing on `tMax` when `tMax` is not an integer multiple of `dt`;
+3. reduced-Hamiltonian conservation for a representative perturbed orbit (`mu = 0.001`, `r0 = 1.05`, `phi0 = 0.5`, `dt = 0.05`, `tMax = 200`) with maximum absolute error required to remain below `1e-10`;
+4. rejection of invalid integration settings and excessive step counts.
 
 The next validation tasks are:
 
-1. implement a transparent numerical integrator;
-2. check reduced-Hamiltonian conservation;
-3. test simple near-corotation trajectories;
-4. find stable example initial conditions for horseshoe motion;
-5. find stable example initial conditions for L4 and L5 tadpole motion;
-6. examine approximation-validity indicators near horseshoe turns.
+1. find stable representative initial conditions for horseshoe motion;
+2. find stable representative initial conditions for L4 and L5 tadpole motion;
+3. examine approximation-validity indicators near horseshoe turns;
+4. assess whether the initial fixed time step is adequate across representative examples.
 
 Quantitative comparison with the full PCR3BP will be performed in a later development stage.
 
@@ -165,7 +164,7 @@ The following issues remain open:
 
 - determine suitable default initial conditions for a clear horseshoe trajectory;
 - determine suitable default initial conditions for L4 and L5 tadpole trajectories;
-- choose the final numerical time step or integration tolerance;
+- choose the final numerical time step or integration tolerance after representative-orbit testing;
 - determine how approximation-validity warnings should be presented;
 - quantify the accuracy of the guiding-center approximation near horseshoe U-turns;
 - define a low-free-eccentricity initialization procedure for future full-PCR3BP comparison;
@@ -177,9 +176,9 @@ No hard validity threshold for close encounters has been adopted yet.
 
 ## Next recommended task
 
-Implement the numerical integrator independently of the UI, initially using a transparent fixed-step fourth-order Runge-Kutta method.
+Validate representative horseshoe and tadpole trajectories using the new RK4 integrator, including Hamiltonian-error and close-approach diagnostics.
 
-Then verify reduced-Hamiltonian conservation and simple limiting cases before beginning trajectory visualization.
+Once representative initial conditions are documented and numerically stable, begin the first rotating-frame trajectory visualization without coupling the UI directly to the governing equations.
 
 ---
 
