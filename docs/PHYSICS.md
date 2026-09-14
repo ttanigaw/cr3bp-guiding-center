@@ -334,17 +334,12 @@ we have
 
 ## 9. Physical meaning of the guiding-center approximation
 
-The full PCR3BP has four planar phase-space variables,
+The full PCR3BP has two planar degrees of freedom and therefore contains both
 
-```math
-(r,\phi,\dot r,\dot\phi),
-```
+1. slow co-orbital motion, such as horseshoe or tadpole libration, and
+2. a fast epicyclic degree of freedom associated with orbital eccentricity.
 
-and therefore contains an independent eccentricity or epicyclic degree of freedom.
-
-Even when a particle is initialized close to a circular orbit, perturbations from the secondary generally excite a free epicycle.
-
-The resulting motion can schematically be written as
+A full trajectory may schematically be written as
 
 ```math
 r_{\rm physical}(t)
@@ -354,7 +349,7 @@ r_{\rm gc}(t)
 \delta r_{\rm epi}(t),
 ```
 
-where
+where the fast component has approximately the form
 
 ```math
 \delta r_{\rm epi}
@@ -362,88 +357,279 @@ where
 e\cos(\kappa t+\psi).
 ```
 
-The goal of the reduced model is to remove this free epicyclic component and evolve only the slow guiding-center motion.
+The purpose of the reduced model is to eliminate the independent free-epicyclic degree of freedom while retaining the slow evolution of the guiding center caused by the gravitational perturbation of the secondary.
 
-In this model, $r$ should therefore be interpreted primarily as a guiding-center radius rather than the instantaneous physical radius of the full PCR3BP trajectory.
+The reduced radial coordinate is therefore not, in general, the instantaneous physical radius of the full PCR3BP trajectory.
 
-The approximation assumes that the orbit remains close to the family of circular Keplerian orbits while its angular momentum changes slowly due to the perturbing torque.
+Instead, it represents a guiding-center radius,
+
+```math
+r_{\rm gc}\equiv a,
+```
+
+where $a$ is the semimajor axis of the corresponding locally circular Kepler orbit.
+
+For notational simplicity, the reduced equations below continue to denote this guiding-center radius by $r$.
+
+Thus, from Section 11 onward,
+
+```math
+r \equiv r_{\rm gc},
+```
+
+unless explicitly stated otherwise.
 
 ---
 
-## 10. Circular-orbit constraint
+## 10. Poincaré variables and the epicyclic degree of freedom
 
-For the Kepler potential
+To make the approximation precise, introduce planar Poincaré variables for the Kepler problem.
 
-```math
-U_0=\frac1r,
-```
-
-the specific angular momentum of a circular orbit is
+Let
 
 ```math
-j_{\rm c}(r)=\sqrt r.
+\Lambda=\sqrt a,
 ```
 
-The guiding-center approximation imposes
+and
+
+```math
+\Gamma
+=
+\Lambda
+\left(
+1-\sqrt{1-e^2}
+\right).
+```
+
+For small eccentricity,
+
+```math
+\Gamma
+\simeq
+\frac12\Lambda e^2.
+```
+
+The corresponding angles are
+
+```math
+\lambda=M+\varpi,
+```
+
+and
+
+```math
+\gamma=-\varpi,
+```
+
+where $M$ is the mean anomaly and $\varpi$ is the longitude of periapsis.
+
+The inertial specific angular momentum is
+
+```math
+j
+=
+\Lambda-\Gamma
+=
+\Lambda\sqrt{1-e^2}.
+```
+
+For a circular orbit,
+
+```math
+e=0,
+\qquad
+\Gamma=0,
+```
+
+and therefore
+
+```math
+j=\Lambda=\sqrt a.
+```
+
+The eccentricity action $\Gamma$ is the action associated with the epicyclic degree of freedom.
+
+Removing the free epicycle therefore corresponds, in the averaged system described below, to setting
+
+```math
+\Gamma=0.
+```
+
+---
+
+## 11. Transformation to the rotating frame
+
+Let the secondary have orbital longitude
+
+```math
+\lambda_2=t,
+```
+
+because the nondimensional binary angular frequency is unity.
+
+Define the rotating-frame angles
+
+```math
+\phi=\lambda-t,
+```
+
+and
+
+```math
+\psi=\gamma+t=t-\varpi.
+```
+
+The canonical one-form transforms as
+
+```math
+\Lambda\,d\lambda+\Gamma\,d\gamma
+=
+\Lambda\,d\phi
++
+\Gamma\,d\psi
++
+(\Lambda-\Gamma)\,dt.
+```
+
+Therefore the rotating-frame Hamiltonian is obtained by subtracting the inertial angular momentum
+
+```math
+j=\Lambda-\Gamma.
+```
+
+Writing the gravitational potential as
+
+```math
+U=\frac1r+\mathcal R,
+```
+
+the rotating-frame Hamiltonian in Poincaré variables has the form
+
+```math
+K
+=
+-\frac{1}{2\Lambda^2}
+-\Lambda
++\Gamma
+-
+\mathcal R(\Lambda,\Gamma,\phi,\psi).
+```
+
+In the unperturbed Kepler problem, $\mathcal R=0$, so
+
+```math
+\dot\phi
+=
+\Lambda^{-3}-1,
+```
+
+while
+
+```math
+\dot\psi=1.
+```
+
+Near the 1:1 resonance,
+
+```math
+\Lambda\simeq1,
+```
+
+and hence
+
+```math
+|\dot\phi|\ll1,
+```
+
+whereas $\psi$ continues to circulate with frequency of order unity.
+
+Thus $\psi$ is the fast epicyclic angle, while $\phi$ is the slow co-orbital angle.
+
+This separation of timescales is the basis of the guiding-center approximation.
+
+---
+
+## 12. Averaging over the epicyclic phase
+
+We average the Hamiltonian over the fast angle $\psi$ while retaining the slow resonant angle $\phi$:
+
+```math
+\overline{\mathcal R}
+(\Lambda,\Gamma,\phi)
+=
+\frac{1}{2\pi}
+\int_0^{2\pi}
+\mathcal R(\Lambda,\Gamma,\phi,\psi)\,d\psi.
+```
+
+The first-order averaged Hamiltonian is then
+
+```math
+\overline K
+=
+-\frac{1}{2\Lambda^2}
+-\Lambda
++\Gamma
+-
+\overline{\mathcal R}
+(\Lambda,\Gamma,\phi).
+```
+
+Because $\overline K$ is independent of $\psi$,
+
+```math
+\dot\Gamma
+=
+-\frac{\partial\overline K}{\partial\psi}
+=
+0.
+```
+
+Thus the epicyclic action is conserved in the averaged problem.
+
+The zero-free-eccentricity model is obtained by choosing
+
+```math
+\Gamma=0.
+```
+
+This is the precise sense in which the reduced model removes the free epicycle.
+
+For $\Gamma=0$, the orbit is circular and
+
+```math
+a=\Lambda^2.
+```
+
+The perturbing potential becomes independent of $\psi$, and therefore
+
+```math
+\overline{\mathcal R}(\Lambda,0,\phi)
+=
+\mathcal R(\Lambda^2,\phi).
+```
+
+Consequently the reduced Hamiltonian is
 
 ```math
 \boxed{
-j=\sqrt r
-}
-```
-
-at all times.
-
-This does not imply
-
-```math
-\dot r=0.
-```
-
-Instead, the angular momentum is allowed to evolve under the perturbing torque, and the guiding-center radius changes accordingly.
-
-Differentiating
-
-```math
-j=\sqrt r
-```
-
-gives
-
-```math
-\dot j
+H_{\rm gc}(\Lambda,\phi)
 =
-\frac{1}{2\sqrt r}\dot r.
-```
-
-Since the axisymmetric term $1/r$ has no $\phi$-dependence,
-
-```math
-\dot j
-=
-\frac{\partial\mathcal R}{\partial\phi}.
-```
-
-Therefore,
-
-```math
-\boxed{
-\dot r
-=
-2\sqrt r
-\frac{\partial\mathcal R}{\partial\phi}
+-\frac{1}{2\Lambda^2}
+-\Lambda
+-
+\mathcal R(\Lambda^2,\phi)
 }.
 ```
 
-This equation describes radial migration of the guiding center caused by the gravitational torque.
+Since $\Gamma=0$,
 
----
+```math
+j=\Lambda,
+```
 
-## 11. Reduced guiding-center Hamiltonian
-
-Using the inertial specific angular momentum $j$, the rotating-frame Hamiltonian can be reduced by eliminating the radial epicyclic degree of freedom.
-
-The resulting guiding-center Hamiltonian is
+so this may equivalently be written as
 
 ```math
 \boxed{
@@ -451,17 +637,24 @@ H_{\rm gc}(j,\phi)
 =
 -\frac{1}{2j^2}
 -j
--\mathcal R(j^2,\phi)
+-
+\mathcal R(j^2,\phi)
 }.
 ```
 
-The canonical variables are
+The canonical pair of the reduced system is therefore
 
 ```math
 (\phi,j).
 ```
 
-Hamilton's equations are
+This provides the formal justification for the reduced Hamiltonian used in the application.
+
+---
+
+## 13. Guiding-center equations
+
+Hamilton's equations give
 
 ```math
 \dot\phi
@@ -469,39 +662,54 @@ Hamilton's equations are
 \frac{\partial H_{\rm gc}}{\partial j},
 ```
 
+and
+
 ```math
 \dot j
 =
--\frac{\partial H_{\rm gc}}{\partial\phi}.
+-
+\frac{\partial H_{\rm gc}}{\partial\phi}.
 ```
 
 Therefore,
 
 ```math
+\boxed{
 \dot j
 =
-\frac{\partial\mathcal R}{\partial\phi},
+\frac{\partial\mathcal R}{\partial\phi}
+}
 ```
 
 and
 
 ```math
+\boxed{
 \dot\phi
 =
 \frac1{j^3}
 -1
 -
 2j
-\frac{\partial\mathcal R}{\partial r}.
+\frac{\partial\mathcal R}{\partial r}
+}.
 ```
 
-Using
+For the circular guiding-center orbit,
 
 ```math
-j=\sqrt r,
+r=j^2.
 ```
 
-we obtain the main reduced equations used by the application:
+Hence
+
+```math
+\dot r
+=
+2j\dot j.
+```
+
+Using $j=\sqrt r$ gives the two governing equations
 
 ```math
 \boxed{
@@ -526,13 +734,44 @@ r^{-3/2}
 }.
 ```
 
-These two first-order equations constitute the default guiding-center model.
+These equations evolve the guiding-center radius and the slow co-orbital angle.
+
+They do not evolve an independent eccentricity or epicyclic phase.
 
 ---
 
-## 12. Explicit derivatives of the disturbing function
+## 14. Explicit derivatives of the disturbing function
 
-The azimuthal derivative is
+The disturbing function is
+
+```math
+\mathcal R(r,\phi)
+=
+\frac{1-\mu}{r_1}
++
+\frac{\mu}{r_2}
+-
+\frac1r,
+```
+
+with
+
+```math
+r_1^2
+=
+r^2+\mu^2+2\mu r\cos\phi,
+```
+
+and
+
+```math
+r_2^2
+=
+r^2+(1-\mu)^2
+-2(1-\mu)r\cos\phi.
+```
+
+Its azimuthal derivative is
 
 ```math
 \boxed{
@@ -604,13 +843,207 @@ r^{-3/2}
 }
 ```
 
-These explicit expressions should be used directly in the numerical implementation unless there is a specific reason to evaluate the derivatives numerically.
+These analytic derivatives should be used directly in the numerical implementation.
 
 ---
 
-## 13. Simplified leading-order model near corotation
+## 15. Approximation conditions
 
-Near the corotation radius,
+The guiding-center equations are not an exact reduction of the PCR3BP.
+
+They are a first-order fast-angle-averaged model in which the free epicyclic action is set to zero.
+
+The approximation requires a separation between the fast epicyclic timescale and the slower guiding-center evolution.
+
+### 15.1 Small non-Keplerian perturbation
+
+The intended regime is
+
+```math
+\mu\ll1.
+```
+
+At fixed separation from the secondary, the disturbing potential is then small compared with the central Keplerian potential.
+
+However, the approximation is not uniform near the secondary because derivatives of the perturbing potential grow rapidly as $r_2$ decreases.
+
+---
+
+### 15.2 Near-co-orbital motion
+
+The model is intended for the vicinity of the 1:1 resonance,
+
+```math
+\Lambda\simeq1,
+```
+
+or equivalently
+
+```math
+r\simeq1.
+```
+
+The unperturbed slow-angle frequency is
+
+```math
+\dot\phi
+=
+r^{-3/2}-1.
+```
+
+The separation of timescales requires approximately
+
+```math
+|\dot\phi|\ll1,
+```
+
+so that the guiding-center angle changes slowly compared with the epicyclic frequency, which is of order unity.
+
+---
+
+### 15.3 Small free eccentricity
+
+The eccentricity action satisfies
+
+```math
+\Gamma
+\simeq
+\frac12\Lambda e^2.
+```
+
+The reduced model assumes
+
+```math
+\Gamma\ll\Lambda,
+```
+
+or
+
+```math
+e\ll1.
+```
+
+The default model further chooses
+
+```math
+\Gamma=0
+```
+
+in the averaged Hamiltonian.
+
+Thus the model removes the free eccentricity degree of freedom.
+
+This does not imply that the full PCR3BP trajectory has exactly zero instantaneous eccentricity: the secondary can generate short-period forced oscillations that are absent from the reduced model.
+
+---
+
+### 15.4 Slow evolution of the guiding center
+
+The angular momentum and guiding-center radius should evolve slowly compared with the orbital timescale.
+
+A useful qualitative requirement is
+
+```math
+\left|
+\frac{\dot j}{j}
+\right|
+\ll1,
+```
+
+or equivalently,
+
+```math
+\left|
+\frac{\dot r}{r}
+\right|
+\ll1
+```
+
+on an orbital timescale.
+
+This requirement may temporarily become less accurate during a horseshoe U-turn.
+
+---
+
+### 15.5 Avoidance of strong close encounters
+
+Let
+
+```math
+d=r_2
+```
+
+be the distance from the secondary.
+
+A useful measure of the local tidal strength of the secondary is
+
+```math
+\epsilon_{\rm tide}
+=
+\frac{\mu}{d^3}.
+```
+
+The most clearly controlled regime of the epicyclic averaging is
+
+```math
+\epsilon_{\rm tide}\ll1.
+```
+
+Equivalently,
+
+```math
+d\gg\mu^{1/3}.
+```
+
+Near the secondary's Hill scale,
+
+```math
+r_{\rm H}
+\simeq
+\left(
+\frac{\mu}{3}
+\right)^{1/3},
+```
+
+the tidal parameter is no longer asymptotically small.
+
+Therefore trajectories whose horseshoe turns approach to only a few Hill radii may still be described qualitatively by the reduced model, but quantitative accuracy is not guaranteed and must be checked against the full PCR3BP.
+
+The reduced model should not be used through a true close encounter or collision with the secondary.
+
+---
+
+## 16. Order and interpretation of the approximation
+
+For a fixed distance from the secondary of order unity, the perturbation satisfies approximately
+
+```math
+\mathcal R=O(\mu).
+```
+
+Averaging over the fast epicyclic angle removes the first-order dependence on the fast phase.
+
+The reduced Hamiltonian therefore represents the first-order averaged co-orbital dynamics on the zero-free-eccentricity manifold.
+
+Corrections arise from:
+
+- finite free eccentricity,
+- forced short-period epicyclic motion,
+- higher-order terms generated by the averaging transformation,
+- rapid variation of the perturbation during close approaches,
+- breakdown of the timescale separation.
+
+Away from close encounters these corrections are higher order in the non-Keplerian perturbation.
+
+Near the secondary, however, the expansion is not uniformly ordered by $\mu$ alone because the factors $1/r_2$, $1/r_2^2$, and $1/r_2^3$ can become large.
+
+For this reason, statements such as “the approximation is first order in $\mu$” should only be understood for trajectories that remain sufficiently far from the secondary.
+
+---
+
+## 17. Simplified model near corotation
+
+Near the corotation radius, write
 
 ```math
 r=1+\xi,
@@ -618,7 +1051,7 @@ r=1+\xi,
 |\xi|\ll1.
 ```
 
-Then,
+Then
 
 ```math
 r^{-3/2}-1
@@ -626,7 +1059,7 @@ r^{-3/2}-1
 -\frac32\xi.
 ```
 
-The guiding-center equations become approximately
+The guiding-center equations become
 
 ```math
 \dot\xi
@@ -634,6 +1067,8 @@ The guiding-center equations become approximately
 2
 \frac{\partial\mathcal R}{\partial\phi},
 ```
+
+and
 
 ```math
 \dot\phi
@@ -644,7 +1079,7 @@ The guiding-center equations become approximately
 \frac{\partial\mathcal R}{\partial r}.
 ```
 
-An even simpler approximation neglects the perturbative contribution to the azimuthal frequency:
+If the perturbative correction to the angular frequency is additionally neglected,
 
 ```math
 \boxed{
@@ -655,6 +1090,8 @@ An even simpler approximation neglects the perturbative contribution to the azim
 }
 ```
 
+and
+
 ```math
 \boxed{
 \dot\phi
@@ -663,65 +1100,15 @@ An even simpler approximation neglects the perturbative contribution to the azim
 }.
 ```
 
-This simplified model corresponds approximately to Keplerian shear plus gravitational torque.
+This simpler model represents approximately Keplerian shear plus gravitational torque.
 
-It may be useful for educational visualization, but it is not the default numerical model.
-
----
-
-## 14. Interpretation of the two terms in $\dot\phi$
-
-The guiding-center azimuthal equation is
-
-```math
-\dot\phi
-=
-r^{-3/2}-1
--
-2\sqrt r
-\frac{\partial\mathcal R}{\partial r}.
-```
-
-The first term,
-
-```math
-r^{-3/2}-1,
-```
-
-is the differential Keplerian angular velocity relative to the rotating frame.
-
-Thus,
-
-```math
-r>1
-\quad\Rightarrow\quad
-\dot\phi<0
-```
-
-in the unperturbed problem, while
-
-```math
-r<1
-\quad\Rightarrow\quad
-\dot\phi>0.
-```
-
-The second term,
-
-```math
--2\sqrt r
-\frac{\partial\mathcal R}{\partial r},
-```
-
-is the correction to the guiding-center angular frequency caused by the perturbing gravitational potential.
-
-This term may become important during a horseshoe turn and should be retained in the default model.
+It may be useful as an educational comparison model but is not the default numerical model.
 
 ---
 
-## 15. Conserved quantity of the reduced system
+## 18. Conserved quantity of the reduced model
 
-Because the reduced system is Hamiltonian in the canonical variables $(\phi,j)$, the quantity
+Because the reduced equations are Hamiltonian in the canonical variables $(\phi,j)$,
 
 ```math
 H_{\rm gc}
@@ -751,196 +1138,7 @@ H_{\rm gc}(r,\phi)
 }.
 ```
 
-This conserved quantity should be used as an important numerical diagnostic.
-
-For a sufficiently accurate integration, $H_{\rm gc}(t)$ should remain nearly constant.
-
----
-
-## 16. Relationship to the full PCR3BP
-
-The reduced model is not intended to reproduce the instantaneous full trajectory point by point.
-
-Instead, it is intended to reproduce the slow co-orbital motion of the guiding center after the free epicyclic degree of freedom has been removed.
-
-The expected qualitative relationship is
-
-```math
-\text{full PCR3BP trajectory}
-=
-\text{guiding-center motion}
-+
-\text{epicyclic motion}
-+
-\text{higher-order corrections}.
-```
-
-The reduced model should retain features such as:
-
-- horseshoe libration,
-- tadpole libration,
-- radial displacement of the guiding center,
-- angular-momentum exchange with the secondary,
-- reversal at horseshoe turns,
-
-while suppressing:
-
-- free eccentricity,
-- free epicyclic oscillation,
-- dependence on an independent radial epicyclic phase.
-
----
-
-## 17. Important assumptions
-
-The guiding-center model relies on the following assumptions.
-
-### 17.1 Small secondary mass
-
-The intended regime is primarily
-
-```math
-\mu\ll1.
-```
-
-This makes the non-axisymmetric part of the potential a perturbation to the central Keplerian potential.
-
-### 17.2 Small free eccentricity
-
-The free eccentricity is assumed to be approximately zero.
-
-The model does not evolve an independent eccentricity variable.
-
-### 17.3 Slow guiding-center evolution
-
-The guiding center is assumed to evolve more slowly than the local orbital period, except possibly during relatively rapid horseshoe turns.
-
-### 17.4 No close collision with the secondary
-
-The model should not be trusted arbitrarily close to
-
-```math
-r_2=0.
-```
-
-Near a true close encounter, the perturbation is no longer weak and the separation between slow guiding-center motion and fast epicyclic motion becomes questionable.
-
----
-
-## 18. Behaviour near the secondary
-
-Near the secondary, let the separation be
-
-```math
-d\sim r_2.
-```
-
-The secondary potential scales as
-
-```math
-\frac{\mu}{d}.
-```
-
-For a characteristic Hill-scale separation,
-
-```math
-d\sim r_{\rm H}\sim\mu^{1/3},
-```
-
-the perturbing potential scales as
-
-```math
-\frac{\mu}{d}
-\sim
-\mu^{2/3},
-```
-
-while the perturbing gravitational acceleration scales as
-
-```math
-\frac{\mu}{d^2}
-\sim
-\mu^{1/3}.
-```
-
-Thus, even when the perturbing potential remains formally small, its spatial gradient can become dynamically important during a horseshoe turn.
-
-This is one reason the torque term can significantly change the guiding-center radius even when $\mu\ll1$.
-
----
-
-## 19. Numerical implementation variables
-
-The default reduced-system state vector is
-
-```math
-\mathbf y
-=
-(r,\phi).
-```
-
-Its evolution is
-
-```math
-\frac{d\mathbf y}{dt}
-=
-\begin{pmatrix}
-f_r(r,\phi)\\
-f_\phi(r,\phi)
-\end{pmatrix},
-```
-
-where
-
-```math
-f_r
-=
-2\sqrt r
-\frac{\partial\mathcal R}{\partial\phi},
-```
-
-```math
-f_\phi
-=
-r^{-3/2}-1
--
-2\sqrt r
-\frac{\partial\mathcal R}{\partial r}.
-```
-
-For visualization in the rotating Cartesian plane,
-
-```math
-x=r\cos\phi,
-\qquad
-y=r\sin\phi.
-```
-
-The angular momentum associated with the reduced model is
-
-```math
-j=\sqrt r.
-```
-
-The gravitational torque is
-
-```math
-\tau
-=
-\dot j
-=
-\frac{\partial\mathcal R}{\partial\phi}.
-```
-
-These quantities may all be displayed in the application.
-
----
-
-## 20. Recommended numerical diagnostics
-
-The implementation should monitor at least the following quantities.
-
-### 20.1 Reduced Hamiltonian error
+This conserved quantity is an important numerical diagnostic.
 
 Define
 
@@ -950,19 +1148,105 @@ Define
 H_{\rm gc}(t)-H_{\rm gc}(0).
 ```
 
-The relative or absolute drift should remain small compared with the physical variations being visualized.
+For a numerically accurate integration, $\Delta H_{\rm gc}$ should remain small.
 
-### 20.2 Minimum distance to the secondary
+Note that conservation of $H_{\rm gc}$ tests the numerical integration of the reduced model; it does not test the physical validity of the guiding-center approximation itself.
+
+---
+
+## 19. Relationship to the full PCR3BP
+
+The reduced model is not intended to reproduce the instantaneous full trajectory point by point.
+
+Instead, the expected relationship is schematically
+
+```math
+\text{full PCR3BP motion}
+=
+\text{guiding-center motion}
++
+\text{forced/free epicyclic motion}
++
+\text{higher-order corrections}.
+```
+
+The reduced model is intended to retain:
+
+- horseshoe libration,
+- tadpole libration,
+- slow radial displacement of the guiding center,
+- angular-momentum exchange with the secondary,
+- horseshoe reversal,
+
+while suppressing the independent free-epicyclic degree of freedom.
+
+A central validation task for the application is therefore to compare the reduced trajectory with an appropriately filtered or averaged full PCR3BP trajectory.
+
+---
+
+## 20. Numerical diagnostics and validity indicators
+
+The implementation should monitor both numerical accuracy and the expected validity of the approximation.
+
+### 20.1 Reduced Hamiltonian error
 
 Monitor
+
+```math
+\Delta H_{\rm gc}
+=
+H_{\rm gc}(t)-H_{\rm gc}(0).
+```
+
+---
+
+### 20.2 Distance from the secondary
+
+Monitor
+
+```math
+r_2(t)
+```
+
+and record
 
 ```math
 r_{2,\min}.
 ```
 
-If the trajectory approaches too close to the secondary, the application should warn that the guiding-center approximation may no longer be reliable.
+---
 
-### 20.3 Positivity of $r$
+### 20.3 Local tidal parameter
+
+Monitor
+
+```math
+\epsilon_{\rm tide}(t)
+=
+\frac{\mu}{r_2(t)^3}.
+```
+
+This quantity provides a useful indication of where the fast-angle averaging becomes questionable.
+
+No universal numerical threshold should be assumed before validation against the full PCR3BP.
+
+---
+
+### 20.4 Guiding-center radial evolution rate
+
+Monitor
+
+```math
+\left|
+\frac{\dot r}{r}
+\right|.
+```
+
+Large values indicate reduced separation between the orbital and guiding-center timescales.
+
+---
+
+### 20.5 Positivity of the guiding-center radius
 
 The numerical solution must satisfy
 
@@ -970,30 +1254,49 @@ The numerical solution must satisfy
 r>0.
 ```
 
-A trajectory producing $r\le0$ indicates numerical failure or use far outside the intended model domain.
+A solution reaching $r\le0$ represents numerical failure or use far outside the intended model domain.
 
 ---
 
 ## 21. Comparison mode with the full PCR3BP
 
-A later version of the application should integrate both:
+The application should eventually integrate both
 
 1. the full PCR3BP equations, and
 2. the reduced guiding-center equations.
 
-The purpose is to visualize directly the difference between the physical trajectory and its approximate guiding-center motion.
+This comparison serves two distinct purposes:
 
-For meaningful comparison, the initialization procedure for the full PCR3BP must be defined carefully.
+- demonstrating visually how the epicyclic component is removed, and
+- determining where the guiding-center approximation is quantitatively accurate.
 
-The full trajectory should initially correspond as closely as possible to a zero-free-eccentricity orbit associated with the selected guiding-center state.
+The comparison should examine the dependence on
 
-The exact initialization prescription for this comparison mode should be documented separately once adopted.
+```math
+\mu,
+```
+
+the horseshoe or tadpole amplitude,
+
+```math
+r_{2,\min},
+```
+
+and
+
+```math
+\epsilon_{\rm tide,max}.
+```
+
+For meaningful comparison, the full PCR3BP initial condition must be chosen to minimize free eccentricity.
+
+The precise initialization and filtering procedure should be documented separately once adopted.
 
 ---
 
 ## 22. Current model status
 
-The default physical model of the application is
+The default reduced model is
 
 ```math
 \boxed{
@@ -1003,6 +1306,8 @@ The default physical model of the application is
 \frac{\partial\mathcal R}{\partial\phi}
 }
 ```
+
+and
 
 ```math
 \boxed{
@@ -1025,22 +1330,21 @@ with
 +
 \frac{\mu}{r_2}
 -
-\frac1r,
+\frac1r.
 ```
+
+Here $r$ denotes the guiding-center radius,
 
 ```math
-r_1^2
-=
-r^2+\mu^2+2\mu r\cos\phi,
+r=r_{\rm gc}=a=j^2,
 ```
 
-```math
-r_2^2
-=
-r^2+(1-\mu)^2
--2(1-\mu)r\cos\phi.
-```
+not the instantaneous radial coordinate of the corresponding full PCR3BP trajectory.
 
-The intended interpretation is a zero-free-eccentricity, co-orbital guiding-center approximation to the planar circular restricted three-body problem.
+The physical interpretation of the model is:
 
-This model should be considered provisional until it has been validated quantitatively against suitably filtered or averaged trajectories from the full PCR3BP.
+> a first-order fast-angle-averaged, zero-free-eccentricity approximation to the planar co-orbital restricted three-body problem.
+
+Its controlled regime requires small non-Keplerian perturbations, slow co-orbital evolution relative to the epicyclic period, and avoidance of strong close encounters with the secondary.
+
+The model should remain provisional until its accuracy has been quantified against appropriately initialized and filtered full PCR3BP trajectories.
