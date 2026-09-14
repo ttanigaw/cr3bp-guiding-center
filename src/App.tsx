@@ -1,12 +1,15 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import InertialTrajectoryPlot from './components/InertialTrajectoryPlot'
 import TrajectoryPlot from './components/TrajectoryPlot'
 import { trajectoryDiagnostics, type TrajectoryDiagnostics } from './physics/diagnostics'
 import { integrateGuidingCenter, type TrajectoryPoint } from './physics/integrator'
 import { orbitPresets, type OrbitPresetId } from './physics/presets'
+import { trajectoryPointAtTime } from './visualization/playback'
 
 const presetOrder: OrbitPresetId[] = ['horseshoe', 'l4-tadpole', 'l5-tadpole']
 const DEFAULT_DT = 0.05
+const BASE_PLAYBACK_RATE = 2 * Math.PI
+const playbackSpeeds = [0.25, 0.5, 1, 2, 4]
 
 interface DraftInputs {
   mu: string
@@ -37,6 +40,10 @@ function presetToInputs(presetId: OrbitPresetId): DraftInputs {
 }
 
 function parseFinite(value: string, label: string): number {
+  if (value.trim() === '') {
+    throw new RangeError(`${label} is required.`)
+  }
+
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     throw new RangeError(`${label} must be a finite number.`)
@@ -85,10 +92,46 @@ function formatScientific(value: number): string {
 }
 
 export default function App() {
-  const [selectedPresetId, setSelectedPresetId] = useState<OrbitPresetId>('horseshoe')
+  const [selectedPresetId, setSelectedPresetId] = useState<OrbitPresetId | null>('horseshoe')
   const [draftInputs, setDraftInputs] = useState<DraftInputs>(() => presetToInputs('horseshoe'))
   const [result, setResult] = useState<CalculationResult>(() => calculate(presetToInputs('horseshoe')))
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1)
+  const [animationTime, setAnimationTime] = useState(0)
+  const previousFrameTimeRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!isPlaying) {
+      previousFrameTimeRef.current = null
+      return
+    }
+
+    let frameId = 0
+
+    const animate = (timestamp: number) => {
+      if (previousFrameTimeRef.current === null) {
+        previousFrameTimeRef.current = timestamp
+      }
+
+      const elapsedSeconds = (timestamp - previousFrameTimeRef.current) / 1000
+      previousFrameTimeRef.current = timestamp
+      const advance = elapsedSeconds * BASE_PLAYBACK_RATE * playbackSpeed
+
+      setAnimationTime((current) => {
+        const next = Math.min(current + advance, result.tMax)
+        if (next >= result.tMax) {
+          setIsPlaying(false)
+        }
+        return next
+      })
+
+      frameId = requestAnimationFrame(animate)
+    }
+
+    frameId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frameId)
+  }, [isPlaying, playbackSpeed, result.tMax])
 
   const loadPreset = (presetId: OrbitPresetId) => {
     setSelectedPresetId(presetId)
@@ -98,7 +141,7 @@ export default function App() {
 
   const updateDraft = (field: keyof DraftInputs, value: string) => {
     setDraftInputs((current) => ({ ...current, [field]: value }))
-    setSelectedPresetId('' as OrbitPresetId)
+    setSelectedPresetId(null)
   }
 
   const handleCalculate = (event: FormEvent<HTMLFormElement>) => {
@@ -107,13 +150,30 @@ export default function App() {
     try {
       const nextResult = calculate(draftInputs)
       setResult(nextResult)
+      setAnimationTime(0)
+      setIsPlaying(false)
       setErrorMessage(null)
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The calculation failed.')
     }
   }
 
+  const handlePlay = () => {
+    if (animationTime >= result.tMax) {
+      setAnimationTime(0)
+    }
+    setIsPlaying(true)
+  }
+
+  const handlePause = () => setIsPlaying(false)
+  const handleReset = () => {
+    setIsPlaying(false)
+    setAnimationTime(0)
+  }
+
   const orbitalPeriods = result.tMax / (2 * Math.PI)
+  const currentPoint = trajectoryPointAtTime(result.trajectory, animationTime)
+  const currentPeriods = currentPoint.t / (2 * Math.PI)
 
   return (
     <main>
@@ -210,9 +270,44 @@ export default function App() {
         </aside>
 
         <div className="result-stack">
+          <section className="playback-card" aria-labelledby="playback-title">
+            <div>
+              <p className="eyebrow">Shared animation time</p>
+              <h2 id="playback-title">Playback</h2>
+            </div>
+            <div className="playback-controls">
+              <button type="button" onClick={handlePlay} disabled={isPlaying || result.tMax === 0}>Play</button>
+              <button type="button" onClick={handlePause} disabled={!isPlaying}>Pause</button>
+              <button type="button" onClick={handleReset} disabled={animationTime === 0 && !isPlaying}>Reset</button>
+              <label>
+                <span>Speed</span>
+                <select
+                  value={playbackSpeed}
+                  onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
+                >
+                  {playbackSpeeds.map((speed) => (
+                    <option key={speed} value={speed}>{speed}×</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="playback-status" aria-live="polite">
+              t = {currentPoint.t.toFixed(2)} · {currentPeriods.toFixed(2)} binary periods
+              {isPlaying ? ' · playing' : ' · paused'}
+            </p>
+            <p className="playback-note">
+              At 1×, one binary period is shown per real second. Playback changes display time only;
+              the calculated trajectory is unchanged.
+            </p>
+          </section>
+
           <div className="orbit-panel-grid" aria-label="Rotating and inertial orbit comparison">
-            <TrajectoryPlot trajectory={result.trajectory} mu={result.mu} />
-            <InertialTrajectoryPlot trajectory={result.trajectory} mu={result.mu} />
+            <TrajectoryPlot trajectory={result.trajectory} mu={result.mu} currentPoint={currentPoint} />
+            <InertialTrajectoryPlot
+              trajectory={result.trajectory}
+              mu={result.mu}
+              currentTime={currentPoint.t}
+            />
           </div>
 
           <section className="diagnostics-card" aria-labelledby="diagnostics-title">
