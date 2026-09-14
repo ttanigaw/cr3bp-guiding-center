@@ -4,17 +4,17 @@ Last updated: 2026-09-14
 
 ## Current phase
 
-Guiding-center physics core, fixed-step RK4 integration, representative co-orbital presets, and the first static rotating-frame trajectory visualization are implemented.
+Guiding-center physics core, fixed-step RK4 integration, representative co-orbital presets, static rotating-frame visualization, editable initial conditions, and basic trajectory diagnostics are implemented.
 
-The application now computes validated preset trajectories in the browser and renders them in an equal-axis rotating-frame SVG view. Physics, integration, presets, and visualization remain separated by module boundaries.
+The application now computes trajectories in the browser from either validated presets or user-edited `mu`, `r0`, `phi0`, and `tMax`. Calculation occurs only when the user explicitly presses Calculate. Physics, integration, diagnostics, presets, and visualization remain separated by module boundaries.
 
-The immediate infrastructure task is to verify that a fresh GitHub Codespace starts successfully after the dev-container permission fix described below. After that, the next application task is to add user-editable physical controls and diagnostics before animation.
+The next application goal is animation and the time-series / phase-space views required by version 0.1.
 
 ---
 
 ## Repository status
 
-The following project documents have been prepared:
+The following project documents are maintained:
 
 - `AGENTS.md`
 - `docs/PHYSICS.md`
@@ -23,10 +23,9 @@ The following project documents have been prepared:
 
 `README.md` includes local development and Codespaces instructions.
 
-React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured.
-Dependencies are pinned with an npm lockfile. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not configured.
+React + TypeScript + Vite, Vitest, and a Node.js 24.20.0 dev container are configured. Dependencies are pinned with an npm lockfile. GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not configured.
 
-A Codespaces startup failure was observed when the Dockerfile ended with `USER node`: Codespaces entered recovery mode and reported permission failures while creating `/home/codespace`. The Dockerfile has therefore been changed to leave the image default user unchanged, while `devcontainer.json` continues to set `remoteUser` to `node`. A fresh Codespaces creation or rebuild is still required to validate this fix end-to-end.
+A Codespaces startup failure was previously observed when the Dockerfile ended with `USER node`. Removing that directive while keeping `remoteUser: node` in `devcontainer.json` fixed the issue. A fresh Codespace created from the repaired configuration started normally, and `npm run dev` served the application successfully in a real browser.
 
 ---
 
@@ -34,20 +33,11 @@ A Codespaces startup failure was observed when the Dockerfile ended with `USER n
 
 The guiding-center model is documented in `docs/PHYSICS.md`.
 
-The current reduced model evolves the guiding-center radius `r` and the rotating-frame co-orbital angle `phi`.
-
-The governing equations are derived from a fast-angle-averaged Hamiltonian with the free eccentricity action set to zero.
+The current reduced model evolves the guiding-center radius `r` and rotating-frame co-orbital angle `phi`. The equations are derived from a fast-angle-averaged Hamiltonian with the free eccentricity action set to zero.
 
 The reduced radial coordinate represents the guiding-center radius rather than the instantaneous physical radius of the full PCR3BP trajectory.
 
-The model is intended primarily for:
-
-- small secondary mass ratio;
-- near-co-orbital motion;
-- small free eccentricity;
-- sufficiently weak close encounters with the secondary.
-
-The model is currently considered provisional until it has been quantitatively compared with the full PCR3BP.
+The model is intended primarily for small secondary mass ratio, near-co-orbital motion, small free eccentricity, and sufficiently weak close encounters with the secondary. The model remains provisional until quantitatively compared with the full PCR3BP.
 
 ---
 
@@ -57,25 +47,28 @@ Version 0.1 is defined in `docs/APP_SPEC.md`.
 
 Implemented portions now include:
 
+- direct input of `mu`, `r0`, `phi0` in degrees, and integration duration;
+- explicit Calculate action;
 - numerical integration of the reduced guiding-center equations;
 - rotating-frame static trajectory visualization;
 - primary and secondary body markers;
 - corotation circle;
 - L4 and L5 markers;
-- validated horseshoe/L4/L5 preset selection.
+- validated horseshoe/L4/L5 preset loading;
+- numerical failure reporting;
+- reduced-Hamiltonian drift diagnostic;
+- minimum-secondary-distance diagnostic.
 
 Still required for version 0.1:
 
-- direct input of `mu`, `r0`, `phi0`, and duration;
-- explicit Calculate action and numerical-error presentation;
 - animation with play/pause/reset;
 - `r(t)` visualization;
 - angular evolution visualization;
 - `phi` versus `r - 1` phase-space visualization;
-- reduced-Hamiltonian and minimum-secondary-distance diagnostics;
+- current-state diagnostics during animation;
 - static deployment suitable for GitHub Pages.
 
-Full PCR3BP comparison is intentionally deferred until the reduced model has been validated.
+Full PCR3BP comparison is intentionally deferred until the reduced model has been validated further.
 
 ---
 
@@ -83,16 +76,18 @@ Full PCR3BP comparison is intentionally deferred until the reduced model has bee
 
 Implemented:
 
-- React entry point and responsive application layout;
-- CSS and strict TypeScript checking;
-- Vite configuration;
-- Vitest DOM tests;
-- `src/physics/guidingCenter.ts` with pure functions for body distances, the disturbing function, its analytic derivatives, guiding-center rates, the reduced Hamiltonian, and the local tidal-strength parameter;
+- responsive React application layout;
+- strict TypeScript checking and Vite configuration;
+- Vitest unit, regression, and DOM tests;
+- `src/physics/guidingCenter.ts` with body distances, disturbing function, analytic derivatives, guiding-center rates, reduced Hamiltonian, and tidal parameter;
 - `src/physics/integrator.ts` with a transparent classical fourth-order Runge-Kutta stepper and fixed-step trajectory integration;
+- `src/physics/diagnostics.ts` with reusable trajectory diagnostics for maximum absolute Hamiltonian drift and minimum secondary distance;
 - `src/physics/presets.ts` with reproducible horseshoe, L4 tadpole, and L5 tadpole examples;
-- `src/components/TrajectoryPlot.tsx` with static SVG trajectory rendering, equal axes, corotation circle, primary/secondary markers, and L4/L5 markers;
-- preset selection in `App.tsx`, with trajectory recalculation from the public integrator interface;
-- unit and regression tests for the physics core, integrator, preset orbit topology, trajectory rendering, and preset switching.
+- `src/components/TrajectoryPlot.tsx` with static equal-axis SVG trajectory rendering;
+- editable physical controls and explicit Calculate workflow in `App.tsx`;
+- clear user-facing calculation errors while retaining the last successful trajectory.
+
+Preset buttons load example values into the editable form; they do not silently recalculate. User edits are likewise applied only on Calculate.
 
 The trajectory SVG downsamples paths longer than 1200 displayed vertices for rendering only; the numerical solution itself is not modified.
 
@@ -102,6 +97,7 @@ Current source structure:
       physics/
         guidingCenter.ts
         integrator.ts
+        diagnostics.ts
         presets.ts
       components/
         TrajectoryPlot.tsx
@@ -121,7 +117,7 @@ The requested `dt` is used for full steps, and the final step is shortened when 
 
 The integrator rejects invalid time-step settings, caps the maximum number of steps, propagates domain errors from the physics model, and rejects non-finite or non-positive-radius numerical states.
 
-The current validated example presets use `dt = 0.05`. Adaptive integration may be considered later if fixed-step integration is insufficient near horseshoe turns.
+The current UI uses fixed `dt = 0.05`; this numerical setting is displayed but is not yet user-editable. The final user-facing time-step/tolerance policy remains open.
 
 ---
 
@@ -135,25 +131,21 @@ All current presets use `mu = 0.001`.
 
 These values are reproducible demonstration cases for this reduced model, not universal physical initial conditions.
 
-The horseshoe regression test requires the trajectory to cross both sides of corotation in radius, span more than 5 radians in co-orbital angle while remaining away from conjunction, keep the tidal-strength indicator below 0.02, and conserve the reduced Hamiltonian to an absolute error below `1e-9`.
-
-The tadpole tests require bounded leading/trailing libration around the corresponding triangular region, radial excursions near `r = 1`, and reduced-Hamiltonian error below `1e-10` for both L4 and L5 examples. Reflection symmetry of the equations involves time reversal as well as `phi -> -phi`, so forward-time L4 and L5 samples are not required to match point by point.
+Regression tests require horseshoe topology, bounded L4/L5 tadpole topology, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
 
 ---
 
 ## Visualization status
 
-The first rotating-frame visualization is implemented as an SVG component.
-
-The plot uses:
+The rotating-frame visualization is implemented as an SVG component using
 
 - `x = r cos(phi)`;
 - `y = r sin(phi)`;
 - equal horizontal and vertical scaling;
 - fixed limits of approximately `[-1.35, 1.35]` in both axes;
-- the primary at `(-mu, 0)`;
-- the secondary at `(1 - mu, 0)`;
-- the corotation circle `r = 1`;
+- primary at `(-mu, 0)`;
+- secondary at `(1 - mu, 0)`;
+- corotation circle `r = 1`;
 - L4/L5 markers at the standard PCR3BP triangular coordinates.
 
 The current visualization is static. The initial trajectory point is marked, but there is not yet a moving current-position marker or animation.
@@ -162,22 +154,23 @@ The current visualization is static. The initial trajectory point is marked, but
 
 ## Validation status
 
-GitHub Actions CI is configured to repeat `npm ci`, `npm test`, and `npm run build` automatically on pull requests and pushes to `main`.
+GitHub Actions CI automatically repeats `npm ci`, `npm test`, and `npm run build` on pull requests and pushes to `main`.
 
 Physics-core validation includes analytic-derivative finite-difference checks, exact `mu = 0` limits, reflection symmetry, body-distance checks, and input-domain checks.
 
 Integrator validation includes reproduction of the analytic `mu = 0` solution, exact landing on `tMax`, reduced-Hamiltonian conservation for a perturbed orbit, and rejection of invalid integration settings.
 
-Representative-orbit validation covers horseshoe topology, bounded L4/L5 tadpole topology on the appropriate leading/trailing sides, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide` for the horseshoe example.
+Representative-orbit validation covers horseshoe topology, bounded L4/L5 tadpole topology on the appropriate leading/trailing sides, reduced-Hamiltonian conservation, and a close-approach proxy through `epsilon_tide`.
 
-UI tests check that the static trajectory plot, body markers, L4/L5 markers, preset controls, and preset switching render in the DOM. A fresh interactive browser visual inspection of this new trajectory view has not yet been completed because the existing Codespace entered recovery mode before the dev-container permission fix.
+A fresh Codespace created after the dev-container permission fix started normally. The application was then inspected in a real desktop browser. The horseshoe display rendered correctly, and the L4 and L5 tadpole presets were each selected and visually confirmed to behave normally.
+
+DOM tests now also exercise the explicit Calculate workflow, diagnostics rendering, and invalid-input error reporting.
 
 The next validation tasks are:
 
-1. create or rebuild a Codespace from the fixed dev-container configuration and verify normal startup;
-2. run `npm run dev` and inspect the trajectory view in an interactive browser, including a narrow viewport;
-3. expose Hamiltonian and validity diagnostics in the application;
-4. quantify guiding-center accuracy against the full PCR3BP in a later development stage.
+1. inspect the new editable-control and diagnostics UI in a real browser;
+2. verify the responsive layout at a narrow viewport;
+3. quantify guiding-center accuracy against the full PCR3BP in a later development stage.
 
 ---
 
@@ -185,11 +178,9 @@ The next validation tasks are:
 
 GitHub is the canonical project repository.
 
-The intended deployment target is GitHub Pages.
+The intended deployment target is GitHub Pages. GitHub Pages has not yet been configured.
 
-GitHub Pages has not yet been configured.
-
-The intended application architecture is a static browser application with all numerical calculations performed client-side.
+The application architecture remains a static browser application with all numerical calculations performed client-side.
 
 ---
 
@@ -197,7 +188,6 @@ The intended application architecture is a static browser application with all n
 
 The following issues remain open:
 
-- verify the Codespaces permission fix with a fresh creation or container rebuild;
 - choose the final user-facing time step or integration tolerance policy;
 - determine how approximation-validity warnings should be presented;
 - quantify the accuracy of the guiding-center approximation near horseshoe U-turns;
@@ -211,9 +201,9 @@ No hard validity threshold for close encounters has been adopted yet. The preset
 
 ## Next recommended task
 
-First verify the repaired dev-container configuration by rebuilding or creating a Codespace and running the current application in a real browser.
+After checking the new controls and diagnostics in a real browser, add animation with a current-position marker and play/pause/reset controls without changing the numerical solution.
 
-After that, add user-editable `mu`, `r0`, `phi0`, and `tMax` controls with an explicit Calculate action and clear numerical failure reporting. At the same time, expose the reduced-Hamiltonian error and minimum distance to the secondary for the calculated trajectory. Add animation only after this static calculation/diagnostic workflow is stable.
+Then add `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots using the already calculated trajectory.
 
 ---
 
