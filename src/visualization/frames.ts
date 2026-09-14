@@ -14,6 +14,11 @@ export interface BinaryBodyPositions {
   secondary: CartesianPoint
 }
 
+export interface CoordinateAxes {
+  xPositive: CartesianPoint
+  yPositive: CartesianPoint
+}
+
 function rotate(point: CartesianPoint, angle: number): CartesianPoint {
   const cosAngle = Math.cos(angle)
   const sinAngle = Math.sin(angle)
@@ -45,6 +50,18 @@ export function inertialCartesian(state: FrameState): CartesianPoint {
   return {
     x: state.r * Math.cos(theta),
     y: state.r * Math.sin(theta),
+  }
+}
+
+/**
+ * Positive inertial X/Y unit vectors expressed in rotating-frame coordinates.
+ * The rotating frame advances counterclockwise by +t relative to inertial axes,
+ * so inertial axes appear to rotate clockwise by -t in the rotating view.
+ */
+export function inertialAxesInRotatingFrame(t: number): CoordinateAxes {
+  return {
+    xPositive: rotate({ x: 1, y: 0 }, -t),
+    yPositive: rotate({ x: 0, y: 1 }, -t),
   }
 }
 
