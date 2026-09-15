@@ -28,8 +28,13 @@ The radial plot shows the reduced guiding-center radius `r` against nondimension
 - vertical axis: guiding-center `r`;
 - the full calculated trajectory is shown as a thin blue line;
 - `r = 1` is shown as a dashed reference line;
-- the vertical scale is chosen from the calculated trajectory while always retaining `r = 1` in view;
+- the vertical range is derived from the calculated `r - 1` excursion while always retaining `r = 1`;
+- `r = 1` is a true vertical tick/grid anchor;
+- vertical ticks above and below `r = 1` are equally spaced using a convenient 1-2-5-style interval;
+- displayed limits are rounded outward to simple values and need not be symmetric about `r = 1`;
 - this is the guiding-center radius, not an instantaneous radial coordinate from a full PCR3BP orbit.
+
+For a trajectory spanning roughly `0.982 <= r <= 1.018`, a typical display is `0.98` through `1.02` with ticks such as `0.98`, `0.99`, `1.00`, `1.01`, and `1.02`, rather than ticks offset from the corotation reference.
 
 ---
 
