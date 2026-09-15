@@ -40,6 +40,7 @@ interface RotatingDisplayOptions {
 }
 
 interface InertialDisplayOptions {
+  showTrajectory: boolean
   showAxes: boolean
 }
 
@@ -145,6 +146,7 @@ export default function App() {
     showAxes: true,
   })
   const [inertialDisplayOptions, setInertialDisplayOptions] = useState<InertialDisplayOptions>({
+    showTrajectory: true,
     showAxes: true,
   })
   const previousFrameTimeRef = useRef<number | null>(null)
@@ -364,7 +366,9 @@ export default function App() {
               showAfterimages={sharedDisplayOptions.showAfterimages}
               showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
               showLagrangeTriangles={sharedDisplayOptions.showLagrangeTriangles}
+              showTrajectory={inertialDisplayOptions.showTrajectory}
               showAxes={inertialDisplayOptions.showAxes}
+              onToggleTrajectory={() => setInertialDisplayOptions((current) => ({ ...current, showTrajectory: !current.showTrajectory }))}
               onToggleAxes={() => setInertialDisplayOptions((current) => ({ ...current, showAxes: !current.showAxes }))}
             />
           </div>
