@@ -28,11 +28,18 @@ const INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom
 const MAX_RENDER_POINTS_PER_SEGMENT = 1800
 
 function autoRange(values: number[], definition: DiagnosticVariableDefinition): Range {
-  const candidates = definition.referenceValue === undefined
-    ? values
-    : [...values, definition.referenceValue]
-  let min = Math.min(...candidates)
-  let max = Math.max(...candidates)
+  let min = Number.POSITIVE_INFINITY
+  let max = Number.NEGATIVE_INFINITY
+
+  for (const value of values) {
+    min = Math.min(min, value)
+    max = Math.max(max, value)
+  }
+
+  if (definition.referenceValue !== undefined) {
+    min = Math.min(min, definition.referenceValue)
+    max = Math.max(max, definition.referenceValue)
+  }
 
   if (max - min < definition.minimumSpan) {
     const center = (min + max) / 2
@@ -163,7 +170,7 @@ export default function CustomDiagnosticPlot({
       </div>
 
       <svg
-        className="state-plot custom-diagnostic-plot"
+        className="custom-diagnostic-plot"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
         aria-label={`Custom diagnostic plot: ${yDefinition.axisLabel} versus ${xDefinition.axisLabel}`}
@@ -221,7 +228,7 @@ export default function CustomDiagnosticPlot({
         ))}
 
         <circle
-          className="state-current-marker custom-diagnostic-current-marker"
+          className="custom-diagnostic-current-marker"
           cx={scaleX(currentX, xRange)}
           cy={scaleY(currentY, yRange)}
           r="5"
