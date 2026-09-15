@@ -1,0 +1,60 @@
+.custom-diagnostic-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.custom-plot-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.custom-plot-heading h2 {
+  margin-bottom: 0;
+}
+
+.custom-plot-heading .plot-note {
+  max-width: 38rem;
+  margin-top: 0.4rem;
+  text-align: left;
+}
+
+.custom-plot-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  gap: 0.7rem;
+  min-width: min(24rem, 100%);
+}
+
+.custom-plot-controls label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.custom-plot-controls label > span {
+  color: #7f96b0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.custom-plot-controls select {
+  min-width: 0;
+}
+
+.custom-diagnostic-plot {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .custom-plot-heading {
+    flex-direction: column;
+  }
+
+  .custom-plot-controls {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+}
