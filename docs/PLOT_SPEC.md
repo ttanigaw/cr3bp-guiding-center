@@ -74,14 +74,29 @@ The viewer has two independent choices:
 
 The physical panel width remains fixed in all combinations.
 
+### Shared vertical-range and tick rule
+
+The phase-space vertical axis always retains `r - 1 = 0` in its numerical range.
+
+The plotted `r - 1` data, plus the visible secondary when relevant, determine the required lower and upper extent. A single convenient 1-2-5-style tick interval is chosen from that required span, and both displayed limits are rounded outward to multiples of that same interval.
+
+Consequently:
+
+- the vertical range remains as tight as practical instead of independently rounding each endpoint to a coarser magnitude;
+- `r - 1 = 0` is a true tick/grid anchor whenever ordinary tick labels are shown;
+- vertical ticks above and below zero are equally spaced;
+- the same rule applies to Full width, Close-up with origin, and Close-up.
+
+For example, data contained within approximately `[-0.018, 0.014]` may use a vertical range of `[-0.020, 0.020]` rather than expanding unnecessarily to `[-0.050, 0.020]`.
+
 ### Vertical scale: Magnify
 
 This is the default vertical behavior formerly labeled `Auto fit`.
 
 - the phase-space SVG has the normal fixed plot height;
-- the vertical range is fitted to contain the plotted `r - 1` data while retaining `r - 1 = 0`;
+- the vertical range is fitted tightly using the shared zero-anchored rule above;
 - if the secondary is horizontally visible, the vertical range also contains `r - 1 = -mu`;
-- displayed limits are expanded outward to simple 1-2-5-style values, for example `0.064 -> 0.1`.
+- vertical ticks are equally spaced about the `r - 1 = 0` anchor, though the displayed upper and lower limits need not be symmetric.
 
 The name `Magnify` emphasizes that this mode enlarges the vertical variation for readability rather than preserving the physical x/y scale ratio.
 
@@ -98,6 +113,15 @@ The plot height is varied so that one unit of `phi` in degrees and one unit of `
 - only vertical plot height changes;
 - vertical tick labels remain physical `r - 1` values;
 - current marker, visible reference markers, and path use the same scaling transformation.
+
+When the resulting vertical plotting height becomes too shallow for ordinary tick labels to remain legible:
+
+- the dashed `r - 1 = 0` reference line remains visible;
+- the numeric `0` label is omitted;
+- only the displayed vertical minimum and maximum are labeled;
+- those two endpoint labels are displaced slightly outward from their exact line positions to prevent text overlap.
+
+This condensed labeling changes only annotation placement, not the 1:1 geometry.
 
 ### Horizontal range: Full width
 
@@ -130,8 +154,6 @@ For both Close-up modes, the numerical range is padded, rounded outward to conve
 If the trajectory crosses the wrapped-angle discontinuity at `+180 deg / -180 deg`, a single contracted numerical interval would be misleading. In that case both **Close-up with origin** and **Close-up** fall back to the same horizontal range and standard horizontal ticks as **Full width**.
 
 Thus, for a wrapping trajectory, all three horizontal-range selections are identical horizontally.
-
-In either Close-up mode, vertical `r - 1` ticks are generated at equal intervals anchored to `r - 1 = 0`, so the existing dashed corotation line is a true grid anchor.
 
 When either Close-up mode is combined with **1:1 scale**, panel height is recomputed from the actual displayed horizontal span. If the Close-up mode has fallen back to Full width because the path crosses the wrap discontinuity, the Full-width span is used for that calculation.
 
