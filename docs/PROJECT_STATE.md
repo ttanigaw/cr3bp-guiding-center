@@ -6,6 +6,8 @@ Last updated: 2026-09-15
 
 The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, and panel-local trajectory overlays are implemented on `main`.
 
+The current orbit-panel appearance and interaction design have been reviewed in a real browser by the project owner and are considered broadly acceptable as of 2026-09-15. Further visual tuning may still occur, but the project can now move on from basic orbit-panel appearance refinement.
+
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels use the same numerical solution; no second integration is performed.
 
 No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition was changed by the latest visualization work.
@@ -101,6 +103,8 @@ The DOM test verifies:
 
 PR #21 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `6ef9fc13ffe5c39a40ce09684923610e1a5d1012`.
 
+Real-browser review completed after that merge. The project owner reported that the appearance is broadly acceptable, so orbit-panel visual refinement is no longer the immediate blocking task.
+
 ---
 
 ## Still required for version 0.1
@@ -117,22 +121,22 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ---
 
-## Known issues and browser checks
+## Known issues and follow-up questions
 
-Browser inspection should confirm:
+The current orbit-panel appearance is accepted as a workable baseline. Non-blocking follow-up questions include:
 
-- bright green is sufficiently visible on black without overpowering the plot;
-- the thinner blue trajectory remains legible;
-- the inertial rigid trajectory overlay visually remains locked to the secondary throughout playback;
-- users do not mistake that overlay for the actual inertial time-history trajectory;
-- legend ordering remains clear when optional layers are switched off;
-- the two Trajectory switches are easy to distinguish as panel-local controls.
+- whether the bright-green third body remains optimal after the lower diagnostic plots are added;
+- whether the inertial rigid trajectory overlay needs a clearer explanatory label once more plots are present;
+- whether the legend layout needs further compaction on narrow screens;
+- whether the seven-segment-style font is actually selected in target browsers or the monospace fallback is being used.
+
+These items do not block the next functional work.
 
 ---
 
 ## Next recommended task
 
-Inspect horseshoe, L4, and L5 presets in a real browser, focusing especially on the bright-green third body, the thinner blue trajectories, the inertial rigid trajectory overlay, and its synchronization with the secondary.
+Proceed to the next version-0.1 visualization layer: synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots, followed by current-state diagnostics synchronized to the shared animation time.
 
 ---
 
