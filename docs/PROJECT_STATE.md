@@ -4,16 +4,11 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, synchronized fixed state plots, three phase-space horizontal-range modes, and viewer-selectable display layers are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, synchronized fixed state plots, three phase-space horizontal-range modes, viewer-selectable display layers, reusable diagnostic data, synchronized current diagnostics, and the user-selectable Custom X-Y diagnostic plot are implemented on `main`.
 
-The diagnostics stage has now started. Two planned steps are complete:
+The main diagnostics-stage implementation is now substantially complete. No governing equation, integration algorithm, stored trajectory, or playback-time definition was changed by the diagnostics/custom-plot work.
 
-1. a reusable diagnostic-data layer shared by trajectory summaries and future plots;
-2. current-state diagnostics synchronized to the shared animation time.
-
-The next planned implementation task is the user-selectable Custom X-Y diagnostic plot.
-
-No governing equation, integration algorithm, stored trajectory, or playback-time definition was changed by the diagnostics work.
+The next immediate step is a real-browser review of the new diagnostics and Custom X-Y plot. If accepted, version-0.1 work moves to documentation polish and static deployment.
 
 ---
 
@@ -30,31 +25,23 @@ GitHub is the canonical project record. Maintained documents include:
 - `docs/DIAGNOSTICS_SPEC.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/DIAGNOSTICS_SPEC.md` defines the diagnostics architecture and Custom X-Y plot plan. GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/DIAGNOSTICS_SPEC.md` defines the diagnostics architecture. `docs/PLOT_SPEC.md` records the concrete fixed-plot and Custom X-Y plot behavior.
+
+GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
 
 ---
 
-## Current phase-space behavior
+## Accepted fixed visualization baseline
 
-The fixed `phi` versus `r - 1` panel remains the accepted baseline.
+The rotating/inertial orbit panels and fixed lower plots remain the accepted display baseline.
 
-Vertical scale choices:
+The fixed `phi` versus `r - 1` panel provides:
 
-- **Magnify**;
-- **1:1 scale**.
-
-Horizontal range choices:
-
-- **Full width**;
-- **Close-up with origin**;
-- **Close-up**.
-
-Both Close-up modes fall back to the Full-width horizontal display when the trajectory crosses the `+180 deg / -180 deg` wrap discontinuity.
-
-The phase-space panel also shows:
-
+- vertical choices **Magnify** and **1:1 scale**;
+- horizontal choices **Full width**, **Close-up with origin**, and **Close-up**;
+- wrap-safe fallback to Full width when the trajectory crosses `+180 deg / -180 deg`;
 - the secondary at `(phi, r - 1) = (0, -mu)` whenever the selected horizontal range contains the origin;
-- L4 at `(+60 deg, 0)` and L5 at `(-60 deg, 0)` whenever each point lies inside the displayed range and the shared **L4 / L5 points** layer is enabled.
+- L4 at `(+60 deg, 0)` and L5 at `(-60 deg, 0)` whenever each lies inside the displayed range and **L4 / L5 points** is enabled.
 
 Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
@@ -62,42 +49,35 @@ Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
 ## Diagnostic data layer on main
 
-PR #38 added `src/diagnostics/diagnosticData.ts` and was merged to `main` at merge commit `0d66be9ee1f8487515242a7902bf1a2ce80dac87` after GitHub Actions passed tests and build.
+PR #38 added `src/diagnostics/diagnosticData.ts` and was merged at `0d66be9ee1f8487515242a7902bf1a2ce80dac87` after GitHub Actions passed tests and build.
 
-For each trajectory/current sample, the shared data layer derives:
+For each stored or interpolated trajectory state, the shared data layer derives:
 
-- `t`;
-- binary periods;
-- `r`;
-- `r - 1`;
-- raw `phi`;
-- wrapped `phi` in degrees;
+- `t` and binary periods;
+- `r` and `r - 1`;
+- raw `phi` and wrapped `phi` in degrees;
 - secondary distance `r2`;
 - `epsilon_tide = mu / r2^3`;
 - reduced Hamiltonian `H_gc`;
-- `Delta H_gc = H_gc(t) - H_gc(0)`;
-- `|Delta H_gc|`;
-- `dot r`;
-- `dot phi`;
+- `Delta H_gc = H_gc(t) - H_gc(0)` and `|Delta H_gc|`;
+- `dot r` and `dot phi`;
 - `|dot r / r|`.
 
-All physical quantities are derived through the existing authoritative helpers in `src/physics/guidingCenter.ts`; the UI does not duplicate the equations.
+All physical quantities reuse the authoritative helpers in `src/physics/guidingCenter.ts`; UI code does not duplicate the equations.
 
-The existing whole-trajectory diagnostics now consume this shared layer, so `max |Delta H_gc|` and minimum `r2` use the same definitions as current-state and future custom-plot data.
-
-Angle wrapping was moved to reusable helpers in `src/math/angles.ts`; the existing state plots reuse those same helpers.
+The whole-trajectory summary now uses the same diagnostic definitions as current-state values and custom plotting.
 
 ---
 
-## Current-state diagnostics on main
+## Synchronized Diagnostics panel on main
 
-PR #39 added the synchronized diagnostics UI and was merged to `main` at merge commit `a3d091f038fe2b8bbbcf96b220f5e2c32441689c` after GitHub Actions passed tests and build.
+PR #39 added the current Diagnostics UI and was merged at `a3d091f038fe2b8bbbcf96b220f5e2c32441689c` after GitHub Actions passed tests and build.
 
-The Diagnostics panel is now separated into four conceptual groups.
+The panel is separated into four conceptual groups.
 
 ### Current state
 
-Synchronized to the shared animation time:
+Synchronized to shared animation time:
 
 - `t`;
 - `r`;
@@ -131,28 +111,16 @@ The current-state values advance with Play and return to their initial values on
 
 ---
 
-## Validation status
+## Custom X-Y diagnostic plot on main
 
-The current diagnostics work adds tests that verify:
+PR #41 added the Custom X-Y plot and was merged at `4cdf46f91128b14ffa0987e2144f83fc9632d706` after GitHub Actions passed both tests and build.
 
-- the diagnostic layer uses the authoritative `bodyDistances`, `tidalParameter`, `reducedHamiltonian`, and `guidingCenterRates` definitions;
-- `Delta H_gc = 0` at the first trajectory point;
-- `epsilon_tide = mu / r2^3`;
-- wrapped display `phi` does not alter raw `phi`;
-- the existing whole-trajectory summary matches extrema computed from the shared data layer;
-- empty trajectories are rejected;
-- current diagnostics move with the shared animation time;
-- Reset restores the initial current diagnostics.
+The panel has independent X and Y selectors. Initial defaults are:
 
-PR #38 and PR #39 both passed GitHub Actions with `npm test` and `npm run build` successful before merge.
+- `X = t`;
+- `Y = Delta H_gc`.
 
----
-
-## Planned Custom X-Y diagnostic plot
-
-The next implementation target is one additional plot panel with independent X and Y selectors.
-
-Initial selectable variables remain:
+Selectable variables are:
 
 - `t`;
 - `r`;
@@ -167,13 +135,38 @@ Initial selectable variables remain:
 - `dot phi`;
 - `|dot r / r|`.
 
-The planned default is `X = t`, `Y = Delta H_gc`.
+Behavior:
 
-The full calculated curve should be visible together with a bright-green current marker synchronized to the same animation time as the orbit panels and fixed state plots. Wrapped-phi discontinuities must be split rather than connected across `+180 deg / -180 deg`.
+- the full calculated curve is shown as a thin blue line;
+- a bright-green marker follows the same shared animation time as the orbit panels and fixed plots;
+- changing X or Y is display-only and does not recalculate the orbit;
+- axis ranges are recomputed automatically for the selected variables;
+- useful reference values such as `r = 1`, `r - 1 = 0`, and `Delta H_gc = 0` are shown as subdued reference lines;
+- when wrapped `phi` is selected on either axis, the curve is split at `+180 deg / -180 deg` discontinuities;
+- long curves may be downsampled for SVG path rendering only; the current marker and diagnostics still use the full trajectory/current interpolation.
 
-The custom plot must be display-only and must not trigger a second integration.
+The registry for selectable variables owns the stable key, label, axis label, accessor, tick formatting, minimum display span, and optional reference value.
 
-Detailed behavior remains specified in `docs/DIAGNOSTICS_SPEC.md` and `docs/PLOT_SPEC.md`.
+Concrete behavior is documented in `docs/PLOT_SPEC.md`.
+
+---
+
+## Validation status
+
+The diagnostics/custom-plot tests now verify:
+
+- diagnostic quantities reuse the authoritative physics functions;
+- `Delta H_gc = 0` at the initial trajectory point;
+- `epsilon_tide = mu / r2^3`;
+- wrapped display `phi` does not alter raw `phi`;
+- whole-trajectory extrema match the shared diagnostic data;
+- current diagnostics follow shared playback and Reset;
+- the Custom X-Y registry contains the planned version-0.1 variables;
+- selecting wrapped `phi` splits the custom curve at wrap discontinuities;
+- changing custom X/Y variables changes the displayed curve without changing the integration-point count;
+- the Custom X-Y current marker follows shared playback.
+
+PR #38, PR #39, and PR #41 all passed GitHub Actions with `npm test` and `npm run build` successful before merge.
 
 ---
 
@@ -181,12 +174,11 @@ Detailed behavior remains specified in `docs/DIAGNOSTICS_SPEC.md` and `docs/PLOT
 
 Remaining work is:
 
-1. real-browser review of the new current diagnostics layout and values;
-2. Custom X-Y diagnostic plot;
-3. browser review of custom plotting for horseshoe, L4, and L5 presets;
-4. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
-5. README refresh;
-6. static GitHub Pages deployment.
+1. real-browser review of the synchronized Diagnostics panel and Custom X-Y plot for horseshoe, L4, and L5 presets;
+2. adjust diagnostic number formatting, density, axis formatting, or selector layout if browser review shows a usability problem;
+3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
+4. refresh README usage documentation;
+5. configure and verify static GitHub Pages deployment.
 
 Full PCR3BP comparison remains deferred until the reduced model has been validated further.
 
@@ -194,20 +186,28 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ## Browser-review questions
 
-For the new Diagnostics panel, check:
+For Diagnostics, check:
 
 - whether Current state, Numerical conservation, Approximation validity, and Whole trajectory are visually distinct enough;
-- whether the number formatting for `H_gc`, `Delta H_gc`, `epsilon_tide`, and rate quantities is readable;
-- whether the panel feels too dense before the Custom X-Y plot is added;
-- whether `dot r` and `dot phi` are useful enough to keep visible by default or should later move primarily into the Custom plot.
+- whether `H_gc`, `Delta H_gc`, `epsilon_tide`, `dot r`, and `dot phi` formatting is readable;
+- whether `dot r` and `dot phi` should remain visible by default or later move primarily into the Custom plot.
 
-These are presentation questions only; the underlying definitions are fixed by `docs/PHYSICS.md` and `docs/DIAGNOSTICS_SPEC.md`.
+For the Custom X-Y plot, check:
+
+- whether the X/Y selectors are easy to use and readable on the normal desktop layout;
+- whether the default `t` versus `Delta H_gc` view makes conservation error understandable;
+- whether automatic ranges remain readable for very small values such as `Delta H_gc`;
+- whether `phi` wrap splitting looks natural for horseshoe trajectories;
+- whether reference lines are useful without becoming visually distracting;
+- whether the panel remains usable on narrower screens.
+
+These are presentation questions only; the physical definitions remain fixed by `docs/PHYSICS.md` and `docs/DIAGNOSTICS_SPEC.md`.
 
 ---
 
 ## Next recommended task
 
-Review the synchronized Diagnostics panel in a real browser. If the presentation is acceptable, implement the Custom X-Y diagnostic plot using the already merged shared diagnostic-data layer.
+Review the Diagnostics panel and Custom X-Y plot in a real browser using the horseshoe, L4 tadpole, and L5 tadpole presets. If the presentation is accepted, refresh README and proceed to static GitHub Pages deployment for version 0.1.
 
 ---
 
