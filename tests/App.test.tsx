@@ -31,16 +31,18 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
     expect(container.textContent).toContain('Inertial frame')
     expect(container.textContent).toContain('θ = φ + t')
     expect(container.textContent).toContain('Playback')
-    expect(container.textContent).toContain('recent trail = 0.5 binary period')
+    expect(container.textContent).toContain('afterimages at 1/12, 2/12, 3/12 period')
     expect(container.textContent).toContain('Diagnostics')
     expect(container.textContent).toContain('Max |ΔH|')
     expect(container.textContent).toContain('Min secondary distance')
     expect(container.querySelector('.trajectory-path')).not.toBeNull()
-    expect(container.querySelector('.inertial-trajectory-path')).not.toBeNull()
+    expect(container.querySelector('.inertial-trajectory-path')).toBeNull()
+    expect(container.querySelectorAll('.digital-number')).toHaveLength(2)
     expect(container.querySelectorAll('.current-position')).toHaveLength(2)
     expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
     expect(container.querySelectorAll('.lagrange-geometry')).toHaveLength(4)
     expect(container.querySelectorAll('.axis-label')).toHaveLength(4)
+    expect(container.querySelectorAll('.afterimage')).toHaveLength(0)
 
     const buttons = () => Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
     const findButton = (label: string) => buttons().find((button) => button.textContent === label)
@@ -57,12 +59,14 @@ it('renders both frame views, shares playback controls, recalculates explicitly,
       await act(async () => secondFrame(500))
     }
     expect(container.textContent).toContain('0.50 binary periods')
+    expect(container.querySelectorAll('.afterimage')).toHaveLength(3)
 
     await act(async () => findButton('Pause')?.click())
     expect(container.textContent).toContain('paused')
 
     await act(async () => findButton('Reset')?.click())
     expect(container.textContent).toContain('0.00 binary periods')
+    expect(container.querySelectorAll('.afterimage')).toHaveLength(0)
 
     const tMaxInput = container.querySelector<HTMLInputElement>('input[name="tMax"]')
     const calculateButton = findButton('Calculate')
