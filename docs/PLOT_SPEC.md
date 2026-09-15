@@ -67,7 +67,7 @@ The secondary is shown in this panel at its rotating-frame polar position
 
 `(phi, r - 1) = (0, -mu)`
 
-using the same blue marker family as the secondary in the rotating and inertial orbit panels. The displayed vertical range must include this marker.
+using the same blue marker family as the secondary in the rotating and inertial orbit panels. The displayed horizontal and vertical ranges must include this marker.
 
 The viewer has two independent choices:
 
@@ -110,6 +110,7 @@ The plot height is varied so that one unit of `phi` in degrees and one unit of `
 
 Close-up keeps the physical plot width fixed while contracting the numerical `phi` range around the trajectory when that can be represented as one continuous wrapped interval.
 
+- `phi = 0` is always retained in the visible range so the secondary marker and zero tick remain visible;
 - the relevant Lagrange longitude, `phi = +60 deg` for an L4-like trajectory or `phi = -60 deg` for an L5-like trajectory, is always included;
 - the relevant L4/L5 point is plotted at `(phi, r - 1) = (+/-60 deg, 0)` using the same purple marker styling as the orbit panels;
 - this marker is shown or hidden by the shared **L4 / L5 points** control in the upper `Display layers` panel;
