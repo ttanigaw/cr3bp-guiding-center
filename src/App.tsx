@@ -292,7 +292,9 @@ export default function App() {
               </label>
             </div>
             <p className="playback-status" aria-live="polite">
-              t = {currentPoint.t.toFixed(2)} · {currentPeriods.toFixed(2)} binary periods
+              t = <span className="digital-number time-number">{currentPoint.t.toFixed(2)}</span>
+              {' · '}
+              <span className="digital-number period-number">{currentPeriods.toFixed(2)}</span> binary periods
               {isPlaying ? ' · playing' : ' · paused'}
             </p>
             <p className="playback-note">
