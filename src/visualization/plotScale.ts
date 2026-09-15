@@ -42,14 +42,32 @@ export function niceOuterRange(
   minimumSpan: number,
   paddingFraction = DEFAULT_PADDING_FRACTION,
 ): PlotRange {
-  let min = Math.min(includeValue, ...values)
-  let max = Math.max(includeValue, ...values)
-  ;({ min, max } = ensureMinimumSpan(min, max, minimumSpan))
+  const rawMin = Math.min(includeValue, ...values)
+  const rawMax = Math.max(includeValue, ...values)
+  const oneSidedPositive = rawMin === includeValue && rawMax > includeValue
+  const oneSidedNegative = rawMax === includeValue && rawMin < includeValue
+
+  let min = rawMin
+  let max = rawMax
+
+  if (max - min < minimumSpan) {
+    if (oneSidedPositive) {
+      max = min + minimumSpan
+    } else if (oneSidedNegative) {
+      min = max - minimumSpan
+    } else {
+      ;({ min, max } = ensureMinimumSpan(min, max, minimumSpan))
+    }
+  }
+
   ;({ min, max } = paddedRange(min, max, paddingFraction))
 
+  if (oneSidedPositive) min = includeValue
+  if (oneSidedNegative) max = includeValue
+
   return {
-    min: min < 0 ? -niceCeilingMagnitude(-min) : 0,
-    max: max > 0 ? niceCeilingMagnitude(max) : 0,
+    min: min < 0 ? -niceCeilingMagnitude(-min) : includeValue,
+    max: max > 0 ? niceCeilingMagnitude(max) : includeValue,
   }
 }
 
