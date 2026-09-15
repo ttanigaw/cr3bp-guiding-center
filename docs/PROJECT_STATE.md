@@ -4,11 +4,11 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, and synchronized animation are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing third-body markers, and discrete inertial afterimages are implemented on `main`.
 
-The current development branch `feature/space-theme-afterimages` refines the visual presentation after browser inspection. No governing equation, integration method, stored trajectory sample, or diagnostic definition is being changed.
+The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
-The application still computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
+No governing equation, integration method, stored trajectory sample, or diagnostic definition was changed by the latest visualization work.
 
 ---
 
@@ -70,9 +70,9 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ---
 
-## Current visualization refinements
+## Current visualization design
 
-The branch `feature/space-theme-afterimages` introduces these changes:
+The latest merged visualization changes are:
 
 - the overall page and all cards use a dark space-like theme;
 - SVG orbit panels use black backgrounds with high-contrast plot colors;
@@ -81,7 +81,7 @@ The branch `feature/space-theme-afterimages` introduces these changes:
 - the rotating-frame trajectory line is thinner than before;
 - the current third-body marker in both frame panels uses a smooth one-second pulse;
 - the pulse brightens quickly and fades more gradually, but never becomes fully invisible;
-- the inertial continuous recent-trail line is removed;
+- the inertial continuous recent-trail line has been removed;
 - instead, the inertial panel shows up to three discrete third-body afterimages at `T/12`, `2T/12`, and `3T/12` in the past, where `T = 2 pi`;
 - afterimages whose requested past time precedes the trajectory start are omitted rather than clamped to `t = 0`;
 - afterimage pulse phases are delayed by `1/12`, `2/12`, and `3/12` of the one-second pulse cycle;
@@ -118,22 +118,22 @@ Relevant modules are:
 
 ## Validation status
 
-Existing frame-transform tests verify coordinate conventions, binary rotation, L4/L5 geometry, and clockwise inertial-axis motion in the rotating view.
+Frame-transform tests verify coordinate conventions, binary rotation, L4/L5 geometry, and clockwise inertial-axis motion in the rotating view.
 
 Playback tests verify display-time interpolation, endpoint clamping, and trail helper behavior.
 
-The DOM test is being updated to verify:
+The DOM test verifies:
 
 - both frame views;
 - two current-position markers;
 - digital-number playback spans;
-- no continuous inertial trajectory trail;
+- absence of a continuous inertial trajectory trail;
 - three afterimages after sufficient animation time has elapsed;
-- afterimages disappear again after Reset;
+- removal of afterimages again after Reset;
 - L4/L5 geometry overlays and axis labels;
 - explicit Calculate, diagnostics, and invalid-input reporting.
 
-CI has not yet been run for the current branch at the time of this update.
+PR #15 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `63ba54e605bc326b3d7715937f7e4515345a0ca5`.
 
 ---
 
@@ -173,7 +173,7 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Run CI for `feature/space-theme-afterimages`. If tests and build pass, merge the branch and inspect horseshoe, L4, and L5 animations in a real browser, paying particular attention to the dark-theme contrast, digital time display, pulse waveform, afterimage spacing/brightness/phase, and narrow-screen readability.
+Inspect the merged dark-theme animation in a real browser using the horseshoe, L4, and L5 presets. Pay particular attention to the dark-theme contrast, digital time display, pulse waveform, afterimage spacing/brightness/phase, and narrow-screen readability.
 
 After those refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
