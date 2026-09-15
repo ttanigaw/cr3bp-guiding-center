@@ -2,6 +2,7 @@ import { diagnosticSample } from '../diagnostics/diagnosticData'
 import { reducedHamiltonian } from '../physics/guidingCenter'
 import type { TrajectoryDiagnostics } from '../physics/diagnostics'
 import type { TrajectoryPoint } from '../physics/integrator'
+import './DiagnosticsPanel.css'
 
 interface DiagnosticsPanelProps {
   trajectory: readonly TrajectoryPoint[]
