@@ -10,7 +10,7 @@ The current orbit-panel appearance and interaction design have been reviewed in 
 
 The application computes one reduced guiding-center trajectory in the browser. Orbit panels and state plots visualize that same numerical solution; no second integration is performed.
 
-No governing equation, integrator, stored trajectory, playback timing, or diagnostic definition was changed by the latest phase-space display refinement.
+No governing equation, integrator, stored trajectory, playback timing, or diagnostic definition has been changed by the newly planned diagnostics/custom-plot work. The current change is documentation and implementation planning only.
 
 ---
 
@@ -24,9 +24,10 @@ GitHub is the canonical project record. Maintained documents include:
 - `docs/PROJECT_STATE.md`
 - `docs/VISUAL_DESIGN.md`
 - `docs/PLOT_SPEC.md`
+- `docs/DIAGNOSTICS_SPEC.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records orbit-panel rendering choices. `docs/PLOT_SPEC.md` records concrete lower-plot conventions.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records orbit-panel rendering choices. `docs/PLOT_SPEC.md` records concrete lower-plot conventions. `docs/DIAGNOSTICS_SPEC.md` now defines the planned diagnostic-data architecture, conserved-quantity monitoring, current-state diagnostics, and the custom X-Y diagnostic plot.
 
 GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
 
@@ -83,7 +84,7 @@ Current `main` includes:
 - synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots;
 - phase-space vertical-scale and horizontal-range controls;
 - Lagrange-anchored Close-up grids and marker synchronization;
-- numerical diagnostics and explicit calculation failure reporting.
+- whole-trajectory numerical diagnostics and explicit calculation failure reporting.
 
 PR #21 established the orbit-panel baseline. PR #24 added synchronized lower plots. PR #26 added phase-space vertical-scale modes. PR #28 added Close-up and axis-readability refinements. PR #30 added L4/L5-anchored Close-up ticks, the synchronized phase-space Lagrange marker, and the `Magnify` label; it was merged to `main` at merge commit `92999a683afe36caa9edd92bd5b48351dc62f50d` after GitHub Actions passed both tests and build.
 
@@ -109,13 +110,69 @@ Real-browser review completed after that merge. The project owner reported that 
 
 ---
 
+## Planned diagnostics architecture for version 0.1
+
+The next development stage is now defined in `docs/DIAGNOSTICS_SPEC.md`.
+
+The current reduced-model conserved quantity to monitor is the reduced Hamiltonian
+
+`H_gc`
+
+with conservation error
+
+`Delta H_gc(t) = H_gc(t) - H_gc(0)`.
+
+The full PCR3BP Jacobi integral is reserved for the future full-PCR3BP implementation and must not be presented as the conserved quantity of the current reduced integration.
+
+The diagnostics UI should clearly distinguish:
+
+1. **current dynamical state**, synchronized to shared animation time;
+2. **numerical-conservation diagnostics**, especially `H_gc` and `Delta H_gc`;
+3. **approximation-validity indicators**, especially `r2`, `epsilon_tide`, and `|dot r / r|`.
+
+The implementation should first create one reusable diagnostic-data layer so the current-value panel, whole-trajectory summary, custom plot, and future validity warnings all use exactly the same definitions.
+
+---
+
+## Planned custom X-Y diagnostic plot
+
+Version 0.1 will include one additional user-selectable diagnostic plot.
+
+The viewer will independently choose the X and Y variables from an initial set including:
+
+- `t`;
+- `r`;
+- `r - 1`;
+- wrapped `phi`;
+- `r2`;
+- `epsilon_tide`;
+- `H_gc`;
+- `Delta H_gc`;
+- `|Delta H_gc|`;
+- `dot r`;
+- `dot phi`;
+- `|dot r / r|`.
+
+The initial default should be `X = t`, `Y = Delta H_gc`, making conservation of the reduced Hamiltonian immediately visible.
+
+The full calculated curve will be shown together with a bright-green current marker synchronized to the same shared animation time as the orbit and fixed state plots. Wrapped-angle discontinuities must be split if `phi` is used on either axis.
+
+The custom plot is display-only and must not trigger a new integration or alter trajectory data.
+
+Detailed behavior is recorded in `docs/DIAGNOSTICS_SPEC.md` and `docs/PLOT_SPEC.md`.
+
+---
+
 ## Still required for version 0.1
 
-Remaining planned work is:
+The revised remaining work is:
 
-- current-state diagnostics synchronized to animation time;
-- approximation-validity indicators and warning presentation;
-- static deployment suitable for GitHub Pages.
+1. reusable diagnostic-data model and unit tests;
+2. current-state diagnostics synchronized to animation time;
+3. custom X-Y diagnostic plot;
+4. approximation-validity presentation without undocumented hard thresholds;
+5. final browser review of diagnostics and custom plotting for horseshoe, L4, and L5 presets;
+6. README refresh and static GitHub Pages deployment.
 
 Full PCR3BP comparison remains deferred until the reduced model has been validated further.
 
@@ -129,13 +186,20 @@ The current orbit panels and phase-space controls are accepted as workable basel
 - whether the phase-space control layout needs further compaction on narrow screens;
 - whether the seven-segment-style font is actually selected in target browsers or the monospace fallback is being used.
 
-These items do not block the next functional work.
+New questions to evaluate during the diagnostics stage include:
+
+- whether the current-state and whole-trajectory diagnostics remain visually distinct enough;
+- whether `H_gc`, `Delta H_gc`, and validity quantities need stronger category labels;
+- whether the custom X/Y selectors remain usable on narrow screens;
+- whether automatic axis formatting is readable across variables with very different numerical scales.
+
+These questions do not change the physical definitions.
 
 ---
 
 ## Next recommended task
 
-Proceed to current-state diagnostics synchronized to the shared animation time, then add approximation-validity indicators and warning presentation. After those are stable, configure static deployment suitable for GitHub Pages.
+Implement the reusable diagnostic-data layer first. Then add synchronized current-state diagnostics, followed by the custom X-Y plot. Once those are stable, add the approximation-validity presentation and proceed to version-0.1 deployment work.
 
 ---
 
