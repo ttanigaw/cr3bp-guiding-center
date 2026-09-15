@@ -108,8 +108,8 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .axis-label { fill: #91b2d3; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.09px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
 .corotation, .reference-orbit { fill: none; stroke: #60768d; stroke-width: 0.009; stroke-dasharray: 0.035 0.025; opacity: 0.82; }
 .lagrange-geometry { fill: none; stroke: #8e7eb2; stroke-width: 0.0065; opacity: 0.42; }
-.trajectory-path { fill: none; stroke: #55a9f5; stroke-width: 0.011; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 0.018px rgba(85, 169, 245, 0.5)); }
-.afterimage-trail-segment { stroke: #ffb347; stroke-width: 0.0065; stroke-linecap: round; }
+.trajectory-path { fill: none; stroke: #55a9f5; stroke-width: 0.008; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 0.014px rgba(85, 169, 245, 0.45)); }
+.afterimage-trail-segment { stroke: #72ff76; stroke-width: 0.0065; stroke-linecap: round; }
 .primary-body { fill: #ecf5ff; stroke: #8aa5bf; stroke-width: 0.008; }
 .secondary-body { fill: #58a6ff; stroke: #b3d7ff; stroke-width: 0.006; }
 .lagrange-point { fill: #a58bdd; }
@@ -122,7 +122,7 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
   58% { opacity: 0.68; }
   80% { opacity: 0.52; }
 }
-.current-position, .afterimage { fill: #ffb347; stroke: none; animation-name: third-body-pulse; animation-duration: 1s; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 0 0.035px rgba(255, 179, 71, 0.82)); }
+.current-position, .afterimage { fill: #72ff76; stroke: none; animation-name: third-body-pulse; animation-duration: 1s; animation-timing-function: linear; animation-iteration-count: infinite; filter: drop-shadow(0 0 0.035px rgba(114, 255, 118, 0.82)); }
 .current-position { fill-opacity: 1; }
 .afterimage-1 { fill-opacity: 0.75; animation-delay: -0.9166667s; }
 .afterimage-2 { fill-opacity: 0.50; animation-delay: -0.8333333s; }
@@ -132,9 +132,9 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .plot-legend span { display: inline-flex; gap: 0.4rem; align-items: center; }
 .legend-swatch { display: inline-block; width: 0.65rem; height: 0.65rem; border-radius: 999px; }
 .trajectory-swatch { background: #55a9f5; }
-.trail-swatch { background: linear-gradient(90deg, rgba(255, 179, 71, 0), rgba(255, 179, 71, 0.78)); }
-.current-swatch { background: #ffb347; box-shadow: 0 0 0.45rem rgba(255, 179, 71, 0.35); }
-.afterimage-swatch { background: #ffb347; }
+.trail-swatch { background: linear-gradient(90deg, rgba(114, 255, 118, 0), rgba(114, 255, 118, 0.78)); }
+.current-swatch { background: #72ff76; box-shadow: 0 0 0.45rem rgba(114, 255, 118, 0.35); }
+.afterimage-swatch { background: #72ff76; }
 .afterimage-swatch-1 { opacity: 0.75; }
 .afterimage-swatch-2 { opacity: 0.50; }
 .afterimage-swatch-3 { opacity: 0.25; }
