@@ -1,0 +1,79 @@
+.diagnostics-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.diagnostic-section {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.15rem;
+}
+
+.diagnostic-section + .diagnostic-section {
+  border-top: 1px solid #132238;
+  padding-top: 1rem;
+}
+
+.diagnostic-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.diagnostic-section-heading h3 {
+  margin: 0;
+  color: #d7e8fa;
+  font-size: 0.92rem;
+}
+
+.diagnostic-section-heading span {
+  color: #6f879d;
+  font-size: 0.72rem;
+}
+
+.diagnostics-grid-current,
+.diagnostics-grid-validity {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.diagnostics-grid-conservation,
+.diagnostics-grid-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.diagnostic-section-conservation .diagnostics-grid div {
+  border-color: #26364b;
+}
+
+.diagnostic-section-validity .diagnostics-grid div {
+  border-color: #263229;
+}
+
+.diagnostic-section dd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@media (max-width: 900px) {
+  .diagnostics-grid-current,
+  .diagnostics-grid-validity,
+  .diagnostics-grid-conservation,
+  .diagnostics-grid-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .diagnostic-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .diagnostics-grid-current,
+  .diagnostics-grid-validity,
+  .diagnostics-grid-conservation,
+  .diagnostics-grid-summary {
+    grid-template-columns: 1fr;
+  }
+}

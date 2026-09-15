@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import DiagnosticsPanel from './components/DiagnosticsPanel'
 import InertialTrajectoryPlot from './components/InertialTrajectoryPlot'
 import StatePlots from './components/StatePlots'
 import TrajectoryPlot from './components/TrajectoryPlot'
@@ -102,10 +103,6 @@ function calculate(inputs: DraftInputs): CalculationResult {
     tMax,
     dt: DEFAULT_DT,
   }
-}
-
-function formatScientific(value: number): string {
-  return value === 0 ? '0' : value.toExponential(3)
 }
 
 function ToggleButton({
@@ -222,7 +219,6 @@ export default function App() {
     setAnimationTime(0)
   }
 
-  const orbitalPeriods = result.tMax / (2 * Math.PI)
   const currentPoint = trajectoryPointAtTime(result.trajectory, animationTime)
   const currentPeriods = currentPoint.t / (2 * Math.PI)
 
@@ -381,22 +377,12 @@ export default function App() {
             showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
           />
 
-          <section className="diagnostics-card" aria-labelledby="diagnostics-title">
-            <div>
-              <p className="eyebrow">Calculated trajectory</p>
-              <h2 id="diagnostics-title">Diagnostics</h2>
-            </div>
-            <dl className="diagnostics-grid">
-              <div><dt>Max |ΔH|</dt><dd>{formatScientific(result.diagnostics.maxHamiltonianDrift)}</dd></div>
-              <div><dt>Min secondary distance</dt><dd>{result.diagnostics.minSecondaryDistance.toFixed(4)}</dd></div>
-              <div><dt>Binary periods</dt><dd>{orbitalPeriods.toFixed(1)}</dd></div>
-              <div><dt>Integration points</dt><dd>{result.trajectory.length.toLocaleString()}</dd></div>
-            </dl>
-            <p className="diagnostic-note">
-              Hamiltonian drift is an absolute numerical-conservation diagnostic for the reduced model.
-              Minimum secondary distance is measured in the adopted nondimensional rotating frame.
-            </p>
-          </section>
+          <DiagnosticsPanel
+            trajectory={result.trajectory}
+            currentPoint={currentPoint}
+            mu={result.mu}
+            summary={result.diagnostics}
+          />
         </div>
       </section>
     </main>
