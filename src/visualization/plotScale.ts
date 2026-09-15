@@ -3,8 +3,11 @@ export interface PlotRange {
   max: number
 }
 
+export type LagrangeAnchorDegrees = -60 | 60
+
 const DEFAULT_PADDING_FRACTION = 0.08
 const CLOSE_UP_ANGLE_STEP = 5
+const LAGRANGE_LONGITUDES: LagrangeAnchorDegrees[] = [-60, 60]
 
 function ensureMinimumSpan(min: number, max: number, minimumSpan: number): PlotRange {
   if (max - min >= minimumSpan) {
@@ -71,13 +74,29 @@ export function niceOuterRange(
   }
 }
 
+export function selectLagrangeAnchor(values: number[]): LagrangeAnchorDegrees {
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const containsMinus = min <= -60 && max >= -60
+  const containsPlus = min <= 60 && max >= 60
+
+  if (containsPlus && !containsMinus) return 60
+  if (containsMinus && !containsPlus) return -60
+
+  const meanDistance = (anchor: LagrangeAnchorDegrees) =>
+    values.reduce((sum, value) => sum + Math.abs(value - anchor), 0) / Math.max(values.length, 1)
+
+  return meanDistance(60) <= meanDistance(-60) ? 60 : -60
+}
+
 export function closeUpPhiRange(
   values: number[],
+  anchor = selectLagrangeAnchor(values),
   minimumSpan = 20,
   paddingFraction = DEFAULT_PADDING_FRACTION,
 ): PlotRange {
-  let min = Math.min(...values)
-  let max = Math.max(...values)
+  let min = Math.min(anchor, ...values)
+  let max = Math.max(anchor, ...values)
   ;({ min, max } = ensureMinimumSpan(min, max, minimumSpan))
   ;({ min, max } = paddedRange(min, max, paddingFraction))
 
@@ -98,5 +117,34 @@ export function closeUpPhiRange(
     }
   }
 
+  if (anchor < min) min = anchor
+  if (anchor > max) max = anchor
+
   return { min, max }
+}
+
+export function anchoredTicks(
+  range: PlotRange,
+  anchor: number,
+  targetIntervals = 5,
+): number[] {
+  const span = range.max - range.min
+  const step = niceCeilingMagnitude(span / Math.max(targetIntervals, 1))
+  if (!(step > 0)) return [anchor]
+
+  const epsilon = step * 1e-10
+  const firstIndex = Math.ceil((range.min - anchor - epsilon) / step)
+  const lastIndex = Math.floor((range.max - anchor + epsilon) / step)
+  const ticks: number[] = []
+
+  for (let index = firstIndex; index <= lastIndex; index += 1) {
+    const tick = anchor + index * step
+    ticks.push(Number(tick.toPrecision(12)))
+  }
+
+  return ticks
+}
+
+export function isLagrangeLongitude(value: number): value is LagrangeAnchorDegrees {
+  return LAGRANGE_LONGITUDES.includes(value as LagrangeAnchorDegrees)
 }
