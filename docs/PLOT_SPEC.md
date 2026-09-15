@@ -4,7 +4,7 @@ Last updated: 2026-09-15
 
 ## Purpose
 
-This document records the concrete behavior of the version-0.1 state plots. It complements `docs/APP_SPEC.md`, which requires radial, angular, and phase-space views, and `docs/PHYSICS.md`, which remains authoritative for the underlying variables and dynamics.
+This document records the concrete behavior of the version-0.1 state plots. It complements `docs/APP_SPEC.md`, which requires radial, angular, and phase-space views, `docs/DIAGNOSTICS_SPEC.md`, which defines the planned diagnostic-data architecture and custom X-Y plot, and `docs/PHYSICS.md`, which remains authoritative for the underlying variables and dynamics.
 
 All behavior described here is display-only. It must not modify the stored numerical trajectory, solver, diagnostics, or shared animation time.
 
@@ -17,6 +17,8 @@ The `r(t)`, `phi(t)`, and `phi` versus `r - 1` plots all use the same current tr
 Each plot displays that current state with the same bright-green marker family used for the third body in the orbit panels.
 
 Playback, pause, reset, and recalculation therefore move or reset all plot markers synchronously with the rotating and inertial orbit panels.
+
+The planned custom X-Y diagnostic plot will follow the same rule.
 
 ---
 
@@ -112,6 +114,30 @@ Close-up keeps the physical plot width fixed while contracting the numerical `ph
 In Close-up mode, vertical `r - 1` ticks are likewise generated at equal intervals anchored to `r - 1 = 0`, so the existing dashed corotation line is a true grid anchor.
 
 When **Close-up** and **1:1 scale** are selected together, the variable panel height is recomputed from the narrowed horizontal span so the physical 1:1 relation remains valid.
+
+---
+
+## Planned custom X-Y diagnostic plot
+
+Version 0.1 will add one additional plot panel whose horizontal and vertical variables can be selected independently by the viewer.
+
+The detailed data definitions and implementation sequence are specified in `docs/DIAGNOSTICS_SPEC.md`.
+
+The planned baseline behavior is:
+
+- two selectors, one for X and one for Y;
+- initial default `X = t`, `Y = Delta H_gc`;
+- selectable quantities including `t`, `r`, `r - 1`, wrapped `phi`, `r2`, `epsilon_tide`, `H_gc`, `Delta H_gc`, `|Delta H_gc|`, `dot r`, `dot phi`, and `|dot r / r|`;
+- full calculated trajectory shown as a thin line;
+- one current-position marker driven by the existing shared animation time;
+- automatic numeric axis ranges appropriate to the selected variables;
+- optional subdued zero/reference lines where a variable has a meaningful neutral value;
+- no second integration and no effect on the stored trajectory;
+- no progressive trail mode in the first implementation.
+
+If wrapped `phi` is selected for either axis, path construction must split at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
+
+The specialized **Magnify / 1:1 scale** and **Full width / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not part of the initial generic custom-plot controls.
 
 ---
 
