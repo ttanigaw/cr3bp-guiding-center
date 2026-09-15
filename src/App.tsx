@@ -28,6 +28,21 @@ interface CalculationResult {
   dt: number
 }
 
+interface SharedDisplayOptions {
+  showAfterimages: boolean
+  showLagrangePoints: boolean
+  showLagrangeTriangles: boolean
+}
+
+interface RotatingDisplayOptions {
+  showTrajectory: boolean
+  showAxes: boolean
+}
+
+interface InertialDisplayOptions {
+  showAxes: boolean
+}
+
 function presetToInputs(presetId: OrbitPresetId): DraftInputs {
   const preset = orbitPresets[presetId]
 
@@ -91,6 +106,27 @@ function formatScientific(value: number): string {
   return value === 0 ? '0' : value.toExponential(3)
 }
 
+function ToggleButton({
+  label,
+  pressed,
+  onClick,
+}: {
+  label: string
+  pressed: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={`toggle-button${pressed ? ' active' : ''}`}
+      aria-pressed={pressed}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  )
+}
+
 export default function App() {
   const [selectedPresetId, setSelectedPresetId] = useState<OrbitPresetId | null>('horseshoe')
   const [draftInputs, setDraftInputs] = useState<DraftInputs>(() => presetToInputs('horseshoe'))
@@ -99,6 +135,18 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [animationTime, setAnimationTime] = useState(0)
+  const [sharedDisplayOptions, setSharedDisplayOptions] = useState<SharedDisplayOptions>({
+    showAfterimages: true,
+    showLagrangePoints: true,
+    showLagrangeTriangles: true,
+  })
+  const [rotatingDisplayOptions, setRotatingDisplayOptions] = useState<RotatingDisplayOptions>({
+    showTrajectory: true,
+    showAxes: true,
+  })
+  const [inertialDisplayOptions, setInertialDisplayOptions] = useState<InertialDisplayOptions>({
+    showAxes: true,
+  })
   const previousFrameTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -213,55 +261,28 @@ export default function App() {
           <form className="parameter-form" onSubmit={handleCalculate}>
             <label>
               <span>Mass ratio μ</span>
-              <input
-                name="mu"
-                type="number"
-                step="any"
-                value={draftInputs.mu}
-                onChange={(event) => updateDraft('mu', event.target.value)}
-              />
+              <input name="mu" type="number" step="any" value={draftInputs.mu} onChange={(event) => updateDraft('mu', event.target.value)} />
             </label>
             <label>
               <span>Initial radius r₀</span>
-              <input
-                name="r0"
-                type="number"
-                step="any"
-                value={draftInputs.r0}
-                onChange={(event) => updateDraft('r0', event.target.value)}
-              />
+              <input name="r0" type="number" step="any" value={draftInputs.r0} onChange={(event) => updateDraft('r0', event.target.value)} />
             </label>
             <label>
               <span>Initial angle φ₀</span>
               <div className="input-with-unit">
-                <input
-                  name="phi0Degrees"
-                  type="number"
-                  step="any"
-                  value={draftInputs.phi0Degrees}
-                  onChange={(event) => updateDraft('phi0Degrees', event.target.value)}
-                />
+                <input name="phi0Degrees" type="number" step="any" value={draftInputs.phi0Degrees} onChange={(event) => updateDraft('phi0Degrees', event.target.value)} />
                 <span>deg</span>
               </div>
             </label>
             <label>
               <span>Integration duration t max</span>
-              <input
-                name="tMax"
-                type="number"
-                step="any"
-                min="0"
-                value={draftInputs.tMax}
-                onChange={(event) => updateDraft('tMax', event.target.value)}
-              />
+              <input name="tMax" type="number" step="any" min="0" value={draftInputs.tMax} onChange={(event) => updateDraft('tMax', event.target.value)} />
             </label>
 
             <button className="calculate-button" type="submit">Calculate</button>
           </form>
 
-          {errorMessage && (
-            <p className="calculation-error" role="alert">{errorMessage}</p>
-          )}
+          {errorMessage && <p className="calculation-error" role="alert">{errorMessage}</p>}
 
           <p className="control-note">
             Presets load validated example values. Changes are applied only when you press Calculate.
@@ -281,13 +302,8 @@ export default function App() {
               <button type="button" onClick={handleReset} disabled={animationTime === 0 && !isPlaying}>Reset</button>
               <label>
                 <span>Speed</span>
-                <select
-                  value={playbackSpeed}
-                  onChange={(event) => setPlaybackSpeed(Number(event.target.value))}
-                >
-                  {playbackSpeeds.map((speed) => (
-                    <option key={speed} value={speed}>{speed}×</option>
-                  ))}
+                <select value={playbackSpeed} onChange={(event) => setPlaybackSpeed(Number(event.target.value))}>
+                  {playbackSpeeds.map((speed) => <option key={speed} value={speed}>{speed}×</option>)}
                 </select>
               </label>
             </div>
@@ -303,17 +319,53 @@ export default function App() {
             </p>
           </section>
 
+          <section className="display-options-card" aria-labelledby="display-options-title">
+            <div>
+              <p className="eyebrow">Both orbit panels</p>
+              <h2 id="display-options-title">Display layers</h2>
+            </div>
+            <div className="toggle-button-row" role="group" aria-label="Shared orbit display options">
+              <ToggleButton
+                label="Afterimages"
+                pressed={sharedDisplayOptions.showAfterimages}
+                onClick={() => setSharedDisplayOptions((current) => ({ ...current, showAfterimages: !current.showAfterimages }))}
+              />
+              <ToggleButton
+                label="L4 / L5 points"
+                pressed={sharedDisplayOptions.showLagrangePoints}
+                onClick={() => setSharedDisplayOptions((current) => ({ ...current, showLagrangePoints: !current.showLagrangePoints }))}
+              />
+              <ToggleButton
+                label="L4 / L5 triangles"
+                pressed={sharedDisplayOptions.showLagrangeTriangles}
+                onClick={() => setSharedDisplayOptions((current) => ({ ...current, showLagrangeTriangles: !current.showLagrangeTriangles }))}
+              />
+            </div>
+          </section>
+
           <div className="orbit-panel-grid" aria-label="Rotating and inertial orbit comparison">
             <TrajectoryPlot
               trajectory={result.trajectory}
               mu={result.mu}
               currentPoint={currentPoint}
               currentTime={currentPoint.t}
+              showAfterimages={sharedDisplayOptions.showAfterimages}
+              showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
+              showLagrangeTriangles={sharedDisplayOptions.showLagrangeTriangles}
+              showTrajectory={rotatingDisplayOptions.showTrajectory}
+              showAxes={rotatingDisplayOptions.showAxes}
+              onToggleTrajectory={() => setRotatingDisplayOptions((current) => ({ ...current, showTrajectory: !current.showTrajectory }))}
+              onToggleAxes={() => setRotatingDisplayOptions((current) => ({ ...current, showAxes: !current.showAxes }))}
             />
             <InertialTrajectoryPlot
               trajectory={result.trajectory}
               mu={result.mu}
               currentTime={currentPoint.t}
+              showAfterimages={sharedDisplayOptions.showAfterimages}
+              showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
+              showLagrangeTriangles={sharedDisplayOptions.showLagrangeTriangles}
+              showAxes={inertialDisplayOptions.showAxes}
+              onToggleAxes={() => setInertialDisplayOptions((current) => ({ ...current, showAxes: !current.showAxes }))}
             />
           </div>
 
@@ -323,22 +375,10 @@ export default function App() {
               <h2 id="diagnostics-title">Diagnostics</h2>
             </div>
             <dl className="diagnostics-grid">
-              <div>
-                <dt>Max |ΔH|</dt>
-                <dd>{formatScientific(result.diagnostics.maxHamiltonianDrift)}</dd>
-              </div>
-              <div>
-                <dt>Min secondary distance</dt>
-                <dd>{result.diagnostics.minSecondaryDistance.toFixed(4)}</dd>
-              </div>
-              <div>
-                <dt>Binary periods</dt>
-                <dd>{orbitalPeriods.toFixed(1)}</dd>
-              </div>
-              <div>
-                <dt>Integration points</dt>
-                <dd>{result.trajectory.length.toLocaleString()}</dd>
-              </div>
+              <div><dt>Max |ΔH|</dt><dd>{formatScientific(result.diagnostics.maxHamiltonianDrift)}</dd></div>
+              <div><dt>Min secondary distance</dt><dd>{result.diagnostics.minSecondaryDistance.toFixed(4)}</dd></div>
+              <div><dt>Binary periods</dt><dd>{orbitalPeriods.toFixed(1)}</dd></div>
+              <div><dt>Integration points</dt><dd>{result.trajectory.length.toLocaleString()}</dd></div>
             </dl>
             <p className="diagnostic-note">
               Hamiltonian drift is an absolute numerical-conservation diagnostic for the reduced model.
