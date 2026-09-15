@@ -374,7 +374,11 @@ export default function App() {
             />
           </div>
 
-          <StatePlots trajectory={result.trajectory} currentPoint={currentPoint} />
+          <StatePlots
+            trajectory={result.trajectory}
+            currentPoint={currentPoint}
+            showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
+          />
 
           <section className="diagnostics-card" aria-labelledby="diagnostics-title">
             <div>
