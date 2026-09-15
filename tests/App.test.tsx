@@ -30,7 +30,8 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
     expect(container.querySelectorAll('.lagrange-geometry')).toHaveLength(4)
     expect(container.querySelectorAll('.axis-label')).toHaveLength(4)
-    expect(container.querySelector('.trajectory-path')).not.toBeNull()
+    expect(container.querySelectorAll('.trajectory-path')).toHaveLength(2)
+    expect(container.querySelector('.inertial-rigid-trajectory-path')).not.toBeNull()
 
     const buttons = () => Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
     const findButtons = (label: string) => buttons().filter((button) => button.textContent === label)
@@ -40,7 +41,11 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(findButton('L4 / L5 points')?.getAttribute('aria-pressed')).toBe('true')
     expect(findButton('L4 / L5 triangles')?.getAttribute('aria-pressed')).toBe('true')
     expect(findButtons('Axes')).toHaveLength(2)
-    expect(findButton('Trajectory')?.getAttribute('aria-pressed')).toBe('true')
+    expect(findButtons('Trajectory')).toHaveLength(2)
+    expect(findButtons('Trajectory')[0]?.getAttribute('aria-pressed')).toBe('true')
+    expect(findButtons('Trajectory')[1]?.getAttribute('aria-pressed')).toBe('true')
+
+    const initialRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
 
     await act(async () => findButton('Play')?.click())
     const firstFrame = runScheduledFrame
@@ -51,6 +56,8 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(container.textContent).toContain('0.50 binary periods')
     expect(container.querySelectorAll('.afterimage')).toHaveLength(6)
     expect(container.querySelectorAll('.afterimage-trail-segment').length).toBeGreaterThan(0)
+    const advancedRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
+    expect(advancedRigidPath).not.toBe(initialRigidPath)
 
     await act(async () => findButton('Afterimages')?.click())
     expect(container.querySelectorAll('.afterimage')).toHaveLength(0)
@@ -63,8 +70,12 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     await act(async () => findButton('L4 / L5 triangles')?.click())
     expect(container.querySelectorAll('.lagrange-geometry')).toHaveLength(0)
 
-    await act(async () => findButton('Trajectory')?.click())
-    expect(container.querySelector('.trajectory-path')).toBeNull()
+    const trajectoryButtons = findButtons('Trajectory')
+    await act(async () => trajectoryButtons[0]?.click())
+    expect(container.querySelectorAll('.trajectory-path')).toHaveLength(1)
+    expect(container.querySelector('.inertial-rigid-trajectory-path')).not.toBeNull()
+    await act(async () => trajectoryButtons[1]?.click())
+    expect(container.querySelectorAll('.trajectory-path')).toHaveLength(0)
 
     const axesButtons = findButtons('Axes')
     await act(async () => axesButtons[0]?.click())
@@ -77,6 +88,12 @@ it('renders both frame views, shares playback controls, toggles display layers, 
 
     await act(async () => findButton('Reset')?.click())
     expect(container.textContent).toContain('0.00 binary periods')
+
+    const legends = Array.from(container.querySelectorAll<HTMLElement>('.plot-legend'))
+    for (const legend of legends) {
+      const labels = Array.from(legend.querySelectorAll('span')).map((item) => item.textContent)
+      expect(labels.slice(0, 3)).toEqual(['Primary', 'Secondary', 'Current position'])
+    }
 
     const tMaxInput = container.querySelector<HTMLInputElement>('input[name="tMax"]')
     const calculateButton = findButton('Calculate')
