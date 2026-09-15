@@ -1,15 +1,11 @@
 import { useState, type ReactNode } from 'react'
 import type { TrajectoryPoint } from '../physics/integrator'
 import { sampleTrajectory, wrapPhiDegrees, wrappedPlotSegments } from '../visualization/plotData'
+import { closeUpPhiRange, niceOuterRange, type PlotRange } from '../visualization/plotScale'
 
 interface StatePlotsProps {
   trajectory: TrajectoryPoint[]
   currentPoint: TrajectoryPoint
-}
-
-interface Range {
-  min: number
-  max: number
 }
 
 interface PlotPath {
@@ -18,6 +14,7 @@ interface PlotPath {
 }
 
 type PhaseSpaceScaleMode = 'auto' | 'equal'
+type PhaseSpaceWidthMode = 'full' | 'closeup'
 
 const WIDTH = 640
 const DEFAULT_HEIGHT = 260
@@ -26,7 +23,7 @@ const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
 const DEFAULT_INNER_HEIGHT = DEFAULT_HEIGHT - MARGIN.top - MARGIN.bottom
 const RAD_TO_DEG = 180 / Math.PI
 
-function paddedRange(values: number[], includeValue: number, minimumSpan: number): Range {
+function paddedRange(values: number[], includeValue: number, minimumSpan: number): PlotRange {
   let min = Math.min(includeValue, ...values)
   let max = Math.max(includeValue, ...values)
   let span = max - min
@@ -42,23 +39,24 @@ function paddedRange(values: number[], includeValue: number, minimumSpan: number
   return { min: min - padding, max: max + padding }
 }
 
-function makeTicks(range: Range, count = 5): number[] {
+function makeTicks(range: PlotRange, count = 5): number[] {
   if (count <= 1) return [range.min]
+  if (count === 2) return [range.min, range.max]
   return Array.from({ length: count }, (_, index) => range.min + ((range.max - range.min) * index) / (count - 1))
 }
 
-function scaleX(value: number, range: Range): number {
+function scaleX(value: number, range: PlotRange): number {
   return MARGIN.left + ((value - range.min) / (range.max - range.min)) * INNER_WIDTH
 }
 
-function scaleY(value: number, range: Range, innerHeight: number): number {
+function scaleY(value: number, range: PlotRange, innerHeight: number): number {
   return MARGIN.top + (1 - (value - range.min) / (range.max - range.min)) * innerHeight
 }
 
 function pathFromPoints(
   points: Array<{ x: number; y: number }>,
-  xRange: Range,
-  yRange: Range,
+  xRange: PlotRange,
+  yRange: PlotRange,
   innerHeight = DEFAULT_INNER_HEIGHT,
 ): string {
   return points
@@ -70,7 +68,7 @@ function pathFromPoints(
     .join(' ')
 }
 
-function equalScaleInnerHeight(xRange: Range, yRange: Range): number {
+function equalScaleInnerHeight(xRange: PlotRange, yRange: PlotRange): number {
   const xSpanDegrees = xRange.max - xRange.min
   const ySpanDegreesEquivalent = (yRange.max - yRange.min) * RAD_TO_DEG
   return INNER_WIDTH * (ySpanDegreesEquivalent / xSpanDegrees)
@@ -89,11 +87,12 @@ function PlotFrame({
   horizontalReference,
   className,
   height = DEFAULT_HEIGHT,
+  yTickCount = 5,
 }: {
   ariaLabel: string
   paths: PlotPath[]
-  xRange: Range
-  yRange: Range
+  xRange: PlotRange
+  yRange: PlotRange
   xLabel: string
   yLabel: string
   current: { x: number; y: number }
@@ -102,10 +101,11 @@ function PlotFrame({
   horizontalReference?: number
   className?: string
   height?: number
+  yTickCount?: number
 }) {
   const innerHeight = height - MARGIN.top - MARGIN.bottom
   const xTicks = makeTicks(xRange)
-  const yTicks = makeTicks(yRange)
+  const yTicks = makeTicks(yRange, yTickCount)
 
   return (
     <svg
@@ -113,13 +113,17 @@ function PlotFrame({
       viewBox={`0 0 ${WIDTH} ${height}`}
       role="img"
       aria-label={ariaLabel}
+      data-x-min={xRange.min}
+      data-x-max={xRange.max}
+      data-y-min={yRange.min}
+      data-y-max={yRange.max}
     >
       {xTicks.map((tick) => {
         const x = scaleX(tick, xRange)
         return (
           <g key={`x-${tick}`}>
             <line className="state-grid-line" x1={x} y1={MARGIN.top} x2={x} y2={MARGIN.top + innerHeight} />
-            <text className="state-tick-label" x={x} y={height - 20} textAnchor="middle">{xTickFormat(tick)}</text>
+            <text className="state-tick-label state-x-tick-label" x={x} y={height - 20} textAnchor="middle">{xTickFormat(tick)}</text>
           </g>
         )
       })}
@@ -129,7 +133,7 @@ function PlotFrame({
         return (
           <g key={`y-${tick}`}>
             <line className="state-grid-line" x1={MARGIN.left} y1={y} x2={MARGIN.left + INNER_WIDTH} y2={y} />
-            <text className="state-tick-label" x={MARGIN.left - 9} y={y + 4} textAnchor="end">{yTickFormat(tick)}</text>
+            <text className="state-tick-label state-y-tick-label" x={MARGIN.left - 9} y={y + 4} textAnchor="end">{yTickFormat(tick)}</text>
           </g>
         )
       })}
@@ -200,8 +204,24 @@ function PlotCard({
   )
 }
 
+function ScaleChoice({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <div className="phase-option-group">
+      <span className="phase-option-label">{label}</span>
+      <div className="panel-option-buttons">{children}</div>
+    </div>
+  )
+}
+
 export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps) {
   const [phaseSpaceScaleMode, setPhaseSpaceScaleMode] = useState<PhaseSpaceScaleMode>('auto')
+  const [phaseSpaceWidthMode, setPhaseSpaceWidthMode] = useState<PhaseSpaceWidthMode>('full')
   const sampled = sampleTrajectory(trajectory)
   const timeMax = Math.max(trajectory[trajectory.length - 1]?.t ?? 0, 1e-9)
   const timeRange = { min: 0, max: timeMax }
@@ -210,22 +230,27 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
   const rPath = pathFromPoints(sampled.map((point) => ({ x: point.t, y: point.r })), timeRange, rRange)
 
   const wrappedSegments = wrappedPlotSegments(sampled)
-  const phiRange = { min: -180, max: 180 }
+  const fullPhiRange = { min: -180, max: 180 }
   const phiPaths = wrappedSegments.map((segment, index) => ({
     key: `phi-${index}`,
-    d: pathFromPoints(segment.map((point) => ({ x: point.t, y: point.phiDegrees })), timeRange, phiRange),
+    d: pathFromPoints(segment.map((point) => ({ x: point.t, y: point.phiDegrees })), timeRange, fullPhiRange),
   }))
 
-  const rOffsetRange = paddedRange(sampled.map((point) => point.r - 1), 0, 0.02)
+  const phasePhiValues = wrappedSegments.flatMap((segment) => segment.map((point) => point.phiDegrees))
+  const phasePhiRange = phaseSpaceWidthMode === 'closeup'
+    ? closeUpPhiRange(phasePhiValues)
+    : fullPhiRange
+  const rOffsetRange = niceOuterRange(sampled.map((point) => point.r - 1), 0, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
-    ? equalScaleInnerHeight(phiRange, rOffsetRange)
+    ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
     : DEFAULT_INNER_HEIGHT
   const phaseHeight = MARGIN.top + phaseInnerHeight + MARGIN.bottom
+  const phaseYTickCount = phaseInnerHeight < 120 ? 2 : 5
   const phasePaths = wrappedSegments.map((segment, index) => ({
     key: `phase-${index}`,
     d: pathFromPoints(
       segment.map((point) => ({ x: point.phiDegrees, y: point.rOffset })),
-      phiRange,
+      phasePhiRange,
       rOffsetRange,
       phaseInnerHeight,
     ),
@@ -233,8 +258,8 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
 
   const currentPhiDegrees = wrapPhiDegrees(currentPoint.phi)
   const phaseNote = phaseSpaceScaleMode === 'equal'
-    ? '1:1 scale uses (r − 1) × 180/π for vertical display scaling; dashed line marks corotation'
-    : 'Auto-fit vertical scale; dashed line marks corotation'
+    ? '1:1 vertical scale uses (r − 1) × 180/π; horizontal range follows the selected width mode'
+    : 'Auto-fit vertical scale; horizontal range follows the selected width mode'
 
   return (
     <section className="state-plot-grid" aria-label="Guiding-center state plots">
@@ -259,7 +284,7 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
           ariaLabel="Wrapped rotating-frame angle versus nondimensional time"
           paths={phiPaths}
           xRange={timeRange}
-          yRange={phiRange}
+          yRange={fullPhiRange}
           xLabel="t"
           yLabel="φ [deg]"
           current={{ x: currentPoint.t, y: currentPhiDegrees }}
@@ -276,39 +301,60 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
         note={phaseNote}
         className="phase-space-card"
         actions={(
-          <div className="panel-option-buttons phase-scale-controls" role="group" aria-label="Phase-space vertical scale mode">
-            <button
-              type="button"
-              className={`toggle-button${phaseSpaceScaleMode === 'auto' ? ' active' : ''}`}
-              aria-pressed={phaseSpaceScaleMode === 'auto'}
-              onClick={() => setPhaseSpaceScaleMode('auto')}
-            >
-              Auto fit
-            </button>
-            <button
-              type="button"
-              className={`toggle-button${phaseSpaceScaleMode === 'equal' ? ' active' : ''}`}
-              aria-pressed={phaseSpaceScaleMode === 'equal'}
-              onClick={() => setPhaseSpaceScaleMode('equal')}
-            >
-              1:1 scale
-            </button>
+          <div className="phase-display-controls" aria-label="Phase-space display options">
+            <ScaleChoice label="Vertical scale">
+              <button
+                type="button"
+                className={`toggle-button${phaseSpaceScaleMode === 'auto' ? ' active' : ''}`}
+                aria-pressed={phaseSpaceScaleMode === 'auto'}
+                onClick={() => setPhaseSpaceScaleMode('auto')}
+              >
+                Auto fit
+              </button>
+              <button
+                type="button"
+                className={`toggle-button${phaseSpaceScaleMode === 'equal' ? ' active' : ''}`}
+                aria-pressed={phaseSpaceScaleMode === 'equal'}
+                onClick={() => setPhaseSpaceScaleMode('equal')}
+              >
+                1:1 scale
+              </button>
+            </ScaleChoice>
+            <ScaleChoice label="Horizontal range">
+              <button
+                type="button"
+                className={`toggle-button${phaseSpaceWidthMode === 'full' ? ' active' : ''}`}
+                aria-pressed={phaseSpaceWidthMode === 'full'}
+                onClick={() => setPhaseSpaceWidthMode('full')}
+              >
+                Full width
+              </button>
+              <button
+                type="button"
+                className={`toggle-button${phaseSpaceWidthMode === 'closeup' ? ' active' : ''}`}
+                aria-pressed={phaseSpaceWidthMode === 'closeup'}
+                onClick={() => setPhaseSpaceWidthMode('closeup')}
+              >
+                Close-up
+              </button>
+            </ScaleChoice>
           </div>
         )}
       >
         <PlotFrame
           ariaLabel="Wrapped rotating-frame angle versus guiding-center radial offset"
           paths={phasePaths}
-          xRange={phiRange}
+          xRange={phasePhiRange}
           yRange={rOffsetRange}
           xLabel="φ [deg]"
           yLabel="r − 1"
           current={{ x: currentPhiDegrees, y: currentPoint.r - 1 }}
           xTickFormat={(value) => value.toFixed(0)}
-          yTickFormat={(value) => value.toFixed(3)}
+          yTickFormat={(value) => Math.abs(value) >= 0.1 ? value.toFixed(1) : value.toFixed(3)}
           horizontalReference={0}
           className="phase-space-plot"
           height={phaseHeight}
+          yTickCount={phaseYTickCount}
         />
       </PlotCard>
     </section>

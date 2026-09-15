@@ -152,7 +152,10 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .phase-space-card { grid-column: 1 / -1; }
 .state-plot-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 0.75rem; }
 .state-plot-heading h2 { margin-bottom: 0; }
-.state-plot-heading .plot-note { max-width: 22rem; text-align: right; }
+.state-plot-heading .plot-note { max-width: 30rem; text-align: left; margin-top: 0.4rem; }
+.phase-display-controls { display: grid; gap: 0.55rem; justify-items: end; flex: 0 0 auto; }
+.phase-option-group { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.55rem; align-items: center; }
+.phase-option-label { color: #7f96b0; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
 .state-plot {
   display: block;
   width: 100%;
@@ -196,4 +199,6 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
   .plot-heading, .state-plot-heading { align-items: start; flex-direction: column; }
   .state-plot-heading .plot-note { text-align: left; }
   .panel-option-buttons { justify-content: flex-start; }
+  .phase-display-controls { justify-items: start; width: 100%; }
+  .phase-option-group { grid-template-columns: 1fr; }
 }

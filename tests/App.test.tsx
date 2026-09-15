@@ -53,9 +53,13 @@ it('renders both frame views, synchronized state plots, display controls, explic
 
     expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('true')
     expect(findButton('1:1 scale')?.getAttribute('aria-pressed')).toBe('false')
+    expect(findButton('Full width')?.getAttribute('aria-pressed')).toBe('true')
+    expect(findButton('Close-up')?.getAttribute('aria-pressed')).toBe('false')
     const phasePlot = () => container.querySelector<SVGSVGElement>('.phase-space-plot')
     const autoViewBox = phasePlot()?.getAttribute('viewBox')
     expect(autoViewBox).toBe('0 0 640 260')
+    expect(phasePlot()?.getAttribute('data-x-min')).toBe('-180')
+    expect(phasePlot()?.getAttribute('data-x-max')).toBe('180')
 
     await act(async () => findButton('1:1 scale')?.click())
     expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('false')
@@ -157,5 +161,46 @@ it('renders both frame views, synchronized state plots, display controls, explic
     Reflect.deleteProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT')
     globalThis.requestAnimationFrame = originalRequestAnimationFrame
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame
+  }
+})
+
+it('supports a close-up phase-space range with a shallow 1:1 plot for an L4 tadpole', async () => {
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+
+  try {
+    await act(async () => root.render(<App />))
+
+    const buttons = () => Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
+    const findButton = (label: string) => buttons().find((button) => button.textContent === label)
+    const l4PresetButton = Array.from(container.querySelectorAll<HTMLButtonElement>('.preset-button'))
+      .find((button) => button.textContent?.includes('L4 tadpole'))
+
+    await act(async () => l4PresetButton?.click())
+    await act(async () => findButton('Calculate')?.click())
+
+    const phasePlot = () => container.querySelector<SVGSVGElement>('.phase-space-plot')
+    expect(phasePlot()?.getAttribute('data-x-min')).toBe('-180')
+    expect(phasePlot()?.getAttribute('data-x-max')).toBe('180')
+
+    await act(async () => findButton('Close-up')?.click())
+    expect(findButton('Full width')?.getAttribute('aria-pressed')).toBe('false')
+    expect(findButton('Close-up')?.getAttribute('aria-pressed')).toBe('true')
+
+    const closeUpMin = Number(phasePlot()?.getAttribute('data-x-min'))
+    const closeUpMax = Number(phasePlot()?.getAttribute('data-x-max'))
+    expect(closeUpMin).toBeGreaterThan(-180)
+    expect(closeUpMax).toBeLessThan(180)
+    expect(closeUpMax - closeUpMin).toBeLessThan(360)
+
+    await act(async () => findButton('1:1 scale')?.click())
+    expect(phasePlot()?.querySelectorAll('.state-y-tick-label')).toHaveLength(2)
+    expect(phasePlot()?.getAttribute('viewBox')?.split(' ').slice(0, 3)).toEqual(['0', '0', '640'])
+  } finally {
+    await act(async () => root.unmount())
+    container.remove()
+    Reflect.deleteProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT')
   }
 })
