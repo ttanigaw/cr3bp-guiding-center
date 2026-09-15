@@ -4,7 +4,7 @@ Last updated: 2026-09-15
 
 ## Purpose
 
-This document records the concrete behavior of the version-0.1 state plots. It complements `docs/APP_SPEC.md`, which requires radial, angular, and phase-space views, `docs/DIAGNOSTICS_SPEC.md`, which defines the planned diagnostic-data architecture and custom X-Y plot, and `docs/PHYSICS.md`, which remains authoritative for the underlying variables and dynamics.
+This document records the concrete behavior of the version-0.1 state plots. It complements `docs/APP_SPEC.md`, which requires radial, angular, and phase-space views, `docs/DIAGNOSTICS_SPEC.md`, which defines the diagnostic-data architecture and custom X-Y plot, and `docs/PHYSICS.md`, which remains authoritative for the underlying variables and dynamics.
 
 All behavior described here is display-only. It must not modify the stored numerical trajectory, solver, diagnostics, or shared animation time.
 
@@ -12,13 +12,11 @@ All behavior described here is display-only. It must not modify the stored numer
 
 ## Shared animation marker
 
-The `r(t)`, `phi(t)`, and `phi` versus `r - 1` plots all use the same current trajectory point selected by the application's shared animation time.
+The `r(t)`, `phi(t)`, `phi` versus `r - 1`, and Custom X-Y plots all use the same current trajectory point selected by the application's shared animation time.
 
 Each plot displays that current state with the same bright-green marker family used for the third body in the orbit panels.
 
 Playback, pause, reset, and recalculation therefore move or reset all plot markers synchronously with the rotating and inertial orbit panels.
-
-The planned custom X-Y diagnostic plot will follow the same rule.
 
 ---
 
@@ -155,27 +153,29 @@ For a non-wrapping Close-up view, the selected relevant Lagrange longitude remai
 
 ---
 
-## Planned custom X-Y diagnostic plot
+## Custom X-Y diagnostic plot
 
-Version 0.1 will add one additional plot panel whose horizontal and vertical variables can be selected independently by the viewer.
+Version 0.1 includes one additional plot panel whose horizontal and vertical variables can be selected independently by the viewer.
 
-The detailed data definitions and implementation sequence are specified in `docs/DIAGNOSTICS_SPEC.md`.
+The detailed data definitions are specified in `docs/DIAGNOSTICS_SPEC.md`.
 
-The planned baseline behavior is:
+Current baseline behavior is:
 
 - two selectors, one for X and one for Y;
 - initial default `X = t`, `Y = Delta H_gc`;
-- selectable quantities including `t`, `r`, `r - 1`, wrapped `phi`, `r2`, `epsilon_tide`, `H_gc`, `Delta H_gc`, `|Delta H_gc|`, `dot r`, `dot phi`, and `|dot r / r|`;
-- full calculated trajectory shown as a thin line;
-- one current-position marker driven by the existing shared animation time;
-- automatic numeric axis ranges appropriate to the selected variables;
-- optional subdued zero/reference lines where a variable has a meaningful neutral value;
-- no second integration and no effect on the stored trajectory;
-- no progressive trail mode in the first implementation.
+- selectable quantities: `t`, `r`, `r - 1`, wrapped `phi`, `r2`, `epsilon_tide`, `H_gc`, `Delta H_gc`, `|Delta H_gc|`, `dot r`, `dot phi`, and `|dot r / r|`;
+- the full calculated trajectory is shown as a thin blue curve;
+- one bright-green current-position marker is driven by the existing shared animation time;
+- axis ranges are recomputed automatically when either selected variable changes;
+- subdued reference lines are shown where the selected variable definition has a useful reference value, including `r = 1`, `r - 1 = 0`, `Delta H_gc = 0`, `dot r = 0`, and `dot phi = 0`;
+- selector changes are display-only and do not trigger a second integration or alter the stored trajectory;
+- no progressive-trail mode is used in the initial implementation.
 
-If wrapped `phi` is selected for either axis, path construction must split at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
+If wrapped `phi` is selected for either axis, path construction splits at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
 
-The specialized **Magnify / 1:1 scale** and **Full width / Close-up with origin / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not part of the initial generic custom-plot controls.
+The variable registry owns the stable key, user-facing label, axis label, accessor, tick formatter, minimum display span, and optional reference value for each selectable quantity.
+
+The specialized **Magnify / 1:1 scale** and **Full width / Close-up with origin / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not copied into the generic custom plot.
 
 ---
 
