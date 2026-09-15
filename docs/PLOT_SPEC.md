@@ -1,6 +1,6 @@
 # State-Plot Specification
 
-Last updated: 2026-09-15
+Last updated: 2026-09-16
 
 ## Purpose
 
@@ -161,15 +161,47 @@ The detailed data definitions are specified in `docs/DIAGNOSTICS_SPEC.md`.
 
 Current baseline behavior is:
 
-- two selectors, one for X and one for Y;
+- two variable selectors, one for X and one for Y;
 - initial default `X = t`, `Y = Delta H_gc`;
 - selectable quantities: `t`, `r`, `r - 1`, wrapped `phi`, `r2`, `epsilon_tide`, `H_gc`, `Delta H_gc`, `|Delta H_gc|`, `dot r`, `dot phi`, and `|dot r / r|`;
 - the full calculated trajectory is shown as a thin blue curve;
 - one bright-green current-position marker is driven by the existing shared animation time;
 - axis ranges are recomputed automatically when either selected variable changes;
 - subdued reference lines are shown where the selected variable definition has a useful reference value, including `r = 1`, `r - 1 = 0`, `Delta H_gc = 0`, `dot r = 0`, and `dot phi = 0`;
-- selector changes are display-only and do not trigger a second integration or alter the stored trajectory;
+- selector changes and scale-mode changes are display-only and do not trigger a second integration or alter the stored trajectory;
 - no progressive-trail mode is used in the initial implementation.
+
+### Custom linear-axis ticks
+
+Each custom axis uses automatically chosen equal tick spacing based on simple `1`, `2`, or `5` multiples of a power of ten.
+
+When the displayed numerical range contains zero:
+
+- `0` is always a labeled tick;
+- all other ticks on that axis are placed at equal intervals relative to zero;
+- the display range does not need to be symmetric about zero.
+
+This prevents a zero reference line from falling between unrelated tick values and makes signed quantities such as `dot r` and `dot phi` easier to read.
+
+When zero is not inside the displayed range, the same nice-number spacing is used without forcing zero into view.
+
+### Custom axis scale mode
+
+X and Y each have an independent scale selector:
+
+- **Linear** — default;
+- **log10** — plot the base-10 logarithm of the selected quantity.
+
+`log10` is available only when **every stored plotted value for that axis is finite and strictly positive**. If the selected variable contains zero or negative values, the `log10` option is disabled. If recalculation or a variable change makes a previously logarithmic axis ineligible, that axis returns to Linear.
+
+In log10 mode:
+
+- plotting coordinates are transformed with `log10(value)`;
+- tick labels show the transformed logarithmic value itself;
+- the axis title explicitly changes to `log10(variable)` so the transformation is unambiguous;
+- a reference value is shown only if that reference is positive and therefore has a defined logarithm.
+
+No samples are silently dropped to make a logarithmic plot possible.
 
 If wrapped `phi` is selected for either axis, path construction splits at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
 
