@@ -11,7 +11,9 @@ Recent browser-review refinements are also on `main`:
 - Custom X-Y linear axes use zero-anchored nice ticks when zero lies in range;
 - Custom X and Y axes independently support Linear / `log10` when the selected data are strictly positive;
 - the fixed `phi` versus `r - 1` panel now uses a tighter zero-anchored vertical range and consistent zero-based ticks in all horizontal-range modes;
-- very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line.
+- very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line;
+- the phase-space control rows use a shared label column so the first `Magnify` and `Full width` buttons align horizontally;
+- in the Custom X-Y controls, each axis places its `Scale` selector directly below its `Variable` selector while X and Y remain side by side on normal desktop widths.
 
 No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by these display refinements.
 
@@ -56,6 +58,8 @@ The phase-space vertical axis now:
 - avoids unnecessarily coarse independent endpoint rounding, so a range such as approximately `[-0.018, 0.014]` can display as `[-0.020, 0.020]` rather than `[-0.050, 0.020]`;
 - when a 1:1 plot becomes too shallow for normal tick labels, omits the numeric zero label, retains the dashed zero line, and displays only the upper/lower endpoint values with their labels displaced slightly apart for readability.
 
+The phase-space display controls now align the first option button in each row: `Magnify` and `Full width` start at the same horizontal position. On narrow screens the controls may stack responsively.
+
 Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
 ---
@@ -97,11 +101,15 @@ Linear custom axes use 1-2-5-style equal tick spacing and include a labeled zero
 
 Each Custom X-Y axis independently supports **Linear** and **log10**. `log10` is enabled only when every stored value on that axis is finite and strictly positive; no nonpositive samples are silently removed. In log mode, coordinates and labels use the base-10 transformed value and the axis title explicitly reads `log10(variable)`.
 
+For control layout, X and Y remain separate axis columns on normal desktop widths. Within each axis column, `Scale` is placed directly below `Variable`; the two controls no longer occupy the same row.
+
 ---
 
 ## Validation status
 
 PR #45 passed GitHub Actions with both tests and build successful before merge.
+
+PR #47 was a CSS/layout-only refinement and passed the existing `npm test` and `npm run build` CI checks before merge to `main` at merge commit `1577329be6827eb484ec883f564ea00af09c9093`.
 
 New phase-space tests verify:
 
@@ -117,7 +125,7 @@ Earlier diagnostics/custom-plot tests continue to cover the shared diagnostic de
 
 Remaining work is:
 
-1. real-browser review of the refined phase-space vertical axis together with the Custom X-Y plot for horseshoe, L4, and L5 presets;
+1. real-browser review of the refined phase-space vertical axis, aligned phase-space controls, and stacked Custom X-Y Variable/Scale controls for horseshoe, L4, and L5 presets;
 2. adjust remaining number formatting, label density, or selector layout only if browser review shows a usability issue;
 3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
 4. refresh README usage documentation;
@@ -129,11 +137,13 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ## Next recommended task
 
-Review the phase-space vertical-axis refinement in a real browser, especially:
+Review the latest control layout and phase-space vertical-axis refinement in a real browser, especially:
 
-- Full width + Magnify: zero-anchored equal vertical ticks;
-- Full width + 1:1: endpoint-only labels without overlap;
-- both Close-up modes + Magnify: tighter vertical range without clipping the trajectory.
+- `Magnify` and `Full width` start at the same horizontal position;
+- Custom X/Y `Scale` appears directly below the corresponding `Variable`;
+- Full width + Magnify retains zero-anchored equal vertical ticks;
+- Full width + 1:1 retains endpoint-only labels without overlap;
+- both Close-up modes + Magnify retain a tight vertical range without clipping the trajectory.
 
 If these are acceptable, proceed to README refresh and static GitHub Pages deployment for version 0.1.
 
