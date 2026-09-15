@@ -3,6 +3,7 @@ import { reducedHamiltonian } from '../physics/guidingCenter'
 import type { TrajectoryDiagnostics } from '../physics/diagnostics'
 import type { TrajectoryPoint } from '../physics/integrator'
 import CustomDiagnosticPlot from './CustomDiagnosticPlot'
+import './CustomDiagnosticPlot.css'
 import './DiagnosticsPanel.css'
 
 interface DiagnosticsPanelProps {
