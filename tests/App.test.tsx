@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { expect, it } from 'vitest'
 import App from '../src/App'
 
-it('renders both frame views, shares playback controls, toggles display layers, recalculates explicitly, and reports diagnostics', async () => {
+it('renders both frame views, synchronized state plots, display controls, explicit recalculation, and diagnostics', async () => {
   const container = document.createElement('div')
   document.body.append(container)
   const root = createRoot(container)
@@ -25,9 +25,15 @@ it('renders both frame views, shares playback controls, toggles display layers, 
 
     expect(container.querySelector('main h1')?.textContent).toBe('CR3BP Guiding-Center Visualizer')
     expect(container.textContent).toContain('Display layers')
+    expect(container.textContent).toContain('r(t)')
+    expect(container.textContent).toContain('φ(t)')
+    expect(container.textContent).toContain('φ vs r − 1')
     expect(container.querySelectorAll('.digital-number')).toHaveLength(2)
     expect(container.querySelectorAll('.current-position')).toHaveLength(2)
     expect(container.querySelectorAll('.trajectory-card')).toHaveLength(2)
+    expect(container.querySelectorAll('.state-plot')).toHaveLength(3)
+    expect(container.querySelectorAll('.state-current-marker')).toHaveLength(3)
+    expect(container.querySelectorAll('.state-data-line').length).toBeGreaterThanOrEqual(3)
     expect(container.querySelectorAll('.lagrange-geometry')).toHaveLength(4)
     expect(container.querySelectorAll('.axis-label')).toHaveLength(4)
     expect(container.querySelectorAll('.trajectory-path')).toHaveLength(2)
@@ -46,6 +52,7 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(findButtons('Trajectory')[1]?.getAttribute('aria-pressed')).toBe('true')
 
     const initialRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
+    const initialStateMarkerPositions = Array.from(container.querySelectorAll<SVGCircleElement>('.state-current-marker')).map((marker) => [marker.getAttribute('cx'), marker.getAttribute('cy')])
 
     await act(async () => findButton('Play')?.click())
     const firstFrame = runScheduledFrame
@@ -58,6 +65,8 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(container.querySelectorAll('.afterimage-trail-segment').length).toBeGreaterThan(0)
     const advancedRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
     expect(advancedRigidPath).not.toBe(initialRigidPath)
+    const advancedStateMarkerPositions = Array.from(container.querySelectorAll<SVGCircleElement>('.state-current-marker')).map((marker) => [marker.getAttribute('cx'), marker.getAttribute('cy')])
+    expect(advancedStateMarkerPositions).not.toEqual(initialStateMarkerPositions)
 
     await act(async () => findButton('Afterimages')?.click())
     expect(container.querySelectorAll('.afterimage')).toHaveLength(0)
@@ -111,6 +120,7 @@ it('renders both frame views, shares playback controls, toggles display layers, 
     expect(container.textContent).toContain('1.6')
     expect(container.textContent).toContain('201')
     expect(container.textContent).toContain('0.00 binary periods')
+    expect(container.querySelectorAll('.state-plot')).toHaveLength(3)
 
     const muInput = container.querySelector<HTMLInputElement>('input[name="mu"]')
     await act(async () => {

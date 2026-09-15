@@ -34,7 +34,7 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .lede { max-width: 44rem; margin-bottom: 0; color: #9fb2ca; font-size: 1.05rem; }
 
 .workspace { display: grid; grid-template-columns: minmax(16rem, 21rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
-.control-card, .trajectory-card, .diagnostics-card, .playback-card, .display-options-card {
+.control-card, .trajectory-card, .diagnostics-card, .playback-card, .display-options-card, .state-plot-card {
   margin: 0;
   padding: 1.25rem;
   border: 1px solid #1b2b40;
@@ -142,6 +142,37 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .secondary-swatch { background: #58a6ff; }
 .lagrange-swatch { background: #a58bdd; }
 
+.state-plot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+.state-plot-card { min-width: 0; }
+.phase-space-card { grid-column: 1 / -1; }
+.state-plot-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 0.75rem; }
+.state-plot-heading h2 { margin-bottom: 0; }
+.state-plot-heading .plot-note { max-width: 22rem; text-align: right; }
+.state-plot {
+  display: block;
+  width: 100%;
+  border: 1px solid #101b2a;
+  border-radius: 0.75rem;
+  background: #000;
+  box-shadow: inset 0 0 2rem rgba(39, 82, 127, 0.08);
+}
+.state-grid-line { stroke: #162536; stroke-width: 1; }
+.state-axis-line { stroke: #60768d; stroke-width: 1.2; }
+.state-reference-line { stroke: #6f879d; stroke-width: 1; stroke-dasharray: 5 5; opacity: 0.9; }
+.state-data-line { fill: none; stroke: #55a9f5; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
+.state-current-marker { fill: #72ff76; stroke: none; filter: drop-shadow(0 0 4px rgba(114, 255, 118, 0.75)); }
+.state-tick-label, .state-axis-title {
+  fill: #8ea5bd;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.state-tick-label { font-size: 11px; }
+.state-axis-title { font-size: 12px; font-weight: 700; }
+
 .diagnostics-card { display: grid; gap: 1rem; }
 .diagnostics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.8rem; margin: 0; }
 .diagnostics-grid div { padding: 0.75rem; border: 1px solid #132238; border-radius: 0.65rem; background: #060b13; }
@@ -154,10 +185,15 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 }
 
 @media (max-width: 1120px) { .orbit-panel-grid { grid-template-columns: 1fr; } }
-@media (max-width: 900px) { .diagnostics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) {
+  .diagnostics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .state-plot-grid { grid-template-columns: 1fr; }
+  .phase-space-card { grid-column: auto; }
+}
 @media (max-width: 760px) {
   main { padding: 2rem 1rem 3rem; }
   .workspace { grid-template-columns: 1fr; }
-  .plot-heading { align-items: start; flex-direction: column; }
+  .plot-heading, .state-plot-heading { align-items: start; flex-direction: column; }
+  .state-plot-heading .plot-note { text-align: left; }
   .panel-option-buttons { justify-content: flex-start; }
 }
