@@ -32,7 +32,7 @@ A seven-segment-style font name (`DSEG7` / compatible names) is preferred when a
 
 ## Rotating-frame trajectory
 
-The rotating-frame reduced trajectory remains visible as a complete path for context.
+The rotating-frame reduced trajectory remains visible as a complete path for context by default.
 
 Its line is intentionally thinner than in the first prototype so it does not dominate the body markers, coordinate overlays, and Lagrange geometry.
 
@@ -103,11 +103,32 @@ This is a display-time reconstruction from the existing trajectory only. It is n
 
 ## Lagrange geometry and axes
 
-The primary-secondary-L4 and primary-secondary-L5 equilateral-triangle guides remain visible in both frame panels as faint auxiliary geometry.
+The primary-secondary-L4 and primary-secondary-L5 equilateral-triangle guides are available in both frame panels as faint auxiliary geometry.
 
-In the inertial panel, fixed `+X/+Y` directions remain emphasized with arrows and labels.
+In the inertial panel, fixed `+X/+Y` directions are available as emphasized arrows and labels. In the rotating panel, the inertial `+X/+Y` axes are available in rotating-frame coordinates.
 
 The geometry guides and axes should remain visually secondary to the trajectory and body markers.
+
+---
+
+## Display-layer controls
+
+Viewers can selectively hide or show explanatory drawing layers without changing the numerical solution or animation state.
+
+Shared controls are placed above and outside the two orbit panels so it is clear that they act on both frames. The shared controls are:
+
+- **Afterimages**: toggles all three discrete third-body afterimages in both panels and simultaneously toggles the inertial fading trail;
+- **L4 / L5 points**: toggles the L4 and L5 point markers in both panels with one control;
+- **L4 / L5 triangles**: toggles both primary-secondary-L4/L5 triangle guides in both panels.
+
+Panel-specific controls are placed inside the corresponding panel header:
+
+- rotating frame: **Trajectory** and **Axes**;
+- inertial frame: **Axes**.
+
+All display layers are enabled by default. The current third-body marker, primary, secondary, reference/corotation circle, playback state, and numerical data remain visible regardless of these layer toggles.
+
+When a layer is hidden, its matching legend item should also be hidden so the legend describes only currently visible optional layers.
 
 ---
 
@@ -123,4 +144,6 @@ After this design is merged, browser review should focus on:
 6. whether rotating-frame afterimage overlap remains readable and unobtrusive;
 7. whether the `3/4`, `2/4`, `1/4` brightness progression is visually useful;
 8. whether the inertial `4T/12` fading trail decays smoothly enough and disappears naturally at its oldest end;
-9. whether the thin orange trail remains subordinate to the current marker and discrete afterimages.
+9. whether the thin orange trail remains subordinate to the current marker and discrete afterimages;
+10. whether the shared versus panel-specific grouping of display controls is immediately understandable;
+11. whether the active/inactive toggle styling is clear without competing visually with the plots.
