@@ -1,16 +1,30 @@
 import { useState, type ReactNode } from 'react'
 import type { TrajectoryPoint } from '../physics/integrator'
 import { sampleTrajectory, wrapPhiDegrees, wrappedPlotSegments } from '../visualization/plotData'
-import { closeUpPhiRange, niceOuterRange, type PlotRange } from '../visualization/plotScale'
+import {
+  anchoredTicks,
+  closeUpPhiRange,
+  niceOuterRange,
+  selectLagrangeAnchor,
+  type PlotRange,
+} from '../visualization/plotScale'
 
 interface StatePlotsProps {
   trajectory: TrajectoryPoint[]
   currentPoint: TrajectoryPoint
+  showLagrangePoints: boolean
 }
 
 interface PlotPath {
   key: string
   d: string
+}
+
+interface PlotMarker {
+  key: string
+  x: number
+  y: number
+  className: string
 }
 
 type PhaseSpaceScaleMode = 'auto' | 'equal'
@@ -85,9 +99,13 @@ function PlotFrame({
   xTickFormat,
   yTickFormat,
   horizontalReference,
+  verticalReference,
+  markers = [],
   className,
   height = DEFAULT_HEIGHT,
   yTickCount = 5,
+  xTicks: suppliedXTicks,
+  yTicks: suppliedYTicks,
 }: {
   ariaLabel: string
   paths: PlotPath[]
@@ -99,13 +117,17 @@ function PlotFrame({
   xTickFormat: (value: number) => string
   yTickFormat: (value: number) => string
   horizontalReference?: number
+  verticalReference?: number
+  markers?: PlotMarker[]
   className?: string
   height?: number
   yTickCount?: number
+  xTicks?: number[]
+  yTicks?: number[]
 }) {
   const innerHeight = height - MARGIN.top - MARGIN.bottom
-  const xTicks = makeTicks(xRange)
-  const yTicks = makeTicks(yRange, yTickCount)
+  const xTicks = suppliedXTicks ?? makeTicks(xRange)
+  const yTicks = suppliedYTicks ?? makeTicks(yRange, yTickCount)
 
   return (
     <svg
@@ -120,25 +142,53 @@ function PlotFrame({
     >
       {xTicks.map((tick) => {
         const x = scaleX(tick, xRange)
+        const isReference = verticalReference !== undefined && Math.abs(tick - verticalReference) < 1e-10
         return (
           <g key={`x-${tick}`}>
-            <line className="state-grid-line" x1={x} y1={MARGIN.top} x2={x} y2={MARGIN.top + innerHeight} />
-            <text className="state-tick-label state-x-tick-label" x={x} y={height - 20} textAnchor="middle">{xTickFormat(tick)}</text>
+            <line
+              className={isReference ? 'state-anchor-line' : 'state-grid-line'}
+              x1={x}
+              y1={MARGIN.top}
+              x2={x}
+              y2={MARGIN.top + innerHeight}
+            />
+            <text
+              className={`state-tick-label state-x-tick-label${isReference ? ' state-anchor-tick-label' : ''}`}
+              x={x}
+              y={height - 20}
+              textAnchor="middle"
+            >
+              {xTickFormat(tick)}
+            </text>
           </g>
         )
       })}
 
       {yTicks.map((tick) => {
         const y = scaleY(tick, yRange, innerHeight)
+        const isReference = horizontalReference !== undefined && Math.abs(tick - horizontalReference) < 1e-12
         return (
           <g key={`y-${tick}`}>
-            <line className="state-grid-line" x1={MARGIN.left} y1={y} x2={MARGIN.left + INNER_WIDTH} y2={y} />
-            <text className="state-tick-label state-y-tick-label" x={MARGIN.left - 9} y={y + 4} textAnchor="end">{yTickFormat(tick)}</text>
+            <line
+              className={isReference ? 'state-reference-line' : 'state-grid-line'}
+              x1={MARGIN.left}
+              y1={y}
+              x2={MARGIN.left + INNER_WIDTH}
+              y2={y}
+            />
+            <text
+              className={`state-tick-label state-y-tick-label${isReference ? ' state-reference-tick-label' : ''}`}
+              x={MARGIN.left - 9}
+              y={y + 4}
+              textAnchor="end"
+            >
+              {yTickFormat(tick)}
+            </text>
           </g>
         )
       })}
 
-      {horizontalReference !== undefined && horizontalReference >= yRange.min && horizontalReference <= yRange.max && (
+      {horizontalReference !== undefined && !yTicks.some((tick) => Math.abs(tick - horizontalReference) < 1e-12) && horizontalReference >= yRange.min && horizontalReference <= yRange.max && (
         <line
           className="state-reference-line"
           x1={MARGIN.left}
@@ -148,10 +198,30 @@ function PlotFrame({
         />
       )}
 
+      {verticalReference !== undefined && !xTicks.some((tick) => Math.abs(tick - verticalReference) < 1e-10) && verticalReference >= xRange.min && verticalReference <= xRange.max && (
+        <line
+          className="state-anchor-line"
+          x1={scaleX(verticalReference, xRange)}
+          y1={MARGIN.top}
+          x2={scaleX(verticalReference, xRange)}
+          y2={MARGIN.top + innerHeight}
+        />
+      )}
+
       <line className="state-axis-line" x1={MARGIN.left} y1={MARGIN.top + innerHeight} x2={MARGIN.left + INNER_WIDTH} y2={MARGIN.top + innerHeight} />
       <line className="state-axis-line" x1={MARGIN.left} y1={MARGIN.top} x2={MARGIN.left} y2={MARGIN.top + innerHeight} />
 
       {paths.map((path) => <path key={path.key} className="state-data-line" d={path.d} />)}
+
+      {markers.map((marker) => (
+        <circle
+          key={marker.key}
+          className={marker.className}
+          cx={scaleX(marker.x, xRange)}
+          cy={scaleY(marker.y, yRange, innerHeight)}
+          r="5"
+        />
+      ))}
 
       <circle
         className="state-current-marker"
@@ -219,7 +289,7 @@ function ScaleChoice({
   )
 }
 
-export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps) {
+export default function StatePlots({ trajectory, currentPoint, showLagrangePoints }: StatePlotsProps) {
   const [phaseSpaceScaleMode, setPhaseSpaceScaleMode] = useState<PhaseSpaceScaleMode>('auto')
   const [phaseSpaceWidthMode, setPhaseSpaceWidthMode] = useState<PhaseSpaceWidthMode>('full')
   const sampled = sampleTrajectory(trajectory)
@@ -237,8 +307,9 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
   }))
 
   const phasePhiValues = wrappedSegments.flatMap((segment) => segment.map((point) => point.phiDegrees))
+  const lagrangeAnchor = selectLagrangeAnchor(phasePhiValues)
   const phasePhiRange = phaseSpaceWidthMode === 'closeup'
-    ? closeUpPhiRange(phasePhiValues)
+    ? closeUpPhiRange(phasePhiValues, lagrangeAnchor)
     : fullPhiRange
   const rOffsetRange = niceOuterRange(sampled.map((point) => point.r - 1), 0, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
@@ -246,6 +317,12 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
     : DEFAULT_INNER_HEIGHT
   const phaseHeight = MARGIN.top + phaseInnerHeight + MARGIN.bottom
   const phaseYTickCount = phaseInnerHeight < 120 ? 2 : 5
+  const closeUpXTicks = phaseSpaceWidthMode === 'closeup'
+    ? anchoredTicks(phasePhiRange, lagrangeAnchor)
+    : undefined
+  const closeUpYTicks = phaseSpaceWidthMode === 'closeup' && phaseInnerHeight >= 120
+    ? anchoredTicks(rOffsetRange, 0)
+    : undefined
   const phasePaths = wrappedSegments.map((segment, index) => ({
     key: `phase-${index}`,
     d: pathFromPoints(
@@ -259,7 +336,10 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
   const currentPhiDegrees = wrapPhiDegrees(currentPoint.phi)
   const phaseNote = phaseSpaceScaleMode === 'equal'
     ? '1:1 vertical scale uses (r − 1) × 180/π; horizontal range follows the selected width mode'
-    : 'Auto-fit vertical scale; horizontal range follows the selected width mode'
+    : 'Magnified vertical scale; horizontal range follows the selected width mode'
+  const phaseMarkers = phaseSpaceWidthMode === 'closeup' && showLagrangePoints
+    ? [{ key: `lagrange-${lagrangeAnchor}`, x: lagrangeAnchor, y: 0, className: 'phase-lagrange-point' }]
+    : []
 
   return (
     <section className="state-plot-grid" aria-label="Guiding-center state plots">
@@ -309,7 +389,7 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
                 aria-pressed={phaseSpaceScaleMode === 'auto'}
                 onClick={() => setPhaseSpaceScaleMode('auto')}
               >
-                Auto fit
+                Magnify
               </button>
               <button
                 type="button"
@@ -352,9 +432,13 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
           xTickFormat={(value) => value.toFixed(0)}
           yTickFormat={(value) => Math.abs(value) >= 0.1 ? value.toFixed(1) : value.toFixed(3)}
           horizontalReference={0}
+          verticalReference={phaseSpaceWidthMode === 'closeup' ? lagrangeAnchor : undefined}
+          markers={phaseMarkers}
           className="phase-space-plot"
           height={phaseHeight}
           yTickCount={phaseYTickCount}
+          xTicks={closeUpXTicks}
+          yTicks={closeUpYTicks}
         />
       </PlotCard>
     </section>
