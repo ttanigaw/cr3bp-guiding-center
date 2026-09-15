@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import InertialTrajectoryPlot from './components/InertialTrajectoryPlot'
+import StatePlots from './components/StatePlots'
 import TrajectoryPlot from './components/TrajectoryPlot'
 import { trajectoryDiagnostics, type TrajectoryDiagnostics } from './physics/diagnostics'
 import { integrateGuidingCenter, type TrajectoryPoint } from './physics/integrator'
@@ -372,6 +373,8 @@ export default function App() {
               onToggleAxes={() => setInertialDisplayOptions((current) => ({ ...current, showAxes: !current.showAxes }))}
             />
           </div>
+
+          <StatePlots trajectory={result.trajectory} currentPoint={currentPoint} />
 
           <section className="diagnostics-card" aria-labelledby="diagnostics-title">
             <div>
