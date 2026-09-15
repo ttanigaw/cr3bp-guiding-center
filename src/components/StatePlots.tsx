@@ -276,7 +276,7 @@ export default function StatePlots({ trajectory, currentPoint }: StatePlotsProps
         note={phaseNote}
         className="phase-space-card"
         actions={(
-          <div className="phase-scale-controls" role="group" aria-label="Phase-space vertical scale mode">
+          <div className="panel-option-buttons phase-scale-controls" role="group" aria-label="Phase-space vertical scale mode">
             <button
               type="button"
               className={`toggle-button${phaseSpaceScaleMode === 'auto' ? ' active' : ''}`}
