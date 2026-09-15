@@ -4,11 +4,13 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, panel-local trajectory overlays, synchronized lower state plots, and selectable phase-space scale modes are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, panel-local trajectory overlays, synchronized lower state plots, selectable phase-space vertical scaling, phase-space horizontal close-up, and cleaned phase-space axis labeling are implemented on `main`.
 
 The current orbit-panel appearance and interaction design have been reviewed in a real browser by the project owner and are considered broadly acceptable as of 2026-09-15.
 
-The current development branch `feature/phase-space-closeup-axis-cleanup` refines only the `phi` versus `r - 1` display. No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition is changed.
+The application computes one reduced guiding-center trajectory in the browser. Orbit panels and state plots visualize that same numerical solution; no second integration is performed.
+
+No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition was changed by the latest phase-space display refinement.
 
 ---
 
@@ -60,23 +62,25 @@ Current `main` includes:
 - shared display controls for afterimages, L4/L5 points, and triangle guides;
 - panel-local Trajectory and Axes switches in both orbit panels;
 - synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots;
-- phase-space **Auto fit** / **1:1 scale** vertical-scale selection;
+- phase-space **Auto fit** / **1:1 scale** vertical selection;
+- phase-space **Full width** / **Close-up** horizontal selection;
+- cleaned phase-space vertical limits and shallow-plot tick labels;
 - numerical diagnostics and explicit calculation failure reporting.
 
-PR #21 established the orbit-panel baseline. PR #24 added the synchronized lower plots. PR #26 added phase-space vertical-scale modes and was merged to `main` at merge commit `2b19288880c96fe07a593d35d218daa9c6daa3b2` after CI passed.
+PR #21 established the orbit-panel baseline. PR #24 added the synchronized lower plots. PR #26 added phase-space vertical-scale modes. PR #28 added the close-up range and axis-readability refinements and was merged to `main` at merge commit `b95bca280f903282dc212ba1565f9af87e7dca84` after CI passed.
 
 ---
 
-## Current phase-space refinement
+## Current phase-space behavior
 
-The branch `feature/phase-space-closeup-axis-cleanup` adds two independent option groups inside the `phi` versus `r - 1` panel.
+The `phi` versus `r - 1` panel now has two independent option groups.
 
 ### Vertical scale
 
 - **Auto fit**: fixed panel height and automatically fitted vertical scale;
 - **1:1 scale**: variable panel height so `(r - 1) * 180 / pi` and `phi` in degrees have equal physical screen scale.
 
-The vertical numerical range is now rounded outward to simple 1-2-5-style limits rather than exposing awkward edge values. A required upper limit near `0.064`, for example, becomes `0.1`.
+The vertical numerical range is rounded outward to simple 1-2-5-style limits rather than exposing awkward edge values. A required upper limit near `0.064`, for example, becomes `0.1`.
 
 When a 1:1 plot becomes shallow, only the lower and upper vertical-axis tick labels are shown, avoiding the overlapping labels observed in browser review.
 
@@ -102,7 +106,7 @@ New plot-scale unit tests verify:
 - close-up `phi` ranges for L4- and L5-like angular intervals;
 - close-up limits remain inside the wrapped interval.
 
-The application DOM test is extended to verify:
+The application DOM test verifies:
 
 - Auto fit and Full width are the defaults;
 - 1:1 scale remains selectable;
@@ -110,13 +114,13 @@ The application DOM test is extended to verify:
 - L4 tadpole Close-up reduces the numerical horizontal span while preserving the physical SVG width;
 - a shallow L4 1:1 plot uses only two vertical tick labels.
 
-CI has not yet been run for `feature/phase-space-closeup-axis-cleanup` at the time of this update.
+The first CI run for PR #28 exposed a range-helper edge case in which one-sided positive data gained an unnecessary small negative lower limit. The helper was corrected to keep one-sided data anchored at corotation. The subsequent CI run passed both `npm test` and `npm run build` before PR #28 was merged.
 
 ---
 
 ## Still required for version 0.1
 
-After this display refinement, the remaining planned work is:
+The remaining planned work is:
 
 - current-state diagnostics synchronized to animation time;
 - approximation-validity indicators and warning presentation;
@@ -128,7 +132,7 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ## Known issues and browser checks
 
-After CI passes, browser review should confirm:
+The next browser review should confirm:
 
 - the simplified top/bottom vertical labels remain readable in shallow 1:1 views;
 - nice outer limits are intuitive across horseshoe, L4, and L5 presets;
@@ -140,7 +144,7 @@ After CI passes, browser review should confirm:
 
 ## Next recommended task
 
-Run CI for `feature/phase-space-closeup-axis-cleanup`. If tests and build pass, merge and inspect all four phase-space display combinations for horseshoe, L4, and L5 presets in a real browser. After this refinement is accepted, add current-state diagnostics synchronized to the shared animation time.
+Inspect all four phase-space display combinations for horseshoe, L4, and L5 presets in a real browser. If the presentation is accepted, add current-state diagnostics synchronized to the shared animation time, then approximation-validity indicators and GitHub Pages deployment.
 
 ---
 
