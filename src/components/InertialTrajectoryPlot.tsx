@@ -13,13 +13,16 @@ interface InertialTrajectoryPlotProps {
   showAfterimages: boolean
   showLagrangePoints: boolean
   showLagrangeTriangles: boolean
+  showTrajectory: boolean
   showAxes: boolean
+  onToggleTrajectory: () => void
   onToggleAxes: () => void
 }
 
 const VIEW_LIMIT = 1.35
 const AXIS_LIMIT = 1.22
 const AXIS_LABEL_OFFSET = 1.28
+const MAX_PATH_POINTS = 1200
 const BINARY_PERIOD = 2 * Math.PI
 const AFTERIMAGE_OFFSETS = [BINARY_PERIOD / 12, BINARY_PERIOD / 6, BINARY_PERIOD / 4]
 const FADE_TRAIL_DURATION = BINARY_PERIOD / 3
@@ -27,6 +30,26 @@ const FADE_TRAIL_MAX_OPACITY = 0.52
 
 function toSvgCoordinates(point: { x: number; y: number }): [number, number] {
   return [point.x, -point.y]
+}
+
+function sampledPoints(trajectory: TrajectoryPoint[]): TrajectoryPoint[] {
+  if (trajectory.length <= MAX_PATH_POINTS) return trajectory
+  const stride = Math.ceil(trajectory.length / MAX_PATH_POINTS)
+  const sampled = trajectory.filter((_, index) => index % stride === 0)
+  const finalPoint = trajectory[trajectory.length - 1]
+  if (sampled[sampled.length - 1] !== finalPoint) sampled.push(finalPoint)
+  return sampled
+}
+
+function rigidTrajectoryPath(trajectory: TrajectoryPoint[], currentTime: number): string {
+  return sampledPoints(trajectory)
+    .map((point, index) => {
+      const [x, y] = toSvgCoordinates(
+        inertialCartesian({ r: point.r, phi: point.phi, t: currentTime }),
+      )
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(6)} ${y.toFixed(6)}`
+    })
+    .join(' ')
 }
 
 function PanelToggle({ label, pressed, onClick }: { label: string; pressed: boolean; onClick: () => void }) {
@@ -44,13 +67,16 @@ export default function InertialTrajectoryPlot({
   showAfterimages,
   showLagrangePoints,
   showLagrangeTriangles,
+  showTrajectory,
   showAxes,
+  onToggleTrajectory,
   onToggleAxes,
 }: InertialTrajectoryPlotProps) {
   const current = trajectoryPointAtTime(trajectory, currentTime)
   const currentCartesian = inertialCartesian(current)
   const bodies = inertialBodyPositions(mu, current.t)
   const lagrange = inertialLagrangePositions(mu, current.t)
+  const rigidPath = rigidTrajectoryPath(trajectory, current.t)
   const [currentX, currentY] = toSvgCoordinates(currentCartesian)
   const [primaryX, primaryY] = toSvgCoordinates(bodies.primary)
   const [secondaryX, secondaryY] = toSvgCoordinates(bodies.secondary)
@@ -90,16 +116,17 @@ export default function InertialTrajectoryPlot({
         <div>
           <p className="eyebrow">Inertial frame</p>
           <h2 id="inertial-trajectory-title">Guiding-center trajectory</h2>
-          <p className="plot-note">θ = φ + t · 3 afterimages + fading 4/12-period trail</p>
+          <p className="plot-note">Current motion + rigid rotating-frame orbit overlay</p>
         </div>
         <div className="panel-option-buttons" role="group" aria-label="Inertial frame display options">
+          <PanelToggle label="Trajectory" pressed={showTrajectory} onClick={onToggleTrajectory} />
           <PanelToggle label="Axes" pressed={showAxes} onClick={onToggleAxes} />
         </div>
       </div>
 
       <svg className="trajectory-plot" viewBox={`${-VIEW_LIMIT} ${-VIEW_LIMIT} ${2 * VIEW_LIMIT} ${2 * VIEW_LIMIT}`} role="img" aria-labelledby="inertial-svg-title inertial-svg-description">
         <title id="inertial-svg-title">Animated inertial-frame guiding-center trajectory</title>
-        <desc id="inertial-svg-description">Current reduced guiding-center position with optional afterimages, fading trail, L4/L5 geometry, and inertial axes.</desc>
+        <desc id="inertial-svg-description">Current reduced guiding-center motion with optional rigid rotating-frame orbit overlay, afterimages, fading trail, L4/L5 geometry, and inertial axes.</desc>
 
         <defs>
           <marker id="inertial-axis-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
@@ -128,6 +155,8 @@ export default function InertialTrajectoryPlot({
           <circle className="lagrange-point" cx={l5X} cy={l5Y} r="0.018" />
         </>}
 
+        {showTrajectory && <path className="trajectory-path inertial-rigid-trajectory-path" d={rigidPath} />}
+
         {showAfterimages && trailSegments.map((segment) => (
           <line key={segment.index} className="afterimage-trail-segment" x1={segment.x1} y1={segment.y1} x2={segment.x2} y2={segment.y2} strokeOpacity={segment.opacity} />
         ))}
@@ -141,15 +170,16 @@ export default function InertialTrajectoryPlot({
       </svg>
 
       <div className="plot-legend" aria-label="Inertial plot legend">
+        <span><i className="legend-swatch primary-swatch" />Primary</span>
+        <span><i className="legend-swatch secondary-swatch" />Secondary</span>
+        <span><i className="legend-swatch current-swatch" />Current position</span>
         {showAfterimages && <>
-          <span><i className="legend-swatch trail-swatch" />Fading trail</span>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-1" />−1/12 period</span>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-2" />−2/12 period</span>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-3" />−3/12 period</span>
         </>}
-        <span><i className="legend-swatch current-swatch" />Current position</span>
-        <span><i className="legend-swatch primary-swatch" />Primary</span>
-        <span><i className="legend-swatch secondary-swatch" />Secondary</span>
+        {showTrajectory && <span><i className="legend-swatch trajectory-swatch" />Trajectory</span>}
+        {showAfterimages && <span><i className="legend-swatch trail-swatch" />Fading trail</span>}
         {showLagrangePoints && <span><i className="legend-swatch lagrange-swatch" />L4 / L5</span>}
       </div>
     </figure>
