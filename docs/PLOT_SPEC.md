@@ -35,23 +35,19 @@ The radial plot shows the reduced guiding-center radius `r` against nondimension
 
 ## Angular evolution: wrapped `phi(t)`
 
-The initial version uses a single documented wrapping convention:
+The display convention is
 
-`-180 deg < phi <= 180 deg`.
+`-180 deg < phi <= 180 deg`,
 
-Equivalently in radians:
-
-`-pi < phi <= pi`.
-
-The plot uses degrees for user-facing display while the solver continues to use radians internally.
+or equivalently `-pi < phi <= pi` internally.
 
 - horizontal axis: nondimensional `t`;
 - vertical axis: wrapped `phi` in degrees;
-- the vertical range is fixed to `-180` through `+180` degrees;
-- a dashed `phi = 0` reference line is shown;
-- when wrapping causes a jump between values near `+180` and `-180` degrees, the plotted line is split at that discontinuity rather than drawing an artificial line across the plot.
+- vertical range: fixed `-180` through `+180` degrees;
+- dashed reference line at `phi = 0`;
+- wrap jumps are split rather than connected across the plot.
 
-The wrapping operation is visualization-only and must never alter the stored trajectory angle.
+The wrapping operation is visualization-only and never modifies the stored trajectory angle.
 
 ---
 
@@ -59,67 +55,63 @@ The wrapping operation is visualization-only and must never alter the stored tra
 
 The phase-space view uses:
 
-- horizontal axis: wrapped `phi` in degrees, with the same `-180 deg < phi <= 180 deg` convention;
+- horizontal axis: wrapped `phi` in degrees;
 - vertical axis: `r - 1`;
-- the full calculated trajectory is shown as a thin blue line;
-- `r - 1 = 0` is shown as a dashed corotation reference line;
-- line segments are split at the same wrapped-angle discontinuities used in `phi(t)` so the plot never connects `+180 deg` directly to `-180 deg`.
+- thin blue trajectory line;
+- dashed corotation reference at `r - 1 = 0`;
+- the same wrapped-angle discontinuity splitting used in `phi(t)`.
 
-The viewer has two independent phase-space display choices:
+The viewer has two independent choices:
 
-1. vertical scale: **Auto fit** or **1:1 scale**;
+1. vertical scale: **Magnify** or **1:1 scale**;
 2. horizontal range: **Full width** or **Close-up**.
 
-The physical width of the panel itself remains fixed in all combinations.
+The physical panel width remains fixed in all combinations.
 
-### Vertical scale: Auto fit
+### Vertical scale: Magnify
 
-This is the default vertical behavior:
+This is the default vertical behavior formerly labeled `Auto fit`.
 
 - the phase-space SVG has the normal fixed plot height;
-- the vertical range is chosen to contain the complete plotted `r - 1` data while retaining `r - 1 = 0`;
-- the displayed vertical limits are expanded outward to simple 1-2-5-style values rather than exposing awkward decimal limits;
-- for example, a required positive limit near `0.064` is displayed with an outer limit of `0.1`.
+- the vertical range is fitted to contain the plotted `r - 1` data while retaining `r - 1 = 0`;
+- displayed limits are expanded outward to simple 1-2-5-style values, for example `0.064 -> 0.1`.
+
+The name `Magnify` emphasizes that this mode enlarges the vertical variation for readability rather than preserving the physical x/y scale ratio.
 
 ### Vertical scale: 1:1 scale
 
-This mode varies the plot height so that horizontal and vertical display scales are equal after expressing the vertical displacement in degree-equivalent units.
-
-For scaling only, define
+For display scaling only, define
 
 `y_display = (r - 1) * 180 / pi`.
 
-The plot height is selected so that one unit of `phi` in degrees and one unit of `y_display` occupy the same physical screen length.
+The plot height is varied so that one unit of `phi` in degrees and one unit of `y_display` occupy the same physical screen length.
 
-Important consequences:
-
-- the physical horizontal plotting width is unchanged;
-- the selected horizontal `phi` range determines the horizontal scale;
-- only the vertical plotting-area height changes to enforce the 1:1 scale;
-- vertical tick labels continue to show physical `r - 1` values rather than degree-equivalent values;
-- the current-state marker and phase-space path use the same scaling transformation;
-- when the resulting vertical drawing area is shallow, only the lower and upper vertical-axis labels are shown to avoid unreadable label overlap.
+- physical horizontal plot width is unchanged;
+- selected horizontal `phi` range determines the horizontal scale;
+- only vertical plot height changes;
+- vertical tick labels remain physical `r - 1` values;
+- current marker and path use the same scaling transformation.
 
 ### Horizontal range: Full width
 
-This is the default horizontal behavior:
-
-- `phi` remains fixed from `-180 deg` to `+180 deg`;
-- the physical plot width remains the normal fixed width.
+- fixed wrapped interval `-180 deg` to `+180 deg`;
+- physical plot width remains fixed.
 
 ### Horizontal range: Close-up
 
-Close-up keeps the physical panel width unchanged but narrows the numerical horizontal `phi` range to the range occupied by the wrapped trajectory.
+Close-up keeps the physical plot width fixed while contracting the numerical `phi` range around the trajectory.
 
-- the trajectory range is padded slightly;
-- limits are rounded outward to convenient 5-degree boundaries;
-- the close-up range is always kept inside `[-180 deg, +180 deg]`;
-- a minimum angular span is retained so nearly stationary tadpole trajectories do not collapse to an unusably narrow horizontal range;
-- if a trajectory genuinely occupies most of the wrapped interval, Close-up may remain close to Full width.
+- the relevant Lagrange longitude, `phi = +60 deg` for an L4-like trajectory or `phi = -60 deg` for an L5-like trajectory, is always included;
+- the relevant L4/L5 point is plotted at `(phi, r - 1) = (+/-60 deg, 0)` using the same purple marker styling as the orbit panels;
+- this marker is shown or hidden by the shared **L4 / L5 points** control in the upper `Display layers` panel;
+- a vertical reference/grid line and numeric label are always shown at the relevant `+60` or `-60` degree longitude;
+- all other horizontal grid ticks are equally spaced relative to that L4/L5 longitude; the Lagrange longitude need not be at the horizontal center;
+- the close-up range is padded, rounded outward to convenient 5-degree limits, and constrained to the wrapped interval;
+- a minimum angular span is retained.
 
-When **Close-up** and **1:1 scale** are selected together, the reduced horizontal angular span increases the vertical panel height as required to preserve the same physical 1:1 scale.
+In Close-up mode, vertical `r - 1` ticks are likewise generated at equal intervals anchored to `r - 1 = 0`, so the existing dashed corotation line is a true grid anchor.
 
-This plot is intended to make horseshoe, tadpole, and circulating behavior easier to distinguish.
+When **Close-up** and **1:1 scale** are selected together, the variable panel height is recomputed from the narrowed horizontal span so the physical 1:1 relation remains valid.
 
 ---
 
