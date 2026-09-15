@@ -1,5 +1,6 @@
 import type { TrajectoryPoint } from '../physics/integrator'
 import { inertialAxesInRotatingFrame, rotatingCartesian } from '../visualization/frames'
+import { trajectoryPointAtTime } from '../visualization/playback'
 
 interface TrajectoryPlotProps {
   trajectory: TrajectoryPoint[]
@@ -12,6 +13,8 @@ const VIEW_LIMIT = 1.35
 const AXIS_LIMIT = 1.22
 const AXIS_LABEL_RADIUS = 1.28
 const MAX_PATH_POINTS = 1200
+const BINARY_PERIOD = 2 * Math.PI
+const AFTERIMAGE_OFFSETS = [BINARY_PERIOD / 12, BINARY_PERIOD / 6, BINARY_PERIOD / 4]
 
 function toSvgCoordinates(point: Pick<TrajectoryPoint, 'r' | 'phi'>): [number, number] {
   const cartesian = rotatingCartesian(point)
@@ -63,6 +66,17 @@ export default function TrajectoryPlot({
   const l5 = { x: lagrangeX, y: -lagrangeY }
   const axes = inertialAxesInRotatingFrame(currentTime)
 
+  const afterimages = AFTERIMAGE_OFFSETS.flatMap((offset, index) => {
+    const pastTime = currentTime - offset
+    if (pastTime < trajectory[0].t) {
+      return []
+    }
+
+    const point = trajectoryPointAtTime(trajectory, pastTime)
+    const [x, y] = toSvgCoordinates(point)
+    return [{ index: index + 1, x, y }]
+  })
+
   const axisLine = (direction: { x: number; y: number }) => {
     const start = cartesianToSvg({ x: -AXIS_LIMIT * direction.x, y: -AXIS_LIMIT * direction.y })
     const end = cartesianToSvg({ x: AXIS_LIMIT * direction.x, y: AXIS_LIMIT * direction.y })
@@ -103,8 +117,9 @@ export default function TrajectoryPlot({
       >
         <title id="trajectory-svg-title">Rotating-frame co-orbital trajectory</title>
         <desc id="trajectory-svg-description">
-          Full reduced trajectory with a moving current-position marker, fixed primary and secondary,
-          corotation circle, L4 and L5 geometry, and inertial coordinate axes rotating clockwise.
+          Full reduced trajectory with a moving current-position marker, three discrete past-position
+          afterimages, fixed primary and secondary, corotation circle, L4 and L5 geometry, and inertial
+          coordinate axes rotating clockwise.
         </desc>
 
         <defs>
@@ -127,6 +142,15 @@ export default function TrajectoryPlot({
         <circle className="lagrange-point" cx={l5X} cy={l5Y} r="0.018" />
 
         <path className="trajectory-path" d={path} />
+        {afterimages.map((afterimage) => (
+          <circle
+            key={afterimage.index}
+            className={`afterimage afterimage-${afterimage.index}`}
+            cx={afterimage.x}
+            cy={afterimage.y}
+            r="0.024"
+          />
+        ))}
         <circle className="current-position" cx={currentX} cy={currentY} r="0.028" />
 
         <circle className="primary-body" cx={primaryX} cy={primaryY} r="0.055" />
@@ -136,6 +160,9 @@ export default function TrajectoryPlot({
       <div className="plot-legend" aria-label="Plot legend">
         <span><i className="legend-swatch trajectory-swatch" />Trajectory</span>
         <span><i className="legend-swatch current-swatch" />Current position</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-1" />−1/12 period</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-2" />−2/12 period</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-3" />−3/12 period</span>
         <span><i className="legend-swatch primary-swatch" />Primary</span>
         <span><i className="legend-swatch secondary-swatch" />Secondary</span>
         <span><i className="legend-swatch lagrange-swatch" />L4 / L5</span>
