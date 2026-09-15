@@ -4,7 +4,7 @@ import {
   inertialCartesian,
   inertialLagrangePositions,
 } from '../visualization/frames'
-import { trajectoryPointAtTime, trajectoryTrailAtTime } from '../visualization/playback'
+import { trajectoryPointAtTime } from '../visualization/playback'
 
 interface InertialTrajectoryPlotProps {
   trajectory: TrajectoryPoint[]
@@ -15,36 +15,11 @@ interface InertialTrajectoryPlotProps {
 const VIEW_LIMIT = 1.35
 const AXIS_LIMIT = 1.22
 const AXIS_LABEL_OFFSET = 1.28
-const MAX_PATH_POINTS = 1200
-const TRAIL_DURATION = Math.PI
-
-function sampledPoints(trajectory: TrajectoryPoint[]): TrajectoryPoint[] {
-  if (trajectory.length <= MAX_PATH_POINTS) {
-    return trajectory
-  }
-
-  const stride = Math.ceil(trajectory.length / MAX_PATH_POINTS)
-  const sampled = trajectory.filter((_, index) => index % stride === 0)
-  const finalPoint = trajectory[trajectory.length - 1]
-
-  if (sampled[sampled.length - 1] !== finalPoint) {
-    sampled.push(finalPoint)
-  }
-
-  return sampled
-}
+const BINARY_PERIOD = 2 * Math.PI
+const AFTERIMAGE_OFFSETS = [BINARY_PERIOD / 12, BINARY_PERIOD / 6, BINARY_PERIOD / 4]
 
 function toSvgCoordinates(point: { x: number; y: number }): [number, number] {
   return [point.x, -point.y]
-}
-
-function trajectoryPath(trajectory: TrajectoryPoint[]): string {
-  return sampledPoints(trajectory)
-    .map((point, index) => {
-      const [x, y] = toSvgCoordinates(inertialCartesian(point))
-      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(6)} ${y.toFixed(6)}`
-    })
-    .join(' ')
 }
 
 export default function InertialTrajectoryPlot({
@@ -53,8 +28,6 @@ export default function InertialTrajectoryPlot({
   currentTime,
 }: InertialTrajectoryPlotProps) {
   const current = trajectoryPointAtTime(trajectory, currentTime)
-  const trail = trajectoryTrailAtTime(trajectory, currentTime, TRAIL_DURATION)
-  const path = trajectoryPath(trail)
   const currentCartesian = inertialCartesian(current)
   const bodies = inertialBodyPositions(mu, current.t)
   const lagrange = inertialLagrangePositions(mu, current.t)
@@ -64,6 +37,17 @@ export default function InertialTrajectoryPlot({
   const [l4X, l4Y] = toSvgCoordinates(lagrange.l4)
   const [l5X, l5Y] = toSvgCoordinates(lagrange.l5)
 
+  const afterimages = AFTERIMAGE_OFFSETS.flatMap((offset, index) => {
+    const pastTime = current.t - offset
+    if (pastTime < trajectory[0].t) {
+      return []
+    }
+
+    const point = trajectoryPointAtTime(trajectory, pastTime)
+    const [x, y] = toSvgCoordinates(inertialCartesian(point))
+    return [{ index: index + 1, x, y }]
+  })
+
   return (
     <figure className="trajectory-card" aria-labelledby="inertial-trajectory-title">
       <div className="plot-heading">
@@ -71,7 +55,7 @@ export default function InertialTrajectoryPlot({
           <p className="eyebrow">Inertial frame</p>
           <h2 id="inertial-trajectory-title">Guiding-center trajectory</h2>
         </div>
-        <p className="plot-note">θ = φ + t · recent trail = 0.5 binary period</p>
+        <p className="plot-note">θ = φ + t · afterimages at 1/12, 2/12, 3/12 period</p>
       </div>
 
       <svg
@@ -82,9 +66,9 @@ export default function InertialTrajectoryPlot({
       >
         <title id="inertial-svg-title">Animated inertial-frame guiding-center trajectory</title>
         <desc id="inertial-svg-description">
-          Current reduced guiding-center position with a recent half-orbit trail. The primary,
-          secondary, L4, and L5 rotate with the same animation time. Positive inertial X and Y
-          directions are marked with arrows.
+          Current reduced guiding-center position with three discrete past-position afterimages. The
+          primary, secondary, L4, and L5 rotate with the same animation time. Positive inertial X and
+          Y directions are marked with arrows.
         </desc>
 
         <defs>
@@ -108,7 +92,15 @@ export default function InertialTrajectoryPlot({
         <circle className="lagrange-point" cx={l4X} cy={l4Y} r="0.018" />
         <circle className="lagrange-point" cx={l5X} cy={l5Y} r="0.018" />
 
-        <path className="trajectory-path inertial-trajectory-path" d={path} />
+        {afterimages.map((afterimage) => (
+          <circle
+            key={afterimage.index}
+            className={`afterimage afterimage-${afterimage.index}`}
+            cx={afterimage.x}
+            cy={afterimage.y}
+            r="0.024"
+          />
+        ))}
         <circle className="current-position" cx={currentX} cy={currentY} r="0.028" />
 
         <circle className="primary-body" cx={primaryX} cy={primaryY} r="0.055" />
@@ -116,8 +108,10 @@ export default function InertialTrajectoryPlot({
       </svg>
 
       <div className="plot-legend" aria-label="Inertial plot legend">
-        <span><i className="legend-swatch trajectory-swatch" />Recent trail</span>
         <span><i className="legend-swatch current-swatch" />Current position</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-1" />−1/12 period</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-2" />−2/12 period</span>
+        <span><i className="legend-swatch afterimage-swatch afterimage-swatch-3" />−3/12 period</span>
         <span><i className="legend-swatch primary-swatch" />Primary</span>
         <span><i className="legend-swatch secondary-swatch" />Secondary</span>
         <span><i className="legend-swatch lagrange-swatch" />L4 / L5</span>

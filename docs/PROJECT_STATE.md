@@ -6,25 +6,24 @@ Last updated: 2026-09-15
 
 The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, and synchronized animation are implemented on `main`.
 
-The current development branch refines the visual interpretation after real-browser inspection. No governing equation, integration method, trajectory sample, or diagnostic definition is being changed.
+The current development branch `feature/space-theme-afterimages` refines the visual presentation after browser inspection. No governing equation, integration method, stored trajectory sample, or diagnostic definition is being changed.
 
-The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
-
-A browser review established that the inertial-frame panel is useful primarily as an animation rather than as a static full-path plot. Subsequent display choices therefore emphasize frame interpretation and instantaneous geometry.
+The application still computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
 ---
 
 ## Repository and documentation status
 
-GitHub is the canonical project record. The maintained documents are:
+GitHub is the canonical project record. Maintained documents now include:
 
 - `AGENTS.md`
 - `docs/PHYSICS.md`
 - `docs/APP_SPEC.md`
 - `docs/PROJECT_STATE.md`
+- `docs/VISUAL_DESIGN.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` already requires synchronized rotating/inertial animation and a recent inertial trail, so the current work is recorded here as concrete visualization tuning rather than a change to the physical/application scope.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records concrete rendering and animation choices that are intentionally display-only.
 
 GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not yet configured.
 
@@ -38,7 +37,7 @@ The reduced system evolves guiding-center radius `r` and rotating-frame angle `p
 
 in nondimensional units with binary angular frequency 1.
 
-Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, inertial trail duration, axis overlays, and auxiliary geometry lines are visualization operations only.
+Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, afterimages, axis overlays, auxiliary geometry lines, pulse animation, and theme styling are visualization operations only.
 
 The current solver is a transparent fixed-step classical RK4 integrator with UI time step `dt = 0.05`.
 
@@ -58,6 +57,9 @@ Current `main` includes:
 - one shared animation time for both frame panels;
 - current-position marker in the rotating frame;
 - moving inertial primary, secondary, L4/L5, and guiding-center marker;
+- inertial axes shown inside the rotating-frame view;
+- fixed inertial `+X/+Y` arrows and labels in the inertial view;
+- faint primary-secondary-L4/L5 triangle guides in both views;
 - maximum reduced-Hamiltonian drift diagnostic;
 - minimum distance to the secondary;
 - explicit numerical-failure reporting.
@@ -70,17 +72,23 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ## Current visualization refinements
 
-The branch `feature/visual-polish` introduces the following display changes based on browser feedback:
+The branch `feature/space-theme-afterimages` introduces these changes:
 
-- playback time/status text uses a monospace font so changing digits do not visually shift following text;
-- the rotating-frame panel no longer uses screen-fixed rotating-frame `x/y` axes as its main coordinate overlay;
-- instead, it displays the inertial `+X/+Y` axes expressed in rotating-frame coordinates;
-- because the rotating frame advances counterclockwise relative to inertial space, these inertial axes appear to rotate clockwise with angle `-t` in the rotating panel;
-- the inertial-frame `+X/+Y` directions remain screen-fixed and are emphasized with arrows and labels;
-- faint auxiliary triangles connect the primary and secondary to L4 and L5 in both panels;
-- the inertial recent trail is shortened from two binary periods to `0.5` binary period (`pi` in nondimensional time) for improved readability.
+- the overall page and all cards use a dark space-like theme;
+- SVG orbit panels use black backgrounds with high-contrast plot colors;
+- sparse star-like background points and restrained radial glows are used on the page background;
+- playback numerical readouts use fixed-width monospaced digital-style formatting; a seven-segment-style font is preferred when available, with normal monospace fallbacks;
+- the rotating-frame trajectory line is thinner than before;
+- the current third-body marker in both frame panels uses a smooth one-second pulse;
+- the pulse brightens quickly and fades more gradually, but never becomes fully invisible;
+- the inertial continuous recent-trail line is removed;
+- instead, the inertial panel shows up to three discrete third-body afterimages at `T/12`, `2T/12`, and `3T/12` in the past, where `T = 2 pi`;
+- afterimages whose requested past time precedes the trajectory start are omitted rather than clamped to `t = 0`;
+- afterimage pulse phases are delayed by `1/12`, `2/12`, and `3/12` of the one-second pulse cycle;
+- their peak visual strengths are `3/4`, `2/4`, and `1/4` of the current marker;
+- reduced-motion browser preference disables the pulsing animation.
 
-The triangle lines, coordinate-axis overlays, arrowheads, labels, and trail duration are display aids only. They are not part of the numerical state and must never feed back into the solver or diagnostics.
+These details are documented in `docs/VISUAL_DESIGN.md`.
 
 ---
 
@@ -102,29 +110,30 @@ Relevant modules are:
         InertialTrajectoryPlot.tsx
       App.tsx
 
-`frames.ts` contains pure rotating/inertial coordinate transforms and now also provides the inertial positive-axis unit vectors expressed in rotating-frame coordinates.
+`frames.ts` contains pure rotating/inertial coordinate transforms and inertial positive-axis unit vectors expressed in rotating-frame coordinates.
 
-`playback.ts` contains display-only trajectory interpolation and recent-trail selection. Interpolation is used only for smooth rendering and is never fed back into the numerical solver or diagnostics.
+`playback.ts` contains display-only trajectory interpolation and recent-segment helper logic. The current inertial afterimages use `trajectoryPointAtTime` directly at fixed past-time offsets; interpolation is used only for rendering and is never fed back into the solver or diagnostics.
 
 ---
 
 ## Validation status
 
-Frame-transform tests verify:
+Existing frame-transform tests verify coordinate conventions, binary rotation, L4/L5 geometry, and clockwise inertial-axis motion in the rotating view.
 
-- rotating and inertial coordinates agree at `t = 0`;
-- a `phi = 0` point rotates by +90 degrees at `t = pi/2`;
-- inertial axes expressed in the rotating frame rotate clockwise as expected;
-- the binary rotates rigidly with angular frequency 1;
-- L4/L5 preserve equilateral geometry under inertial rotation.
+Playback tests verify display-time interpolation, endpoint clamping, and trail helper behavior.
 
-Playback tests verify display-time interpolation, endpoint clamping, and recent-trail selection.
+The DOM test is being updated to verify:
 
-The DOM test exercises both frame views, current-position markers, Play/Pause/Reset, mocked playback-time advancement, explicit Calculate, reset-on-recalculation, diagnostics, invalid-input reporting, L4/L5 geometry overlays, and axis labels.
+- both frame views;
+- two current-position markers;
+- digital-number playback spans;
+- no continuous inertial trajectory trail;
+- three afterimages after sufficient animation time has elapsed;
+- afterimages disappear again after Reset;
+- L4/L5 geometry overlays and axis labels;
+- explicit Calculate, diagnostics, and invalid-input reporting.
 
-PR #11 introduced shared animation and passed CI after a TypeScript-only test typing issue was corrected. PR #12 updated the persistent project record after merge.
-
-The Codespace Vite server has been verified to respond on `127.0.0.1:5173`; an earlier browser 404 was a Codespaces port-forwarding/access issue rather than an application failure.
+CI has not yet been run for the current branch at the time of this update.
 
 ---
 
@@ -146,8 +155,11 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 Open items include:
 
-- whether `0.5` binary period remains the best default inertial trail duration after browser inspection;
-- whether the axis-arrow and triangle-line visual weight is appropriate;
+- whether the new dark theme has the right contrast on a real desktop browser;
+- whether a locally available seven-segment-style font is actually selected or the fallback monospace font is used;
+- whether the one-second asymmetric pulse is visually smooth and not distracting;
+- whether afterimage brightness levels `3/4`, `2/4`, `1/4` are appropriate on the black background;
+- whether afterimage pulse phase delays remain intuitive at playback rates other than `1x`;
 - whether `1x = one binary period per real second` is the best default playback convention;
 - final user-facing time-step/tolerance policy;
 - approximation-validity warning presentation;
@@ -161,15 +173,9 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Run CI for `feature/visual-polish`. After merge, inspect horseshoe, L4, and L5 animations in a real browser, with particular attention to:
+Run CI for `feature/space-theme-afterimages`. If tests and build pass, merge the branch and inspect horseshoe, L4, and L5 animations in a real browser, paying particular attention to the dark-theme contrast, digital time display, pulse waveform, afterimage spacing/brightness/phase, and narrow-screen readability.
 
-1. readability of the rotating inertial-axis overlay;
-2. clarity of `+X/+Y` in the inertial panel;
-3. whether L4/L5 triangle lines are sufficiently subtle;
-4. whether a `0.5`-period inertial trail gives the right amount of motion history;
-5. whether monospace playback time removes distracting text motion.
-
-After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
+After those refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
 ---
 
