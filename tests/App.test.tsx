@@ -51,6 +51,23 @@ it('renders both frame views, synchronized state plots, display controls, explic
     expect(findButtons('Trajectory')[0]?.getAttribute('aria-pressed')).toBe('true')
     expect(findButtons('Trajectory')[1]?.getAttribute('aria-pressed')).toBe('true')
 
+    expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('true')
+    expect(findButton('1:1 scale')?.getAttribute('aria-pressed')).toBe('false')
+    const phasePlot = () => container.querySelector<SVGSVGElement>('.phase-space-plot')
+    const autoViewBox = phasePlot()?.getAttribute('viewBox')
+    expect(autoViewBox).toBe('0 0 640 260')
+
+    await act(async () => findButton('1:1 scale')?.click())
+    expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('false')
+    expect(findButton('1:1 scale')?.getAttribute('aria-pressed')).toBe('true')
+    const equalViewBox = phasePlot()?.getAttribute('viewBox')
+    expect(equalViewBox).not.toBe(autoViewBox)
+    expect(equalViewBox?.split(' ').slice(0, 3)).toEqual(['0', '0', '640'])
+    expect(container.textContent).toContain('(r − 1) × 180/π')
+
+    await act(async () => findButton('Auto fit')?.click())
+    expect(phasePlot()?.getAttribute('viewBox')).toBe(autoViewBox)
+
     const initialRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
     const initialStateMarkerPositions = Array.from(container.querySelectorAll<SVGCircleElement>('.state-current-marker')).map((marker) => [marker.getAttribute('cx'), marker.getAttribute('cy')])
 

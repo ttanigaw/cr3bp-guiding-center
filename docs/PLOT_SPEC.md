@@ -65,6 +65,39 @@ The phase-space view uses:
 - `r - 1 = 0` is shown as a dashed corotation reference line;
 - line segments are split at the same wrapped-angle discontinuities used in `phi(t)` so the plot never connects `+180 deg` directly to `-180 deg`.
 
+The viewer can choose between two vertical-scaling modes. The horizontal plotting range and horizontal plot width remain unchanged in both modes.
+
+### Auto fit
+
+This is the default and preserves the original behavior:
+
+- the phase-space SVG has the normal fixed plot height;
+- the vertical range is chosen so the complete plotted `r - 1` data fit, with `r - 1 = 0` retained in view;
+- horizontal scale remains `-180 deg` to `+180 deg` across the existing plotting width.
+
+### 1:1 scale
+
+This mode preserves the horizontal range and physical plotting width but varies the plot height so that horizontal and vertical display scales are equal after expressing the vertical displacement in degree-equivalent units.
+
+For scaling only, define
+
+`y_display = (r - 1) * 180 / pi`.
+
+The plot height is selected so that one unit of `phi` in degrees and one unit of `y_display` occupy the same physical screen length. Equivalently, a change `Delta(r - 1)` occupies the same physical screen length as a horizontal angular change
+
+`Delta phi [deg] = Delta(r - 1) * 180 / pi`.
+
+Important consequences:
+
+- the horizontal plotting width is not changed;
+- the horizontal `phi` range is not changed;
+- only the vertical plotting-area height changes;
+- vertical tick labels continue to show the physical `r - 1` values rather than the degree-equivalent scaling coordinate;
+- the same auto-derived vertical data range, including its display padding, is used to determine the required 1:1 plot height;
+- the current-state marker and phase-space path use the same scaling transformation.
+
+This scaling choice is purely visual and does not modify trajectory data or physical variables.
+
 This plot is intended to make horseshoe, tadpole, and circulating behavior easier to distinguish.
 
 ---
