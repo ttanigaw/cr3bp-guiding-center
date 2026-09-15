@@ -4,11 +4,11 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing orange third-body markers, rotating/inertial discrete afterimages, and an inertial fading trail are implemented on `main`.
-
-The current development branch `feature/display-layer-toggles` adds viewer-selectable drawing layers. No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition is changed.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing orange third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, and viewer-selectable display layers are implemented on `main`.
 
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
+
+No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition was changed by the display-layer work.
 
 ---
 
@@ -67,6 +67,7 @@ Current `main` includes:
 - faint primary-secondary-L4/L5 triangle guides in both views;
 - dark space-like application theme;
 - digital-style fixed-width playback numerals;
+- viewer-selectable display layers;
 - maximum reduced-Hamiltonian drift diagnostic;
 - minimum distance to the secondary;
 - explicit numerical-failure reporting.
@@ -77,9 +78,7 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ---
 
-## Current UI refinement
-
-The branch `feature/display-layer-toggles` adds display-only viewer controls with all layers enabled by default.
+## Current display-layer UI
 
 Shared controls are placed above and outside the rotating/inertial panel pair:
 
@@ -92,7 +91,7 @@ Panel-specific controls are placed inside each panel header:
 - rotating frame: **Trajectory** and **Axes**;
 - inertial frame: **Axes**.
 
-The current third-body marker, primary, secondary, corotation/reference circle, numerical trajectory data, and playback state are not modified by these toggles. Matching optional legend entries are hidden together with their drawing layers.
+All optional layers are enabled by default. The current third-body marker, primary, secondary, corotation/reference circle, numerical trajectory data, diagnostics, and playback state are not modified by these toggles. Matching optional legend entries are hidden together with their drawing layers.
 
 These choices are documented in `docs/VISUAL_DESIGN.md`.
 
@@ -128,11 +127,18 @@ Existing frame-transform tests verify coordinate conventions, binary rotation, L
 
 Playback tests verify display-time interpolation, endpoint clamping, and recent-trail helper behavior.
 
-The DOM test is being extended to verify the new shared and panel-specific toggles, including synchronized hiding of inertial afterimages and fading trail.
+The DOM test verifies:
 
-CI has not yet been run for `feature/display-layer-toggles` at the time of this update.
+- all shared display controls default on;
+- the rotating Trajectory and both Axes controls default on;
+- Afterimages hides all six discrete afterimages and the inertial fading trail together;
+- L4 / L5 points hides all L4/L5 point markers;
+- L4 / L5 triangles hides all four triangle guide polylines;
+- the rotating Trajectory control hides only the rotating trajectory path;
+- rotating and inertial Axes controls operate independently;
+- explicit Calculate, diagnostics, and invalid-input reporting continue to work.
 
-PR #17 previously passed GitHub Actions and was merged to `main` at merge commit `4ee6efd67b77d22d77ab4459a77d4b8068983f30`; PR #18 subsequently updated this persistent project record.
+PR #19 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `0fb5aa863b3a7c60b6fc7b36b5dbd0845b695bbd`.
 
 ---
 
@@ -177,7 +183,7 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Run CI for `feature/display-layer-toggles`. If tests and build pass, merge and inspect the shared display controls and both panel-local control groups in a real browser, including narrow-window behavior.
+Inspect the merged shared display controls and both panel-local control groups in a real browser, including narrow-window behavior. Pay particular attention to whether the shared/panel-local grouping is immediately understandable and whether inactive buttons are clearly distinguishable without becoming visually dominant.
 
 After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
