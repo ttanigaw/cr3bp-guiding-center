@@ -40,11 +40,11 @@ The inertial `+X/+Y` axes continue to be shown in rotating-frame coordinates and
 
 ---
 
-## Third-body current-position pulse
+## Third-body marker and pulse
 
-The current third-body marker in both frame panels uses a smooth visual pulse with a one-second display cycle.
+The current third-body marker in both frame panels uses a bright orange fill with no outline. The same orange color family is used for all third-body afterimages and the inertial fading trail.
 
-The pulse is deliberately asymmetric:
+The marker uses a smooth visual pulse with a one-second display cycle. The pulse is deliberately asymmetric:
 
 - brightening occurs relatively quickly near the start of the cycle;
 - dimming is slower over the remainder of the cycle;
@@ -54,13 +54,13 @@ This pulse is a visual cue only and is independent of the numerical integration.
 
 Users who request reduced motion through their operating-system/browser preference should receive a non-pulsing marker.
 
+The secondary body uses a blue fill so that it remains clearly distinguishable from the orange third body.
+
 ---
 
-## Inertial-frame afterimages
+## Discrete third-body afterimages
 
-The previous continuous recent-trail line is no longer used in the inertial panel.
-
-Instead, the panel displays up to three discrete past-position markers for the third body at fixed offsets based on the binary period `T = 2 pi`:
+Both the rotating and inertial panels display up to three discrete past-position markers for the third body at fixed offsets based on the binary period `T = 2 pi`:
 
 - afterimage 1: `T/12` in the past;
 - afterimage 2: `2T/12` in the past;
@@ -80,7 +80,24 @@ Their peak visual strengths are scaled relative to the current marker:
 - afterimage 2: `2/4`;
 - afterimage 3: `1/4`.
 
+In the rotating frame these markers may nearly overlap because the guiding center moves slowly there. That overlap is expected and should not be artificially separated.
+
 These markers are derived by display-time interpolation of the already computed trajectory. They never feed back into physics calculations or diagnostics.
+
+---
+
+## Inertial fading trail
+
+In addition to the three discrete afterimages, the inertial panel displays a thin orange trail covering the most recent `4T/12 = T/3` of binary time.
+
+The trail is rendered as short line segments so opacity can vary continuously with age along a curved trajectory:
+
+- near the current third-body position, the trail has its maximum display opacity;
+- opacity decreases smoothly for older segments;
+- at exactly `4T/12` in the past, the intended opacity is zero;
+- the trail is thin and visually secondary to the current marker and the three discrete afterimages.
+
+This is a display-time reconstruction from the existing trajectory only. It is not smoothing, filtering, or a modification of the numerical orbit.
 
 ---
 
@@ -100,8 +117,10 @@ After this design is merged, browser review should focus on:
 
 1. whether the dark theme improves readability without becoming decorative noise;
 2. whether the digital-style playback numerals remain stable and readable;
-3. whether the rotating-frame trajectory line is thin enough but still easy to follow;
+3. whether the orange third body is sufficiently distinct from the blue secondary;
 4. whether the one-second asymmetric pulse feels smooth rather than like hard blinking;
-5. whether all three afterimages are easy to distinguish during normal playback;
-6. whether the `3/4`, `2/4`, `1/4` brightness progression is visually useful;
-7. whether the afterimage phase delays communicate motion naturally at the available playback speeds.
+5. whether all three afterimages are easy to distinguish during normal playback in both frames;
+6. whether rotating-frame afterimage overlap remains readable and unobtrusive;
+7. whether the `3/4`, `2/4`, `1/4` brightness progression is visually useful;
+8. whether the inertial `4T/12` fading trail decays smoothly enough and disappears naturally at its oldest end;
+9. whether the thin orange trail remains subordinate to the current marker and discrete afterimages.
