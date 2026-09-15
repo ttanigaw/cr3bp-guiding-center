@@ -1,21 +1,12 @@
+import { wrapPhiDegrees, wrapPhiRadians } from '../math/angles'
 import type { TrajectoryPoint } from '../physics/integrator'
+
+export { wrapPhiDegrees, wrapPhiRadians }
 
 export interface WrappedPlotPoint {
   t: number
   phiDegrees: number
   rOffset: number
-}
-
-const TWO_PI = 2 * Math.PI
-
-export function wrapPhiRadians(phi: number): number {
-  let wrapped = ((phi + Math.PI) % TWO_PI + TWO_PI) % TWO_PI - Math.PI
-  if (wrapped <= -Math.PI) wrapped = Math.PI
-  return wrapped
-}
-
-export function wrapPhiDegrees(phi: number): number {
-  return (wrapPhiRadians(phi) * 180) / Math.PI
 }
 
 export function wrappedPlotSegments(trajectory: TrajectoryPoint[]): WrappedPlotPoint[][] {
