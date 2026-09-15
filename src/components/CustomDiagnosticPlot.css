@@ -22,19 +22,35 @@
 
 .custom-plot-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
   gap: 0.7rem;
-  min-width: min(24rem, 100%);
+  min-width: min(31rem, 100%);
 }
 
-.custom-plot-controls label {
+.custom-axis-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 0.55fr);
+  gap: 0.45rem 0.55rem;
+  align-items: end;
+}
+
+.custom-axis-heading {
+  grid-column: 1 / -1;
+  color: #93aac3;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.custom-axis-control label {
   display: grid;
   gap: 0.3rem;
 }
 
-.custom-plot-controls label > span {
+.custom-axis-control label > span {
   color: #7f96b0;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -42,6 +58,15 @@
 
 .custom-plot-controls select {
   min-width: 0;
+}
+
+.custom-scale-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #71879e;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: right;
 }
 
 .custom-diagnostic-plot {
@@ -59,13 +84,30 @@
   filter: drop-shadow(0 0 4px rgba(114, 255, 118, 0.75));
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .custom-plot-heading {
     flex-direction: column;
   }
 
   .custom-plot-controls {
     width: 100%;
+  }
+
+  .custom-scale-note {
+    text-align: left;
+  }
+}
+
+@media (max-width: 620px) {
+  .custom-plot-controls {
     grid-template-columns: 1fr;
+  }
+
+  .custom-axis-control {
+    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 0.55fr);
+  }
+
+  .custom-scale-note {
+    grid-column: 1;
   }
 }
