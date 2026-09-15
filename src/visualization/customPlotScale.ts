@@ -99,14 +99,16 @@ export function buildAxisScale(
 
   const rawMin = min
   const rawMax = max
-  const referenceAtLowerBoundary = transformedReference !== undefined && transformedReference === rawMin
-  const referenceAtUpperBoundary = transformedReference !== undefined && transformedReference === rawMax
+  const referenceAtLowerBoundary =
+    transformedReference !== undefined && transformedReference === rawMin && rawMin < rawMax
+  const referenceAtUpperBoundary =
+    transformedReference !== undefined && transformedReference === rawMax && rawMin < rawMax
   const minimumSpan = mode === 'linear' ? minimumLinearSpan : MINIMUM_LOG_SPAN
 
   if (max - min < minimumSpan) {
-    if (referenceAtLowerBoundary && !referenceAtUpperBoundary) {
+    if (referenceAtLowerBoundary) {
       max = min + minimumSpan
-    } else if (referenceAtUpperBoundary && !referenceAtLowerBoundary) {
+    } else if (referenceAtUpperBoundary) {
       min = max - minimumSpan
     } else {
       const center = (min + max) / 2
