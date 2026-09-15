@@ -123,8 +123,9 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 .corotation, .reference-orbit { fill: none; stroke: #60768d; stroke-width: 0.009; stroke-dasharray: 0.035 0.025; opacity: 0.82; }
 .lagrange-geometry { fill: none; stroke: #8e7eb2; stroke-width: 0.0065; opacity: 0.42; }
 .trajectory-path { fill: none; stroke: #55a9f5; stroke-width: 0.011; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 0.018px rgba(85, 169, 245, 0.5)); }
+.afterimage-trail-segment { stroke: #ffb347; stroke-width: 0.0065; stroke-linecap: round; }
 .primary-body { fill: #ecf5ff; stroke: #8aa5bf; stroke-width: 0.008; }
-.secondary-body { fill: #f19a4d; stroke: #ffd0a5; stroke-width: 0.006; }
+.secondary-body { fill: #58a6ff; stroke: #b3d7ff; stroke-width: 0.006; }
 .lagrange-point { fill: #a58bdd; }
 
 @keyframes third-body-pulse {
@@ -138,32 +139,31 @@ h2 { margin-bottom: 1rem; font-size: 1.3rem; color: #eef6ff; }
 
 .current-position,
 .afterimage {
-  fill: #5ff7df;
-  stroke: #d7fff8;
-  stroke-width: 0.01;
+  fill: #ffb347;
+  stroke: none;
   animation-name: third-body-pulse;
   animation-duration: 1s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  filter: drop-shadow(0 0 0.035px rgba(95, 247, 223, 0.8));
+  filter: drop-shadow(0 0 0.035px rgba(255, 179, 71, 0.82));
 }
 .current-position { fill-opacity: 1; }
-.afterimage { stroke-width: 0.007; }
-.afterimage-1 { fill-opacity: 0.75; stroke-opacity: 0.75; animation-delay: -0.9166667s; }
-.afterimage-2 { fill-opacity: 0.50; stroke-opacity: 0.50; animation-delay: -0.8333333s; }
-.afterimage-3 { fill-opacity: 0.25; stroke-opacity: 0.25; animation-delay: -0.75s; }
+.afterimage-1 { fill-opacity: 0.75; animation-delay: -0.9166667s; }
+.afterimage-2 { fill-opacity: 0.50; animation-delay: -0.8333333s; }
+.afterimage-3 { fill-opacity: 0.25; animation-delay: -0.75s; }
 
 .plot-legend { display: flex; flex-wrap: wrap; gap: 0.8rem 1.2rem; margin-top: 0.9rem; color: #899eb6; font-size: 0.82rem; }
 .plot-legend span { display: inline-flex; gap: 0.4rem; align-items: center; }
 .legend-swatch { display: inline-block; width: 0.65rem; height: 0.65rem; border-radius: 999px; }
 .trajectory-swatch { background: #55a9f5; }
-.current-swatch { background: #5ff7df; box-shadow: 0 0 0.45rem rgba(95, 247, 223, 0.35); }
-.afterimage-swatch { background: #5ff7df; }
+.trail-swatch { background: linear-gradient(90deg, rgba(255, 179, 71, 0), rgba(255, 179, 71, 0.78)); }
+.current-swatch { background: #ffb347; box-shadow: 0 0 0.45rem rgba(255, 179, 71, 0.35); }
+.afterimage-swatch { background: #ffb347; }
 .afterimage-swatch-1 { opacity: 0.75; }
 .afterimage-swatch-2 { opacity: 0.50; }
 .afterimage-swatch-3 { opacity: 0.25; }
 .primary-swatch { background: #ecf5ff; }
-.secondary-swatch { background: #f19a4d; }
+.secondary-swatch { background: #58a6ff; }
 .lagrange-swatch { background: #a58bdd; }
 
 .diagnostics-card { display: grid; gap: 1rem; }

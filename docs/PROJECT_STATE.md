@@ -4,17 +4,17 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing third-body markers, and discrete inertial afterimages are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing third-body markers, and discrete afterimages are implemented on `main`.
+
+The current development branch `feature/orange-afterimages-fade-trail` refines the display language of the third body and its motion history. No governing equation, integration method, stored trajectory sample, or diagnostic definition is changed.
 
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
-
-No governing equation, integration method, stored trajectory sample, or diagnostic definition was changed by the latest visualization work.
 
 ---
 
 ## Repository and documentation status
 
-GitHub is the canonical project record. Maintained documents now include:
+GitHub is the canonical project record. Maintained documents include:
 
 - `AGENTS.md`
 - `docs/PHYSICS.md`
@@ -37,7 +37,7 @@ The reduced system evolves guiding-center radius `r` and rotating-frame angle `p
 
 in nondimensional units with binary angular frequency 1.
 
-Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, afterimages, axis overlays, auxiliary geometry lines, pulse animation, and theme styling are visualization operations only.
+Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, afterimages, fading trails, axis overlays, auxiliary geometry lines, pulse animation, and theme styling are visualization operations only.
 
 The current solver is a transparent fixed-step classical RK4 integrator with UI time step `dt = 0.05`.
 
@@ -60,6 +60,10 @@ Current `main` includes:
 - inertial axes shown inside the rotating-frame view;
 - fixed inertial `+X/+Y` arrows and labels in the inertial view;
 - faint primary-secondary-L4/L5 triangle guides in both views;
+- dark space-like application theme;
+- digital-style fixed-width playback numerals;
+- smooth one-second third-body pulse;
+- three inertial third-body afterimages at `T/12`, `2T/12`, and `3T/12`;
 - maximum reduced-Hamiltonian drift diagnostic;
 - minimum distance to the secondary;
 - explicit numerical-failure reporting.
@@ -70,25 +74,21 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ---
 
-## Current visualization design
+## Current visualization refinements
 
-The latest merged visualization changes are:
+The branch `feature/orange-afterimages-fade-trail` adds or changes the following display behavior:
 
-- the overall page and all cards use a dark space-like theme;
-- SVG orbit panels use black backgrounds with high-contrast plot colors;
-- sparse star-like background points and restrained radial glows are used on the page background;
-- playback numerical readouts use fixed-width monospaced digital-style formatting; a seven-segment-style font is preferred when available, with normal monospace fallbacks;
-- the rotating-frame trajectory line is thinner than before;
-- the current third-body marker in both frame panels uses a smooth one-second pulse;
-- the pulse brightens quickly and fades more gradually, but never becomes fully invisible;
-- the inertial continuous recent-trail line has been removed;
-- instead, the inertial panel shows up to three discrete third-body afterimages at `T/12`, `2T/12`, and `3T/12` in the past, where `T = 2 pi`;
-- afterimages whose requested past time precedes the trajectory start are omitted rather than clamped to `t = 0`;
-- afterimage pulse phases are delayed by `1/12`, `2/12`, and `3/12` of the one-second pulse cycle;
-- their peak visual strengths are `3/4`, `2/4`, and `1/4` of the current marker;
-- reduced-motion browser preference disables the pulsing animation.
+- the third-body current-position marker changes from cyan/green to a bright orange fill;
+- the current marker and all afterimages no longer have a white outline;
+- the three afterimages use the same orange color family as the current marker, retaining relative peak strengths `3/4`, `2/4`, and `1/4`;
+- the secondary body changes to blue so it remains visually distinct from the orange third body;
+- the rotating-frame panel now also displays the same three afterimages at `T/12`, `2T/12`, and `3T/12` in the past;
+- near-overlap of those rotating-frame afterimages is expected and is not artificially separated;
+- the inertial panel retains the three discrete afterimages and additionally displays a thin fading orange trail covering the most recent `4T/12 = T/3`;
+- the inertial trail is divided into short line segments whose opacity increases continuously toward the present and tends to zero at the oldest `4T/12` endpoint;
+- the fading trail uses display-time interpolation only and never feeds back into the solver or diagnostics.
 
-These details are documented in `docs/VISUAL_DESIGN.md`.
+These choices are documented in `docs/VISUAL_DESIGN.md`.
 
 ---
 
@@ -112,28 +112,28 @@ Relevant modules are:
 
 `frames.ts` contains pure rotating/inertial coordinate transforms and inertial positive-axis unit vectors expressed in rotating-frame coordinates.
 
-`playback.ts` contains display-only trajectory interpolation and recent-segment helper logic. The current inertial afterimages use `trajectoryPointAtTime` directly at fixed past-time offsets; interpolation is used only for rendering and is never fed back into the solver or diagnostics.
+`playback.ts` contains display-only trajectory interpolation and recent-segment helper logic. Discrete afterimages use `trajectoryPointAtTime`; the inertial fading trail uses `trajectoryTrailAtTime` plus segment-wise opacity. These rendering operations are never fed back into the numerical solver or diagnostics.
 
 ---
 
 ## Validation status
 
-Frame-transform tests verify coordinate conventions, binary rotation, L4/L5 geometry, and clockwise inertial-axis motion in the rotating view.
+Existing frame-transform tests verify coordinate conventions, binary rotation, L4/L5 geometry, and clockwise inertial-axis motion in the rotating view.
 
-Playback tests verify display-time interpolation, endpoint clamping, and trail helper behavior.
+Playback tests verify display-time interpolation, endpoint clamping, and recent-trail helper behavior.
 
-The DOM test verifies:
+The DOM test for the current branch is updated to verify:
 
 - both frame views;
 - two current-position markers;
 - digital-number playback spans;
-- absence of a continuous inertial trajectory trail;
-- three afterimages after sufficient animation time has elapsed;
-- removal of afterimages again after Reset;
+- three afterimages in each frame after sufficient animation time, for six total;
+- inertial fading-trail segments after sufficient animation time;
+- disappearance of afterimages and fading-trail segments after Reset;
 - L4/L5 geometry overlays and axis labels;
 - explicit Calculate, diagnostics, and invalid-input reporting.
 
-PR #15 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `63ba54e605bc326b3d7715937f7e4515345a0ca5`.
+CI has not yet been run for `feature/orange-afterimages-fade-trail` at the time of this update.
 
 ---
 
@@ -155,10 +155,12 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 Open items include:
 
-- whether the new dark theme has the right contrast on a real desktop browser;
-- whether a locally available seven-segment-style font is actually selected or the fallback monospace font is used;
-- whether the one-second asymmetric pulse is visually smooth and not distracting;
-- whether afterimage brightness levels `3/4`, `2/4`, `1/4` are appropriate on the black background;
+- whether the bright orange third body has the desired prominence on the black panels;
+- whether blue is the best secondary-body color against the current theme;
+- whether three nearly overlapping rotating-frame afterimages are visually useful rather than distracting;
+- whether the inertial `4T/12` fading trail is thin enough and fades smoothly enough in a real browser;
+- whether the current trail maximum opacity is appropriate relative to the discrete afterimages;
+- whether a locally available seven-segment-style font is selected or the fallback monospace font is used;
 - whether afterimage pulse phase delays remain intuitive at playback rates other than `1x`;
 - whether `1x = one binary period per real second` is the best default playback convention;
 - final user-facing time-step/tolerance policy;
@@ -173,9 +175,9 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Inspect the merged dark-theme animation in a real browser using the horseshoe, L4, and L5 presets. Pay particular attention to the dark-theme contrast, digital time display, pulse waveform, afterimage spacing/brightness/phase, and narrow-screen readability.
+Run CI for `feature/orange-afterimages-fade-trail`. If tests and build pass, merge the branch and inspect horseshoe, L4, and L5 animations in a real browser. Pay particular attention to third-body/secondary color separation, rotating-frame afterimage overlap, and the shape and visual decay of the inertial `4T/12` fading trail.
 
-After those refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
+After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
 ---
 

@@ -4,7 +4,7 @@ import {
   inertialCartesian,
   inertialLagrangePositions,
 } from '../visualization/frames'
-import { trajectoryPointAtTime } from '../visualization/playback'
+import { trajectoryPointAtTime, trajectoryTrailAtTime } from '../visualization/playback'
 
 interface InertialTrajectoryPlotProps {
   trajectory: TrajectoryPoint[]
@@ -17,6 +17,8 @@ const AXIS_LIMIT = 1.22
 const AXIS_LABEL_OFFSET = 1.28
 const BINARY_PERIOD = 2 * Math.PI
 const AFTERIMAGE_OFFSETS = [BINARY_PERIOD / 12, BINARY_PERIOD / 6, BINARY_PERIOD / 4]
+const FADE_TRAIL_DURATION = BINARY_PERIOD / 3
+const FADE_TRAIL_MAX_OPACITY = 0.52
 
 function toSvgCoordinates(point: { x: number; y: number }): [number, number] {
   return [point.x, -point.y]
@@ -48,6 +50,25 @@ export default function InertialTrajectoryPlot({
     return [{ index: index + 1, x, y }]
   })
 
+  const trail = trajectoryTrailAtTime(trajectory, current.t, FADE_TRAIL_DURATION)
+  const trailSegments = trail.slice(1).map((point, index) => {
+    const previous = trail[index]
+    const previousCartesian = toSvgCoordinates(inertialCartesian(previous))
+    const currentCartesianPoint = toSvgCoordinates(inertialCartesian(point))
+    const segmentMidpointTime = (previous.t + point.t) / 2
+    const age = current.t - segmentMidpointTime
+    const fadeFraction = Math.max(0, 1 - age / FADE_TRAIL_DURATION)
+
+    return {
+      index,
+      x1: previousCartesian[0],
+      y1: previousCartesian[1],
+      x2: currentCartesianPoint[0],
+      y2: currentCartesianPoint[1],
+      opacity: FADE_TRAIL_MAX_OPACITY * fadeFraction,
+    }
+  })
+
   return (
     <figure className="trajectory-card" aria-labelledby="inertial-trajectory-title">
       <div className="plot-heading">
@@ -55,7 +76,7 @@ export default function InertialTrajectoryPlot({
           <p className="eyebrow">Inertial frame</p>
           <h2 id="inertial-trajectory-title">Guiding-center trajectory</h2>
         </div>
-        <p className="plot-note">θ = φ + t · afterimages at 1/12, 2/12, 3/12 period</p>
+        <p className="plot-note">θ = φ + t · 3 afterimages + fading 4/12-period trail</p>
       </div>
 
       <svg
@@ -66,9 +87,10 @@ export default function InertialTrajectoryPlot({
       >
         <title id="inertial-svg-title">Animated inertial-frame guiding-center trajectory</title>
         <desc id="inertial-svg-description">
-          Current reduced guiding-center position with three discrete past-position afterimages. The
-          primary, secondary, L4, and L5 rotate with the same animation time. Positive inertial X and
-          Y directions are marked with arrows.
+          Current reduced guiding-center position with three discrete past-position afterimages and a
+          thin fading trail extending four twelfths of a binary period into the past. The primary,
+          secondary, L4, and L5 rotate with the same animation time. Positive inertial X and Y
+          directions are marked with arrows.
         </desc>
 
         <defs>
@@ -92,6 +114,18 @@ export default function InertialTrajectoryPlot({
         <circle className="lagrange-point" cx={l4X} cy={l4Y} r="0.018" />
         <circle className="lagrange-point" cx={l5X} cy={l5Y} r="0.018" />
 
+        {trailSegments.map((segment) => (
+          <line
+            key={segment.index}
+            className="afterimage-trail-segment"
+            x1={segment.x1}
+            y1={segment.y1}
+            x2={segment.x2}
+            y2={segment.y2}
+            strokeOpacity={segment.opacity}
+          />
+        ))}
+
         {afterimages.map((afterimage) => (
           <circle
             key={afterimage.index}
@@ -108,6 +142,7 @@ export default function InertialTrajectoryPlot({
       </svg>
 
       <div className="plot-legend" aria-label="Inertial plot legend">
+        <span><i className="legend-swatch trail-swatch" />Fading trail</span>
         <span><i className="legend-swatch current-swatch" />Current position</span>
         <span><i className="legend-swatch afterimage-swatch afterimage-swatch-1" />−1/12 period</span>
         <span><i className="legend-swatch afterimage-swatch afterimage-swatch-2" />−2/12 period</span>
