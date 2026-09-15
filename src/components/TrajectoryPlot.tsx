@@ -158,15 +158,15 @@ export default function TrajectoryPlot({
       </svg>
 
       <div className="plot-legend" aria-label="Plot legend">
-        {showTrajectory && <span><i className="legend-swatch trajectory-swatch" />Trajectory</span>}
+        <span><i className="legend-swatch primary-swatch" />Primary</span>
+        <span><i className="legend-swatch secondary-swatch" />Secondary</span>
         <span><i className="legend-swatch current-swatch" />Current position</span>
         {showAfterimages && <>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-1" />−1/12 period</span>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-2" />−2/12 period</span>
           <span><i className="legend-swatch afterimage-swatch afterimage-swatch-3" />−3/12 period</span>
         </>}
-        <span><i className="legend-swatch primary-swatch" />Primary</span>
-        <span><i className="legend-swatch secondary-swatch" />Secondary</span>
+        {showTrajectory && <span><i className="legend-swatch trajectory-swatch" />Trajectory</span>}
         {showLagrangePoints && <span><i className="legend-swatch lagrange-swatch" />L4 / L5</span>}
       </div>
     </figure>
