@@ -4,13 +4,16 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, panel-local trajectory overlays, synchronized lower state plots, selectable phase-space vertical scaling, three phase-space horizontal-range modes, L4/L5-anchored Close-up axes, wrap-safe Close-up fallback, a phase-space secondary marker, and range-aware L4/L5 phase-space markers are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, synchronized fixed state plots, three phase-space horizontal-range modes, and viewer-selectable display layers are implemented on `main`.
 
-The current orbit-panel appearance and interaction design have been reviewed in a real browser by the project owner and are considered broadly acceptable as of 2026-09-15. The phase-space presentation before the latest three-range refinement was also reviewed and considered broadly acceptable.
+The diagnostics stage has now started. Two planned steps are complete:
 
-The application computes one reduced guiding-center trajectory in the browser. Orbit panels and state plots visualize that same numerical solution; no second integration is performed.
+1. a reusable diagnostic-data layer shared by trajectory summaries and future plots;
+2. current-state diagnostics synchronized to the shared animation time.
 
-No governing equation, integrator, stored trajectory, playback timing, or diagnostic definition was changed by the latest phase-space display refinement.
+The next planned implementation task is the user-selectable Custom X-Y diagnostic plot.
+
+No governing equation, integration algorithm, stored trajectory, or playback-time definition was changed by the diagnostics work.
 
 ---
 
@@ -27,136 +30,129 @@ GitHub is the canonical project record. Maintained documents include:
 - `docs/DIAGNOSTICS_SPEC.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records orbit-panel rendering choices. `docs/PLOT_SPEC.md` records concrete lower-plot conventions. `docs/DIAGNOSTICS_SPEC.md` defines the planned diagnostic-data architecture, conserved-quantity monitoring, current-state diagnostics, and the custom X-Y diagnostic plot.
-
-GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/DIAGNOSTICS_SPEC.md` defines the diagnostics architecture and Custom X-Y plot plan. GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
 
 ---
 
 ## Current phase-space behavior
 
-The `phi` versus `r - 1` panel has two independent option groups.
+The fixed `phi` versus `r - 1` panel remains the accepted baseline.
 
-### Vertical scale
+Vertical scale choices:
 
-- **Magnify**: fixed-height display with vertical magnification chosen to fit the visible data and references;
-- **1:1 scale**: variable panel height so `(r - 1) * 180 / pi` and `phi` in degrees have equal physical screen scale.
+- **Magnify**;
+- **1:1 scale**.
 
-Vertical limits are rounded outward to simple 1-2-5-style values.
+Horizontal range choices:
 
-### Horizontal range
+- **Full width**;
+- **Close-up with origin**;
+- **Close-up**.
 
-The current horizontal-range choices are:
+Both Close-up modes fall back to the Full-width horizontal display when the trajectory crosses the `+180 deg / -180 deg` wrap discontinuity.
 
-- **Full width**: fixed wrapped interval from `-180 deg` to `+180 deg`;
-- **Close-up with origin**: contracts the numerical `phi` range around the trajectory while requiring both `phi = 0` and the relevant L4/L5 longitude to remain visible;
-- **Close-up**: contracts around the trajectory and relevant L4/L5 longitude without requiring `phi = 0` to remain visible.
+The phase-space panel also shows:
 
-The physical plot width remains fixed in all three modes.
-
-For both Close-up modes:
-
-- the relevant Lagrange longitude `+60 deg` or `-60 deg` is retained and remains the horizontal tick/reference anchor for non-wrapping trajectories;
-- ticks are equally spaced relative to that anchor;
-- vertical `r - 1` ticks are equally spaced relative to `r - 1 = 0`;
-- if the trajectory crosses the `+180 deg / -180 deg` wrap discontinuity, the horizontal display falls back to exactly the same range and standard ticks as Full width.
-
-The secondary has phase-space position
-
-`(phi, r - 1) = (0, -mu)`.
-
-It is shown with the same blue marker family as the rotating and inertial orbit panels whenever `phi = 0` lies inside the selected horizontal range. When plain **Close-up** excludes the origin, the secondary is outside the visible phase-space window and does not affect vertical fitting.
-
-The shared **L4 / L5 points** control now governs both phase-space Lagrange points independently:
-
-- L4 is at `(phi, r - 1) = (+60 deg, 0)`;
-- L5 is at `(phi, r - 1) = (-60 deg, 0)`;
-- when the shared control is on, each point is displayed if its longitude lies inside the current horizontal range;
-- Full width therefore shows both L4 and L5;
-- a narrow tadpole Close-up may show only the relevant one;
-- when the shared control is off, neither phase-space Lagrange point is shown.
-
-When either Close-up mode and 1:1 scale are combined, panel height is computed from the actual displayed horizontal span; wrapped trajectories that fall back to Full width therefore use the Full-width span for 1:1 scaling.
+- the secondary at `(phi, r - 1) = (0, -mu)` whenever the selected horizontal range contains the origin;
+- L4 at `(+60 deg, 0)` and L5 at `(-60 deg, 0)` whenever each point lies inside the displayed range and the shared **L4 / L5 points** layer is enabled.
 
 Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
 ---
 
-## Implemented application features on main
+## Diagnostic data layer on main
 
-Current `main` includes:
+PR #38 added `src/diagnostics/diagnosticData.ts` and was merged to `main` at merge commit `0d66be9ee1f8487515242a7902bf1a2ce80dac87` after GitHub Actions passed tests and build.
 
-- direct input of `mu`, `r0`, `phi0`, and integration duration;
-- validated horseshoe, L4 tadpole, and L5 tadpole presets;
-- rotating and inertial orbit panels driven by one shared animation time;
-- Play, Pause, Reset, and playback speed controls;
-- primary, secondary, L4/L5 markers and triangle guides;
-- bright-green current third-body marker with smooth asymmetric pulse;
-- three bright-green discrete third-body afterimages in both panels;
-- a short bright-green fading inertial trail;
-- thin blue trajectory overlays in both orbit panels;
-- shared display controls for afterimages, L4/L5 points, and triangle guides;
-- panel-local Trajectory and Axes switches in both orbit panels;
-- synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots;
-- phase-space vertical-scale controls;
-- three horizontal-range controls: Full width, Close-up with origin, and Close-up;
-- Lagrange-anchored non-wrapping Close-up grids;
-- wrap-safe Full-width fallback for both Close-up modes;
-- phase-space secondary marker at `(0, -mu)` whenever the origin is visible;
-- range-aware L4/L5 phase-space markers synchronized to the shared display-layer switch;
-- whole-trajectory numerical diagnostics and explicit calculation failure reporting.
+For each trajectory/current sample, the shared data layer derives:
 
-PR #21 established the orbit-panel baseline. PR #24 added synchronized lower plots. PR #26 added phase-space vertical-scale modes. PR #28 added Close-up and axis-readability refinements. PR #30 added L4/L5-anchored Close-up ticks, the synchronized phase-space Lagrange marker, and the `Magnify` label. PR #34 added wrap-safe Full-width fallback and the phase-space secondary marker. PR #36 added the three horizontal-range choices and range-aware display of both L4 and L5; it was merged to `main` at merge commit `3a056a293a0885e4293b0d37c3443b08b3f4f4af` after GitHub Actions passed both tests and build.
+- `t`;
+- binary periods;
+- `r`;
+- `r - 1`;
+- raw `phi`;
+- wrapped `phi` in degrees;
+- secondary distance `r2`;
+- `epsilon_tide = mu / r2^3`;
+- reduced Hamiltonian `H_gc`;
+- `Delta H_gc = H_gc(t) - H_gc(0)`;
+- `|Delta H_gc|`;
+- `dot r`;
+- `dot phi`;
+- `|dot r / r|`.
+
+All physical quantities are derived through the existing authoritative helpers in `src/physics/guidingCenter.ts`; the UI does not duplicate the equations.
+
+The existing whole-trajectory diagnostics now consume this shared layer, so `max |Delta H_gc|` and minimum `r2` use the same definitions as current-state and future custom-plot data.
+
+Angle wrapping was moved to reusable helpers in `src/math/angles.ts`; the existing state plots reuse those same helpers.
+
+---
+
+## Current-state diagnostics on main
+
+PR #39 added the synchronized diagnostics UI and was merged to `main` at merge commit `a3d091f038fe2b8bbbcf96b220f5e2c32441689c` after GitHub Actions passed tests and build.
+
+The Diagnostics panel is now separated into four conceptual groups.
+
+### Current state
+
+Synchronized to the shared animation time:
+
+- `t`;
+- `r`;
+- wrapped `phi`;
+- `r2`.
+
+### Numerical conservation
+
+- current `H_gc`;
+- current `Delta H_gc`;
+- whole-trajectory `max |Delta H_gc|`.
+
+The UI explicitly states that Hamiltonian conservation tests numerical integration of the reduced model and does not by itself validate the guiding-center approximation.
+
+### Approximation validity
+
+Displayed as continuous indicators without undocumented hard thresholds:
+
+- `epsilon_tide`;
+- `|dot r / r|`;
+- `dot r`;
+- `dot phi`.
+
+### Whole trajectory
+
+- minimum secondary distance;
+- calculated duration in binary periods;
+- integration point count.
+
+The current-state values advance with Play and return to their initial values on Reset.
 
 ---
 
 ## Validation status
 
-Existing physics, frame-transform, playback, orbit-panel, and state-plot tests remain applicable.
+The current diagnostics work adds tests that verify:
 
-The latest tests additionally verify:
+- the diagnostic layer uses the authoritative `bodyDistances`, `tidalParameter`, `reducedHamiltonian`, and `guidingCenterRates` definitions;
+- `Delta H_gc = 0` at the first trajectory point;
+- `epsilon_tide = mu / r2^3`;
+- wrapped display `phi` does not alter raw `phi`;
+- the existing whole-trajectory summary matches extrema computed from the shared data layer;
+- empty trajectories are rejected;
+- current diagnostics move with the shared animation time;
+- Reset restores the initial current diagnostics.
 
-- both **Close-up with origin** and **Close-up** fall back to Full-width `-180, -90, 0, 90, 180` horizontal ticks for a wrapping horseshoe trajectory;
-- Full width shows both phase-space L4 and L5 markers when the shared **L4 / L5 points** layer is enabled;
-- an L4 **Close-up with origin** contains `phi = 0` and `phi = +60 deg`, and shows both the secondary and the visible L4 marker;
-- an L4 plain **Close-up** can omit `phi = 0`, omit the secondary, and retain `phi = +60 deg` with the L4 marker;
-- the existing shared L4/L5 display switch continues to hide phase-space Lagrange markers together with the orbit-panel Lagrange markers.
-
-PR #36 passed GitHub Actions with both `npm test` and `npm run build` successful before merge.
-
-A real-browser review of the final three-range behavior is still useful before diagnostics implementation resumes.
-
----
-
-## Planned diagnostics architecture for version 0.1
-
-The next development stage is defined in `docs/DIAGNOSTICS_SPEC.md`.
-
-The current reduced-model conserved quantity to monitor is the reduced Hamiltonian
-
-`H_gc`
-
-with conservation error
-
-`Delta H_gc(t) = H_gc(t) - H_gc(0)`.
-
-The full PCR3BP Jacobi integral is reserved for the future full-PCR3BP implementation and must not be presented as the conserved quantity of the current reduced integration.
-
-The diagnostics UI should clearly distinguish:
-
-1. **current dynamical state**, synchronized to shared animation time;
-2. **numerical-conservation diagnostics**, especially `H_gc` and `Delta H_gc`;
-3. **approximation-validity indicators**, especially `r2`, `epsilon_tide`, and `|dot r / r|`.
-
-The implementation should first create one reusable diagnostic-data layer so the current-value panel, whole-trajectory summary, custom plot, and future validity warnings all use exactly the same definitions.
+PR #38 and PR #39 both passed GitHub Actions with `npm test` and `npm run build` successful before merge.
 
 ---
 
-## Planned custom X-Y diagnostic plot
+## Planned Custom X-Y diagnostic plot
 
-Version 0.1 will include one additional user-selectable diagnostic plot.
+The next implementation target is one additional plot panel with independent X and Y selectors.
 
-The viewer will independently choose the X and Y variables from an initial set including:
+Initial selectable variables remain:
 
 - `t`;
 - `r`;
@@ -171,57 +167,47 @@ The viewer will independently choose the X and Y variables from an initial set i
 - `dot phi`;
 - `|dot r / r|`.
 
-The initial default should be `X = t`, `Y = Delta H_gc`, making conservation of the reduced Hamiltonian immediately visible.
+The planned default is `X = t`, `Y = Delta H_gc`.
 
-The full calculated curve will be shown together with a bright-green current marker synchronized to the same shared animation time as the orbit and fixed state plots. Wrapped-angle discontinuities must be split if `phi` is used on either axis.
+The full calculated curve should be visible together with a bright-green current marker synchronized to the same animation time as the orbit panels and fixed state plots. Wrapped-phi discontinuities must be split rather than connected across `+180 deg / -180 deg`.
 
-The custom plot is display-only and must not trigger a new integration or alter trajectory data.
+The custom plot must be display-only and must not trigger a second integration.
 
-Detailed behavior is recorded in `docs/DIAGNOSTICS_SPEC.md` and `docs/PLOT_SPEC.md`.
+Detailed behavior remains specified in `docs/DIAGNOSTICS_SPEC.md` and `docs/PLOT_SPEC.md`.
 
 ---
 
 ## Still required for version 0.1
 
-The revised remaining work is:
+Remaining work is:
 
-1. real-browser check of the three phase-space horizontal-range modes and L4/L5 point behavior;
-2. reusable diagnostic-data model and unit tests;
-3. current-state diagnostics synchronized to animation time;
-4. custom X-Y diagnostic plot;
-5. approximation-validity presentation without undocumented hard thresholds;
-6. final browser review of diagnostics and custom plotting for horseshoe, L4, and L5 presets;
-7. README refresh and static GitHub Pages deployment.
+1. real-browser review of the new current diagnostics layout and values;
+2. Custom X-Y diagnostic plot;
+3. browser review of custom plotting for horseshoe, L4, and L5 presets;
+4. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
+5. README refresh;
+6. static GitHub Pages deployment.
 
 Full PCR3BP comparison remains deferred until the reduced model has been validated further.
 
 ---
 
-## Known issues and browser checks
+## Browser-review questions
 
-The orbit panels and previous phase-space baseline are accepted as workable. For the latest phase-space refinement, browser review should confirm:
+For the new Diagnostics panel, check:
 
-- **Close-up with origin** behaves like the previously origin-retaining Close-up for L4/L5 tadpoles;
-- plain **Close-up** can zoom more tightly around a tadpole and omit the origin/secondary when appropriate;
-- wrapping horseshoe trajectories look horizontally identical in Full width, Close-up with origin, and Close-up;
-- Full width shows both purple L4 and L5 phase-space points when **L4 / L5 points** is on;
-- a narrow Close-up shows whichever of L4/L5 lies inside the displayed range;
-- marker size/color remains consistent with the orbit panels.
+- whether Current state, Numerical conservation, Approximation validity, and Whole trajectory are visually distinct enough;
+- whether the number formatting for `H_gc`, `Delta H_gc`, `epsilon_tide`, and rate quantities is readable;
+- whether the panel feels too dense before the Custom X-Y plot is added;
+- whether `dot r` and `dot phi` are useful enough to keep visible by default or should later move primarily into the Custom plot.
 
-New questions to evaluate during the diagnostics stage include:
-
-- whether the current-state and whole-trajectory diagnostics remain visually distinct enough;
-- whether `H_gc`, `Delta H_gc`, and validity quantities need stronger category labels;
-- whether the custom X/Y selectors remain usable on narrow screens;
-- whether automatic axis formatting is readable across variables with very different numerical scales.
-
-These questions do not change the physical definitions.
+These are presentation questions only; the underlying definitions are fixed by `docs/PHYSICS.md` and `docs/DIAGNOSTICS_SPEC.md`.
 
 ---
 
 ## Next recommended task
 
-Inspect the final three-range phase-space behavior in a real browser. If it is accepted, implement the reusable diagnostic-data layer first, then add synchronized current-state diagnostics followed by the custom X-Y plot.
+Review the synchronized Diagnostics panel in a real browser. If the presentation is acceptable, implement the Custom X-Y diagnostic plot using the already merged shared diagnostic-data layer.
 
 ---
 
