@@ -51,7 +51,7 @@ it('renders both frame views, synchronized state plots, display controls, explic
     expect(findButtons('Trajectory')[0]?.getAttribute('aria-pressed')).toBe('true')
     expect(findButtons('Trajectory')[1]?.getAttribute('aria-pressed')).toBe('true')
 
-    expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('true')
+    expect(findButton('Magnify')?.getAttribute('aria-pressed')).toBe('true')
     expect(findButton('1:1 scale')?.getAttribute('aria-pressed')).toBe('false')
     expect(findButton('Full width')?.getAttribute('aria-pressed')).toBe('true')
     expect(findButton('Close-up')?.getAttribute('aria-pressed')).toBe('false')
@@ -62,14 +62,14 @@ it('renders both frame views, synchronized state plots, display controls, explic
     expect(phasePlot()?.getAttribute('data-x-max')).toBe('180')
 
     await act(async () => findButton('1:1 scale')?.click())
-    expect(findButton('Auto fit')?.getAttribute('aria-pressed')).toBe('false')
+    expect(findButton('Magnify')?.getAttribute('aria-pressed')).toBe('false')
     expect(findButton('1:1 scale')?.getAttribute('aria-pressed')).toBe('true')
     const equalViewBox = phasePlot()?.getAttribute('viewBox')
     expect(equalViewBox).not.toBe(autoViewBox)
     expect(equalViewBox?.split(' ').slice(0, 3)).toEqual(['0', '0', '640'])
     expect(container.textContent).toContain('(r − 1) × 180/π')
 
-    await act(async () => findButton('Auto fit')?.click())
+    await act(async () => findButton('Magnify')?.click())
     expect(phasePlot()?.getAttribute('viewBox')).toBe(autoViewBox)
 
     const initialRigidPath = container.querySelector<SVGPathElement>('.inertial-rigid-trajectory-path')?.getAttribute('d')
@@ -164,7 +164,7 @@ it('renders both frame views, synchronized state plots, display controls, explic
   }
 })
 
-it('supports a close-up phase-space range with a shallow 1:1 plot for an L4 tadpole', async () => {
+it('anchors an L4 close-up to phi = 60 and synchronizes its Lagrange marker visibility', async () => {
   const container = document.createElement('div')
   document.body.append(container)
   const root = createRoot(container)
@@ -180,23 +180,34 @@ it('supports a close-up phase-space range with a shallow 1:1 plot for an L4 tadp
 
     await act(async () => l4PresetButton?.click())
     await act(async () => findButton('Calculate')?.click())
+    await act(async () => findButton('Close-up')?.click())
 
     const phasePlot = () => container.querySelector<SVGSVGElement>('.phase-space-plot')
-    expect(phasePlot()?.getAttribute('data-x-min')).toBe('-180')
-    expect(phasePlot()?.getAttribute('data-x-max')).toBe('180')
-
-    await act(async () => findButton('Close-up')?.click())
-    expect(findButton('Full width')?.getAttribute('aria-pressed')).toBe('false')
-    expect(findButton('Close-up')?.getAttribute('aria-pressed')).toBe('true')
-
     const closeUpMin = Number(phasePlot()?.getAttribute('data-x-min'))
     const closeUpMax = Number(phasePlot()?.getAttribute('data-x-max'))
-    expect(closeUpMin).toBeGreaterThan(-180)
-    expect(closeUpMax).toBeLessThan(180)
-    expect(closeUpMax - closeUpMin).toBeLessThan(360)
+    expect(closeUpMin).toBeLessThanOrEqual(60)
+    expect(closeUpMax).toBeGreaterThanOrEqual(60)
+
+    const xTickLabels = Array.from(phasePlot()?.querySelectorAll<SVGTextElement>('.state-x-tick-label') ?? [])
+      .map((label) => label.textContent)
+    expect(xTickLabels).toContain('60')
+    expect(phasePlot()?.querySelector('.phase-anchor-line')).not.toBeNull()
+    expect(phasePlot()?.querySelector('.phase-lagrange-point')).not.toBeNull()
+
+    const yTickValues = Array.from(phasePlot()?.querySelectorAll<SVGTextElement>('.state-y-tick-label') ?? [])
+      .map((label) => Number(label.textContent))
+    expect(yTickValues).toContain(0)
+    if (yTickValues.length >= 3) {
+      const differences = yTickValues.slice(1).map((value, index) => value - yTickValues[index])
+      for (const difference of differences.slice(1)) {
+        expect(difference).toBeCloseTo(differences[0], 8)
+      }
+    }
+
+    await act(async () => findButton('L4 / L5 points')?.click())
+    expect(phasePlot()?.querySelector('.phase-lagrange-point')).toBeNull()
 
     await act(async () => findButton('1:1 scale')?.click())
-    expect(phasePlot()?.querySelectorAll('.state-y-tick-label')).toHaveLength(2)
     expect(phasePlot()?.getAttribute('viewBox')?.split(' ').slice(0, 3)).toEqual(['0', '0', '640'])
   } finally {
     await act(async () => root.unmount())
