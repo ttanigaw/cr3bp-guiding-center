@@ -38,22 +38,6 @@ const INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right
 const DEFAULT_INNER_HEIGHT = DEFAULT_HEIGHT - MARGIN.top - MARGIN.bottom
 const RAD_TO_DEG = 180 / Math.PI
 
-function paddedRange(values: number[], includeValue: number, minimumSpan: number): PlotRange {
-  let min = Math.min(includeValue, ...values)
-  let max = Math.max(includeValue, ...values)
-  let span = max - min
-
-  if (span < minimumSpan) {
-    const center = (min + max) / 2
-    min = center - minimumSpan / 2
-    max = center + minimumSpan / 2
-    span = minimumSpan
-  }
-
-  const padding = span * 0.08
-  return { min: min - padding, max: max + padding }
-}
-
 function makeTicks(range: PlotRange, count = 5): number[] {
   if (count <= 1) return [range.min]
   if (count === 2) return [range.min, range.max]
@@ -306,7 +290,12 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const timeMax = Math.max(trajectory[trajectory.length - 1]?.t ?? 0, 1e-9)
   const timeRange = { min: 0, max: timeMax }
 
-  const rRange = paddedRange(sampled.map((point) => point.r), 1, 0.02)
+  const rOffsetDisplayRange = zeroAnchoredNiceRange(sampled.map((point) => point.r - 1), 0.02)
+  const rRange = {
+    min: 1 + rOffsetDisplayRange.min,
+    max: 1 + rOffsetDisplayRange.max,
+  }
+  const rTicks = anchoredTicks(rRange, 1)
   const rPath = pathFromPoints(sampled.map((point) => ({ x: point.t, y: point.r })), timeRange, rRange)
 
   const wrappedSegments = wrappedPlotSegments(sampled)
@@ -389,9 +378,10 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
           yLabel="r"
           current={{ x: currentPoint.t, y: currentPoint.r }}
           xTickFormat={(value) => value.toFixed(timeMax >= 100 ? 0 : timeMax >= 10 ? 1 : 2)}
-          yTickFormat={(value) => value.toFixed(3)}
+          yTickFormat={(value) => value.toFixed(2)}
           horizontalReference={1}
           className="r-time-plot"
+          yTicks={rTicks}
         />
       </PlotCard>
 
