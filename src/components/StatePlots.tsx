@@ -146,14 +146,14 @@ function PlotFrame({
         return (
           <g key={`x-${tick}`}>
             <line
-              className={isReference ? 'state-anchor-line' : 'state-grid-line'}
+              className={isReference ? 'state-reference-line phase-anchor-line' : 'state-grid-line'}
               x1={x}
               y1={MARGIN.top}
               x2={x}
               y2={MARGIN.top + innerHeight}
             />
             <text
-              className={`state-tick-label state-x-tick-label${isReference ? ' state-anchor-tick-label' : ''}`}
+              className={`state-tick-label state-x-tick-label${isReference ? ' phase-anchor-tick-label' : ''}`}
               x={x}
               y={height - 20}
               textAnchor="middle"
@@ -177,7 +177,7 @@ function PlotFrame({
               y2={y}
             />
             <text
-              className={`state-tick-label state-y-tick-label${isReference ? ' state-reference-tick-label' : ''}`}
+              className="state-tick-label state-y-tick-label"
               x={MARGIN.left - 9}
               y={y + 4}
               textAnchor="end"
@@ -200,7 +200,7 @@ function PlotFrame({
 
       {verticalReference !== undefined && !xTicks.some((tick) => Math.abs(tick - verticalReference) < 1e-10) && verticalReference >= xRange.min && verticalReference <= xRange.max && (
         <line
-          className="state-anchor-line"
+          className="state-reference-line phase-anchor-line"
           x1={scaleX(verticalReference, xRange)}
           y1={MARGIN.top}
           x2={scaleX(verticalReference, xRange)}
@@ -316,12 +316,11 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
     ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
     : DEFAULT_INNER_HEIGHT
   const phaseHeight = MARGIN.top + phaseInnerHeight + MARGIN.bottom
-  const phaseYTickCount = phaseInnerHeight < 120 ? 2 : 5
   const closeUpXTicks = phaseSpaceWidthMode === 'closeup'
     ? anchoredTicks(phasePhiRange, lagrangeAnchor)
     : undefined
-  const closeUpYTicks = phaseSpaceWidthMode === 'closeup' && phaseInnerHeight >= 120
-    ? anchoredTicks(rOffsetRange, 0)
+  const closeUpYTicks = phaseSpaceWidthMode === 'closeup'
+    ? anchoredTicks(rOffsetRange, 0, phaseInnerHeight < 120 ? 2 : 5)
     : undefined
   const phasePaths = wrappedSegments.map((segment, index) => ({
     key: `phase-${index}`,
@@ -338,7 +337,7 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
     ? '1:1 vertical scale uses (r − 1) × 180/π; horizontal range follows the selected width mode'
     : 'Magnified vertical scale; horizontal range follows the selected width mode'
   const phaseMarkers = phaseSpaceWidthMode === 'closeup' && showLagrangePoints
-    ? [{ key: `lagrange-${lagrangeAnchor}`, x: lagrangeAnchor, y: 0, className: 'phase-lagrange-point' }]
+    ? [{ key: `lagrange-${lagrangeAnchor}`, x: lagrangeAnchor, y: 0, className: 'lagrange-point phase-lagrange-point' }]
     : []
 
   return (
@@ -436,7 +435,6 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
           markers={phaseMarkers}
           className="phase-space-plot"
           height={phaseHeight}
-          yTickCount={phaseYTickCount}
           xTicks={closeUpXTicks}
           yTicks={closeUpYTicks}
         />
