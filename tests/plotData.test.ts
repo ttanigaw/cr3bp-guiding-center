@@ -20,7 +20,8 @@ describe('wrapped plot data', () => {
 
     const segments = wrappedPlotSegments(trajectory)
     expect(segments).toHaveLength(2)
-    expect(segments[0].map((point) => point.phiDegrees)).toEqual([170, 179])
+    expect(segments[0][0].phiDegrees).toBeCloseTo(170, 12)
+    expect(segments[0][1].phiDegrees).toBeCloseTo(179, 12)
     expect(segments[1][0].phiDegrees).toBeCloseTo(-179, 12)
     expect(segments[1][1].phiDegrees).toBeCloseTo(-170, 12)
   })
