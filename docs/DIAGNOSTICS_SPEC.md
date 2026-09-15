@@ -1,10 +1,10 @@
 # Diagnostics and Custom-Plot Specification
 
-Last updated: 2026-09-15
+Last updated: 2026-09-16
 
 ## Purpose
 
-This document defines the planned version-0.1 diagnostics architecture and the planned user-selectable X-Y diagnostic plot for the reduced guiding-center application.
+This document defines the version-0.1 diagnostics architecture and the user-selectable X-Y diagnostic plot for the reduced guiding-center application.
 
 It complements:
 
@@ -39,7 +39,7 @@ Define
 H_{\rm gc}(t)-H_{\rm gc}(0).
 ```
 
-The application should monitor both `H_gc` and `Delta H_gc`.
+The application monitors both `H_gc` and `Delta H_gc`.
 
 `Delta H_gc` is a numerical-conservation diagnostic: a small value indicates that the numerical integration is respecting the conserved quantity of the reduced Hamiltonian system.
 
@@ -55,7 +55,7 @@ When a full-PCR3BP mode is implemented later, the diagnostics framework should b
 
 ## 2. Diagnostic categories
 
-The UI should explicitly separate three concepts.
+The UI explicitly separates three concepts.
 
 ### 2.1 Current dynamical state
 
@@ -89,7 +89,7 @@ Quantities that help assess whether the reduced guiding-center approximation is 
 - `|dot r / r|`;
 - optionally `dot phi` where useful.
 
-No universal hard validity threshold should be imposed in version 0.1. These should initially be displayed as continuous quantities with explanatory wording.
+No universal hard validity threshold should be imposed in version 0.1. These are displayed as continuous quantities with explanatory wording.
 
 A later warning layer may summarize them qualitatively, but only after the chosen thresholds or categories have a documented physical basis.
 
@@ -97,9 +97,9 @@ A later warning layer may summarize them qualitatively, but only after the chose
 
 ## 3. Shared diagnostic-data layer
 
-Before adding more UI, the implementation should create a single reusable diagnostic-data layer that derives quantities from a trajectory sample and `mu`.
+A single reusable diagnostic-data layer derives quantities from a trajectory sample and `mu`.
 
-For each stored trajectory point, the data layer should be able to provide at least:
+For each stored trajectory point, the data layer can provide at least:
 
 - `t`;
 - `r`;
@@ -115,9 +115,9 @@ For each stored trajectory point, the data layer should be able to provide at le
 - `phiDot`;
 - `absRadialRate = |rDot / r|`.
 
-The implementation should reuse the analytic physics functions already present in `src/physics/` rather than duplicating equations in UI code.
+The implementation reuses the analytic physics functions already present in `src/physics/` rather than duplicating equations in UI code.
 
-The same definitions must feed:
+The same definitions feed:
 
 - current-state diagnostics;
 - whole-trajectory diagnostics;
@@ -130,11 +130,11 @@ This avoids inconsistent values between panels.
 
 ## 4. Current-state diagnostics panel
 
-The existing Diagnostics area should evolve into clearly separated sections.
+The Diagnostics area is separated into current-state, numerical-conservation, approximation-validity, and whole-trajectory sections.
 
 ### Current state
 
-Values synchronized to the shared animation time should include initially:
+Values synchronized to the shared animation time include initially:
 
 - `t`;
 - `r`;
@@ -145,30 +145,30 @@ Values synchronized to the shared animation time should include initially:
 - `Delta H_gc`;
 - `|dot r / r|`.
 
-These values should update whenever the shared animation marker moves, including during Play, Reset, and recalculation.
+These values update whenever the shared animation marker moves, including during Play, Reset, and recalculation.
 
 ### Whole trajectory
 
-The existing trajectory-summary diagnostics should remain available, including:
+The trajectory-summary diagnostics include:
 
 - `max |Delta H_gc|`;
 - minimum `r2`;
 - integration duration in binary periods;
 - integration point count.
 
-Additional extrema such as maximum `epsilon_tide` or maximum `|dot r / r|` may be added if they prove useful, but they should not crowd the initial UI unnecessarily.
+Additional extrema such as maximum `epsilon_tide` or maximum `|dot r / r|` may be added if they prove useful, but they should not crowd the UI unnecessarily.
 
 ---
 
 ## 5. Custom X-Y diagnostic plot
 
-Version 0.1 should add one additional plot panel in which the viewer can independently choose the horizontal and vertical variables.
+Version 0.1 includes one additional plot panel in which the viewer can independently choose the horizontal and vertical variables.
 
 The purpose is to let the same calculated trajectory be explored as either a time series or a parametric curve without adding a separate fixed panel for every useful combination.
 
-### 5.1 Initial selectable variables
+### 5.1 Selectable variables
 
-The first implementation should offer at least:
+The implementation offers:
 
 - `t`;
 - `r`;
@@ -183,7 +183,7 @@ The first implementation should offer at least:
 - `dot phi`;
 - `|dot r / r|`.
 
-The variable registry should store, for each variable:
+The variable registry stores, for each variable:
 
 - a stable internal key;
 - a user-facing label;
@@ -192,11 +192,11 @@ The variable registry should store, for each variable:
 - a preferred numeric formatter;
 - optional reference value such as `r = 1`, `r - 1 = 0`, or `Delta H_gc = 0`.
 
-This registry should be shared by axis selectors and plotting logic.
+This registry is shared by axis selectors and plotting logic.
 
 ### 5.2 Initial default
 
-A useful initial default is:
+The initial default is:
 
 - X axis: `t`;
 - Y axis: `Delta H_gc`.
@@ -205,23 +205,23 @@ This makes conservation of the reduced Hamiltonian visible immediately while sti
 
 ### 5.3 Plot behavior
 
-The custom plot should:
+The custom plot:
 
-- draw the full calculated trajectory as a thin line;
-- display a current-position marker synchronized to the same shared animation time as every other panel;
-- keep Play, Pause, Reset, and recalculation synchronized with the existing plots;
-- use display-only downsampling if needed for rendering performance;
-- compute the current marker from the full trajectory/current interpolated state rather than from a downsampled display sample;
-- label both axes from the selected variable metadata;
-- automatically recompute plot limits when either selected variable changes.
+- draws the full calculated trajectory as a thin line;
+- displays a current-position marker synchronized to the same shared animation time as every other panel;
+- keeps Play, Pause, Reset, and recalculation synchronized with the existing plots;
+- uses display-only downsampling if needed for rendering performance;
+- computes the current marker from the full trajectory/current interpolated state rather than from a downsampled display sample;
+- labels both axes from the selected variable metadata;
+- automatically recomputes plot limits when either selected variable changes.
 
-The first implementation does not need an additional progressive-trail mode. The full curve plus synchronized current marker is the preferred baseline because it matches the existing fixed state plots.
+The first implementation does not use an additional progressive-trail mode. The full curve plus synchronized current marker matches the existing fixed state plots.
 
 ### 5.4 Wrapped-angle discontinuities
 
 If wrapped `phi` is selected for either axis, the line must not draw an artificial segment across the `+180 deg / -180 deg` discontinuity.
 
-The same wrapped-angle convention already documented for the fixed `phi(t)` and phase-space plots should be reused.
+The same wrapped-angle convention documented for the fixed `phi(t)` and phase-space plots is reused.
 
 ### 5.5 Reference lines
 
@@ -235,51 +235,57 @@ Where a selected variable has a physically useful reference value, the plot may 
 
 Reference lines are display aids only and must not be interpreted as warning thresholds.
 
-### 5.6 Axis scaling
+### 5.6 Linear tick generation
 
-The first implementation should use clear automatic numeric ranges for arbitrary variable pairs.
+For a linear custom axis, ticks use equal spacing chosen from simple `1`, `2`, or `5` multiples of a power of ten.
 
-The existing specialized `Magnify / 1:1 scale` and `Full width / Close-up` controls belong to the fixed `phi` versus `r - 1` panel and should not automatically be copied into the generic custom plot.
+If the displayed range contains zero:
 
-Additional axis-range controls for the custom plot may be added later if repeated use shows a need.
+- `0` must be a labeled tick;
+- all other ticks on that axis are placed at equal intervals relative to zero;
+- the axis range need not be symmetric about zero.
+
+If zero is outside the displayed range, the same nice-number spacing is used without forcing zero into the plot.
+
+### 5.7 Independent Linear / log10 axis scales
+
+Each custom axis has its own scale selector with:
+
+- `Linear` as the default;
+- `log10` as an optional display transformation.
+
+The X and Y choices are independent.
+
+`log10` is enabled only if every stored value of the selected variable is finite and strictly positive. If any plotted value is zero or negative, `log10` is disabled for that axis. The implementation must not silently omit nonpositive samples to create a logarithmic plot.
+
+When `log10` is active:
+
+- the plotted coordinate is `log10(value)`;
+- tick labels show the transformed logarithmic values themselves;
+- the axis title explicitly reads `log10(variable)`;
+- a reference line is shown only when the reference value is positive;
+- if a variable change or recalculation makes the current log scale invalid, that axis reverts to Linear.
+
+The fixed `phi` versus `r - 1` panel keeps its own specialized `Magnify / 1:1 scale` and horizontal-range controls; those controls are not reused for the generic custom plot.
 
 ---
 
-## 6. Suggested implementation sequence
+## 6. Implementation sequence status
 
-The next implementation work should proceed in the following order.
+Completed diagnostics-stage work:
 
-1. **Diagnostic data model and tests**
-   - add reusable pure functions for the per-sample derived quantities;
-   - verify `H_gc`, `Delta H_gc`, `r2`, `epsilon_tide`, and rate quantities against existing physics helpers;
-   - ensure the `mu = 0` and existing conservation tests remain valid.
+1. reusable diagnostic data model and tests;
+2. synchronized current diagnostics;
+3. Custom X-Y diagnostic plot;
+4. zero-anchored nice linear ticks and independent Linear / log10 axis controls.
 
-2. **Synchronized current diagnostics**
-   - split the Diagnostics UI into current-state and whole-trajectory information;
-   - drive current values from the existing shared animation time;
-   - preserve the existing whole-trajectory summary.
-
-3. **Custom X-Y diagnostic plot**
-   - implement the variable registry and two axis selectors;
-   - default to `t` versus `Delta H_gc`;
-   - draw the full curve plus shared current marker;
-   - reuse wrapped-angle discontinuity handling.
-
-4. **Approximation-validity presentation**
-   - display `r2`, `epsilon_tide`, and `|dot r / r|` clearly as validity indicators;
-   - keep them distinct from conservation error;
-   - do not add undocumented hard thresholds.
-
-5. **Version-0.1 completion work**
-   - final browser review across horseshoe, L4, and L5 presets;
-   - update README usage documentation;
-   - configure static GitHub Pages deployment.
+Remaining version-0.1 work is browser review, presentation refinement if needed, README refresh, and static deployment.
 
 ---
 
 ## 7. Testing requirements
 
-At minimum, tests should verify:
+Tests should verify:
 
 - `H_gc` and `Delta H_gc` are derived from the authoritative physics function;
 - `Delta H_gc = 0` at the first trajectory point;
@@ -290,6 +296,9 @@ At minimum, tests should verify:
 - the custom current marker moves with shared animation time;
 - wrapped-phi custom plots split across wrap discontinuities;
 - display-only sampling does not change current diagnostics or extrema;
+- a linear axis containing zero labels zero and uses equal nice-number spacing around it;
+- `log10` is disabled for variables containing nonpositive values;
+- independent log10 axes transform coordinates and clearly label the transformed axis;
 - numerical-conservation and validity quantities are not mislabeled as one another.
 
 ---
