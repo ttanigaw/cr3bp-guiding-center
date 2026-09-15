@@ -63,16 +63,16 @@ The phase-space view uses:
 - dashed corotation reference at `r - 1 = 0`;
 - the same wrapped-angle discontinuity splitting used in `phi(t)`.
 
-The secondary is shown in this panel at its rotating-frame polar position
+The secondary has rotating-frame polar coordinates
 
-`(phi, r - 1) = (0, -mu)`
+`(phi, r - 1) = (0, -mu)`.
 
-using the same blue marker family as the secondary in the rotating and inertial orbit panels. The displayed horizontal and vertical ranges must include this marker.
+When `phi = 0` lies inside the selected horizontal range, the secondary is shown with the same blue marker family as the secondary in the rotating and inertial orbit panels. When a Close-up range excludes `phi = 0`, the secondary is outside the visible phase-space window and is not drawn there. The vertical range only needs to include `r - 1 = -mu` when the secondary is horizontally visible.
 
 The viewer has two independent choices:
 
 1. vertical scale: **Magnify** or **1:1 scale**;
-2. horizontal range: **Full width** or **Close-up**.
+2. horizontal range: **Full width**, **Close-up with origin**, or **Close-up**.
 
 The physical panel width remains fixed in all combinations.
 
@@ -81,7 +81,8 @@ The physical panel width remains fixed in all combinations.
 This is the default vertical behavior formerly labeled `Auto fit`.
 
 - the phase-space SVG has the normal fixed plot height;
-- the vertical range is fitted to contain the plotted `r - 1` data while retaining `r - 1 = 0` and the secondary marker;
+- the vertical range is fitted to contain the plotted `r - 1` data while retaining `r - 1 = 0`;
+- if the secondary is horizontally visible, the vertical range also contains `r - 1 = -mu`;
 - displayed limits are expanded outward to simple 1-2-5-style values, for example `0.064 -> 0.1`.
 
 The name `Magnify` emphasizes that this mode enlarges the vertical variation for readability rather than preserving the physical x/y scale ratio.
@@ -98,7 +99,7 @@ The plot height is varied so that one unit of `phi` in degrees and one unit of `
 - selected horizontal `phi` range determines the horizontal scale;
 - only vertical plot height changes;
 - vertical tick labels remain physical `r - 1` values;
-- current marker, secondary marker, and path use the same scaling transformation.
+- current marker, visible reference markers, and path use the same scaling transformation.
 
 ### Horizontal range: Full width
 
@@ -106,24 +107,51 @@ The plot height is varied so that one unit of `phi` in degrees and one unit of `
 - physical plot width remains fixed;
 - the standard five horizontal ticks are `-180`, `-90`, `0`, `90`, and `180` degrees.
 
+### Horizontal range: Close-up with origin
+
+This mode keeps the physical plot width fixed while contracting the numerical `phi` range around the trajectory, subject to two anchors:
+
+- `phi = 0` is always included;
+- the relevant Lagrange longitude, `phi = +60 deg` for an L4-like trajectory or `phi = -60 deg` for an L5-like trajectory, is also included.
+
+The horizontal ticks remain equally spaced relative to the selected relevant Lagrange longitude. The Lagrange longitude need not be at the horizontal center.
+
 ### Horizontal range: Close-up
 
-Close-up keeps the physical plot width fixed while contracting the numerical `phi` range around the trajectory when that can be represented as one continuous wrapped interval.
+This mode also keeps the physical plot width fixed while contracting the numerical `phi` range around the trajectory, but unlike **Close-up with origin** it does not force `phi = 0` into view.
 
-- `phi = 0` is always retained in the visible range so the secondary marker and zero tick remain visible;
 - the relevant Lagrange longitude, `phi = +60 deg` for an L4-like trajectory or `phi = -60 deg` for an L5-like trajectory, is always included;
-- the relevant L4/L5 point is plotted at `(phi, r - 1) = (+/-60 deg, 0)` using the same purple marker styling as the orbit panels;
-- this marker is shown or hidden by the shared **L4 / L5 points** control in the upper `Display layers` panel;
-- a vertical reference/grid line and numeric label are always shown at the relevant `+60` or `-60` degree longitude;
-- all other horizontal grid ticks are equally spaced relative to that L4/L5 longitude; the Lagrange longitude need not be at the horizontal center;
-- the close-up range is padded, rounded outward to convenient 5-degree limits, and constrained to the wrapped interval;
-- a minimum angular span is retained.
+- the horizontal ticks are equally spaced relative to that selected Lagrange longitude;
+- `phi = 0` and the secondary may lie outside the visible range;
+- the Lagrange longitude need not be at the horizontal center.
 
-If the trajectory crosses the wrapped-angle discontinuity at `+180 deg / -180 deg`, a single contracted numerical interval would be misleading. In that case selecting **Close-up** falls back to the same horizontal range and standard horizontal ticks as **Full width**, including the `phi = 0` tick.
+For both Close-up modes, the numerical range is padded, rounded outward to convenient 5-degree limits, constrained to the wrapped interval, and given a minimum angular span.
 
-In Close-up mode, vertical `r - 1` ticks are generated at equal intervals anchored to `r - 1 = 0`, so the existing dashed corotation line is a true grid anchor.
+### Wrap fallback for both Close-up modes
 
-When **Close-up** and **1:1 scale** are selected together, the variable panel height is recomputed from the actual horizontal span. If Close-up has fallen back to Full width because the path crosses the wrap discontinuity, the Full-width span is used for that calculation.
+If the trajectory crosses the wrapped-angle discontinuity at `+180 deg / -180 deg`, a single contracted numerical interval would be misleading. In that case both **Close-up with origin** and **Close-up** fall back to the same horizontal range and standard horizontal ticks as **Full width**.
+
+Thus, for a wrapping trajectory, all three horizontal-range selections are identical horizontally.
+
+In either Close-up mode, vertical `r - 1` ticks are generated at equal intervals anchored to `r - 1 = 0`, so the existing dashed corotation line is a true grid anchor.
+
+When either Close-up mode is combined with **1:1 scale**, panel height is recomputed from the actual displayed horizontal span. If the Close-up mode has fallen back to Full width because the path crosses the wrap discontinuity, the Full-width span is used for that calculation.
+
+### L4/L5 point markers in phase space
+
+The phase-space panel follows the shared upper **L4 / L5 points** display switch.
+
+When that switch is on:
+
+- L4 is represented at `(phi, r - 1) = (+60 deg, 0)`;
+- L5 is represented at `(phi, r - 1) = (-60 deg, 0)`;
+- each point is drawn with the same purple marker family used in the rotating and inertial orbit panels **if and only if that longitude lies inside the current horizontal range**.
+
+Therefore Full width normally shows both L4 and L5, while a narrow L4 or L5 Close-up may show only the point that lies inside its current range.
+
+When the shared **L4 / L5 points** switch is off, neither phase-space Lagrange point is drawn.
+
+For a non-wrapping Close-up view, the selected relevant Lagrange longitude remains the vertical reference/grid anchor even if the other Lagrange point also happens to fall inside the displayed range.
 
 ---
 
@@ -147,7 +175,7 @@ The planned baseline behavior is:
 
 If wrapped `phi` is selected for either axis, path construction must split at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
 
-The specialized **Magnify / 1:1 scale** and **Full width / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not part of the initial generic custom-plot controls.
+The specialized **Magnify / 1:1 scale** and **Full width / Close-up with origin / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not part of the initial generic custom-plot controls.
 
 ---
 
