@@ -4,11 +4,11 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, and viewer-selectable display layers are implemented on `main`.
-
-The current development branch `feature/green-body-rigid-inertial-trajectory` refines marker colors, trajectory styling, legend ordering, and adds a panel-local inertial trajectory overlay. No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition is changed.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, and panel-local trajectory overlays are implemented on `main`.
 
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels use the same numerical solution; no second integration is performed.
+
+No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition was changed by the latest visualization work.
 
 ---
 
@@ -37,7 +37,7 @@ The reduced system evolves guiding-center radius `r` and rotating-frame angle `p
 
 in nondimensional units with binary angular frequency 1.
 
-The new inertial Trajectory overlay is explicitly a display layer: every rotating-frame path point is rotated using the single current display time `t`. It is not the inertial time-history curve obtained by using each sample's own stored time.
+The inertial **Trajectory** layer is explicitly a display overlay: every stored rotating-frame path point is rotated using the single current display time `t`. It is not the inertial time-history curve obtained by using each sample's own stored time.
 
 For each stored rotating-frame point `(r_i, phi_i)`, the overlay uses
 
@@ -51,33 +51,35 @@ Therefore the complete rotating-frame path shape remains rigid and phase-locked 
 
 ## Implemented application features
 
-Current `main` already includes:
+Current `main` includes:
 
 - direct input of `mu`, `r0`, `phi0`, and integration duration;
 - validated horseshoe, L4 tadpole, and L5 tadpole presets;
 - rotating and inertial orbit panels driven by one shared animation time;
 - Play, Pause, Reset, and playback speed controls;
 - primary, secondary, L4/L5 markers and triangle guides;
-- three discrete third-body afterimages in both panels;
-- a short fading inertial trail;
-- shared and panel-local display toggles;
+- bright-green current third-body marker with smooth asymmetric pulse;
+- three bright-green discrete third-body afterimages in both panels;
+- a short bright-green fading inertial trail;
+- a blue secondary body;
+- thin blue trajectory overlays in both panels;
+- shared display controls for afterimages, L4/L5 points, and triangle guides;
+- panel-local Trajectory and Axes switches in both rotating and inertial panels;
 - numerical diagnostics and explicit calculation failure reporting.
 
 ---
 
-## Current visualization refinement
+## Current visualization design
 
-The branch `feature/green-body-rigid-inertial-trajectory` changes the display as follows:
+The latest merged display behavior is:
 
-- the third body, its three afterimages, and the inertial fading trail change from orange to bright green;
-- the blue secondary remains unchanged so it stays visually distinct;
-- the blue trajectory line becomes slightly thinner;
-- the inertial panel gains its own **Trajectory** switch, matching the rotating panel;
-- inertial Trajectory shows a rigidly rotated copy of the complete rotating-frame orbit shape, using one shared current time for every point;
-- the overlay is phase-locked to the secondary and does not represent the actual inertial time-history path;
+- the third body, its three afterimages, and the inertial fading trail are bright green;
+- the blue trajectory line is thinner than before;
+- the inertial Trajectory switch draws a rigidly rotated copy of the complete rotating-frame orbit shape;
+- this overlay remains phase-locked to the secondary and does not represent the actual inertial time-history path;
 - both panel legends begin with **Primary**, **Secondary**, **Current position**;
 - when afterimages are enabled, `-1/12 period`, `-2/12 period`, and `-3/12 period` follow in that order;
-- optional Trajectory, Fading trail, and L4/L5 legend entries follow afterward when visible.
+- optional Trajectory, Fading trail, and L4/L5 entries follow afterward when visible.
 
 These choices are documented in `docs/VISUAL_DESIGN.md`.
 
@@ -87,7 +89,7 @@ These choices are documented in `docs/VISUAL_DESIGN.md`.
 
 Existing frame-transform and playback tests remain unchanged.
 
-The DOM test for this branch verifies:
+The DOM test verifies:
 
 - both rotating and inertial Trajectory switches default on;
 - two trajectory paths are initially rendered;
@@ -97,7 +99,7 @@ The DOM test for this branch verifies:
 - both legends begin with Primary, Secondary, Current position;
 - the previous shared and panel-local display controls continue to work.
 
-CI has not yet been run for `feature/green-body-rigid-inertial-trajectory` at the time of this update.
+PR #21 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `6ef9fc13ffe5c39a40ce09684923610e1a5d1012`.
 
 ---
 
@@ -130,7 +132,7 @@ Browser inspection should confirm:
 
 ## Next recommended task
 
-Run CI for `feature/green-body-rigid-inertial-trajectory`. If tests and build pass, merge and inspect horseshoe, L4, and L5 presets in a real browser, focusing especially on the inertial rigid trajectory overlay and its synchronization with the secondary.
+Inspect horseshoe, L4, and L5 presets in a real browser, focusing especially on the bright-green third body, the thinner blue trajectories, the inertial rigid trajectory overlay, and its synchronization with the secondary.
 
 ---
 
