@@ -6,9 +6,9 @@ Last updated: 2026-09-15
 
 The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing orange third-body markers, rotating/inertial discrete afterimages, and an inertial fading trail are implemented on `main`.
 
-The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
+The current development branch `feature/display-layer-toggles` adds viewer-selectable drawing layers. No governing equation, integration method, stored trajectory sample, playback timing, or diagnostic definition is changed.
 
-No governing equation, integration method, stored trajectory sample, or diagnostic definition was changed by the latest visualization work.
+The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
 
 ---
 
@@ -23,7 +23,7 @@ GitHub is the canonical project record. Maintained documents include:
 - `docs/VISUAL_DESIGN.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records concrete rendering and animation choices that are intentionally display-only.
+`docs/PHYSICS.md` remains authoritative for the physical model. `docs/APP_SPEC.md` defines high-level application behavior. `docs/VISUAL_DESIGN.md` records concrete rendering, animation, and display-layer choices that are intentionally display-only.
 
 GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`. GitHub Pages deployment is not yet configured.
 
@@ -37,7 +37,7 @@ The reduced system evolves guiding-center radius `r` and rotating-frame angle `p
 
 in nondimensional units with binary angular frequency 1.
 
-Animation introduces no change to the governing equations or numerical solution. Playback speed, display-time interpolation, afterimages, fading trails, axis overlays, auxiliary geometry lines, pulse animation, and theme styling are visualization operations only.
+Animation and viewer display toggles introduce no change to the governing equations or numerical solution. Playback speed, display-time interpolation, afterimages, fading trails, axis overlays, auxiliary geometry lines, pulse animation, theme styling, and layer visibility are visualization operations only.
 
 The current solver is a transparent fixed-step classical RK4 integrator with UI time step `dt = 0.05`.
 
@@ -77,18 +77,22 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ---
 
-## Current visualization design
+## Current UI refinement
 
-The latest merged visualization behavior is:
+The branch `feature/display-layer-toggles` adds display-only viewer controls with all layers enabled by default.
 
-- the third-body current-position marker and all afterimages use a bright orange fill with no white outline;
-- the secondary body uses blue for clear separation from the third body;
-- both rotating and inertial panels show afterimages at `T/12`, `2T/12`, and `3T/12` in the past;
-- near-overlap of rotating-frame afterimages is expected and is not artificially separated;
-- the inertial panel additionally displays a thin orange fading trail extending back `4T/12 = T/3`;
-- that trail is divided into short line segments whose opacity decreases continuously with age and tends to zero at the oldest endpoint;
-- all afterimage and trail positions are reconstructed from the already computed trajectory for display only;
-- none of these visual elements feed back into the solver or diagnostics.
+Shared controls are placed above and outside the rotating/inertial panel pair:
+
+- **Afterimages** controls discrete afterimages in both panels and the inertial fading trail together;
+- **L4 / L5 points** controls both L4 and L5 point markers in both panels;
+- **L4 / L5 triangles** controls both auxiliary triangle guides in both panels.
+
+Panel-specific controls are placed inside each panel header:
+
+- rotating frame: **Trajectory** and **Axes**;
+- inertial frame: **Axes**.
+
+The current third-body marker, primary, secondary, corotation/reference circle, numerical trajectory data, and playback state are not modified by these toggles. Matching optional legend entries are hidden together with their drawing layers.
 
 These choices are documented in `docs/VISUAL_DESIGN.md`.
 
@@ -124,18 +128,11 @@ Existing frame-transform tests verify coordinate conventions, binary rotation, L
 
 Playback tests verify display-time interpolation, endpoint clamping, and recent-trail helper behavior.
 
-The DOM test verifies:
+The DOM test is being extended to verify the new shared and panel-specific toggles, including synchronized hiding of inertial afterimages and fading trail.
 
-- both frame views;
-- two current-position markers;
-- digital-number playback spans;
-- three afterimages in each frame after sufficient animation time, for six total;
-- inertial fading-trail segments after sufficient animation time;
-- disappearance of afterimages and fading-trail segments after Reset;
-- L4/L5 geometry overlays and axis labels;
-- explicit Calculate, diagnostics, and invalid-input reporting.
+CI has not yet been run for `feature/display-layer-toggles` at the time of this update.
 
-PR #17 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `4ee6efd67b77d22d77ab4459a77d4b8068983f30`.
+PR #17 previously passed GitHub Actions and was merged to `main` at merge commit `4ee6efd67b77d22d77ab4459a77d4b8068983f30`; PR #18 subsequently updated this persistent project record.
 
 ---
 
@@ -157,6 +154,9 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 Open items include:
 
+- whether the shared control strip is visually distinct enough from panel-local controls;
+- whether button active/inactive states are immediately understandable;
+- whether legends should continue to hide together with their optional layers after browser inspection;
 - whether the bright orange third body has the desired prominence on the black panels;
 - whether blue is the best secondary-body color against the current theme;
 - whether three nearly overlapping rotating-frame afterimages are visually useful rather than distracting;
@@ -177,7 +177,7 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Inspect the merged visualization in a real browser using the horseshoe, L4, and L5 presets. Pay particular attention to third-body/secondary color separation, rotating-frame afterimage overlap, and whether the inertial `4T/12` fading trail is thin enough and disappears naturally at its oldest end.
+Run CI for `feature/display-layer-toggles`. If tests and build pass, merge and inspect the shared display controls and both panel-local control groups in a real browser, including narrow-window behavior.
 
 After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
