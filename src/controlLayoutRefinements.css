@@ -1,0 +1,36 @@
+.phase-display-controls {
+  width: min(34rem, 100%);
+}
+
+.phase-option-group {
+  width: 100%;
+  grid-template-columns: 9.25rem minmax(0, 1fr);
+}
+
+.phase-option-group .panel-option-buttons {
+  justify-content: flex-start;
+}
+
+.custom-axis-control {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.custom-axis-heading {
+  grid-column: 1;
+}
+
+.custom-axis-control label,
+.custom-axis-control select {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .phase-display-controls {
+    width: 100%;
+  }
+
+  .phase-option-group {
+    grid-template-columns: 1fr;
+  }
+}
