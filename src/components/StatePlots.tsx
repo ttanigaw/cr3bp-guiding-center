@@ -313,7 +313,7 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const phaseUsesFullWidth = phaseSpaceWidthMode === 'full' || phaseCrossesWrap
   const phasePhiRange = phaseUsesFullWidth
     ? fullPhiRange
-    : closeUpPhiRange(phasePhiValues, lagrangeAnchor)
+    : closeUpPhiRange([...phasePhiValues, 0], lagrangeAnchor)
   const rOffsetRange = niceOuterRange([...sampled.map((point) => point.r - 1), -mu], 0, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
     ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
