@@ -29,7 +29,7 @@ interface PlotMarker {
 }
 
 type PhaseSpaceScaleMode = 'auto' | 'equal'
-type PhaseSpaceWidthMode = 'full' | 'closeup'
+type PhaseSpaceWidthMode = 'full' | 'closeup-origin' | 'closeup'
 
 const WIDTH = 640
 const DEFAULT_HEIGHT = 260
@@ -311,18 +311,25 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const lagrangeAnchor = selectLagrangeAnchor(phasePhiValues)
   const phaseCrossesWrap = wrappedSegments.length > 1
   const phaseUsesFullWidth = phaseSpaceWidthMode === 'full' || phaseCrossesWrap
+  const closeUpValues = phaseSpaceWidthMode === 'closeup-origin'
+    ? [...phasePhiValues, 0]
+    : phasePhiValues
   const phasePhiRange = phaseUsesFullWidth
     ? fullPhiRange
-    : closeUpPhiRange([...phasePhiValues, 0], lagrangeAnchor)
-  const rOffsetRange = niceOuterRange([...sampled.map((point) => point.r - 1), -mu], 0, 0.02)
+    : closeUpPhiRange(closeUpValues, lagrangeAnchor)
+  const phaseShowsOrigin = phasePhiRange.min <= 0 && phasePhiRange.max >= 0
+  const phaseVerticalValues = sampled.map((point) => point.r - 1)
+  if (phaseShowsOrigin) phaseVerticalValues.push(-mu)
+  const rOffsetRange = niceOuterRange(phaseVerticalValues, 0, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
     ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
     : DEFAULT_INNER_HEIGHT
   const phaseHeight = MARGIN.top + phaseInnerHeight + MARGIN.bottom
-  const closeUpXTicks = phaseSpaceWidthMode === 'closeup' && !phaseCrossesWrap
+  const usesCloseUpTicks = phaseSpaceWidthMode !== 'full' && !phaseCrossesWrap
+  const closeUpXTicks = usesCloseUpTicks
     ? anchoredTicks(phasePhiRange, lagrangeAnchor)
     : undefined
-  const closeUpYTicks = phaseSpaceWidthMode === 'closeup'
+  const closeUpYTicks = phaseSpaceWidthMode !== 'full'
     ? anchoredTicks(rOffsetRange, 0, phaseInnerHeight < 120 ? 2 : 5)
     : undefined
   const phasePaths = wrappedSegments.map((segment, index) => ({
@@ -339,16 +346,21 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const phaseNote = phaseSpaceScaleMode === 'equal'
     ? '1:1 vertical scale uses (r − 1) × 180/π; horizontal range follows the selected width mode'
     : 'Magnified vertical scale; horizontal range follows the selected width mode'
-  const phaseMarkers: PlotMarker[] = [
-    { key: 'secondary', x: 0, y: -mu, className: 'secondary-body phase-secondary-point' },
-  ]
-  if (phaseSpaceWidthMode === 'closeup' && showLagrangePoints) {
-    phaseMarkers.push({
-      key: `lagrange-${lagrangeAnchor}`,
-      x: lagrangeAnchor,
-      y: 0,
-      className: 'lagrange-point phase-lagrange-point',
-    })
+  const phaseMarkers: PlotMarker[] = []
+  if (phaseShowsOrigin) {
+    phaseMarkers.push({ key: 'secondary', x: 0, y: -mu, className: 'secondary-body phase-secondary-point' })
+  }
+  if (showLagrangePoints) {
+    for (const longitude of [-60, 60]) {
+      if (longitude >= phasePhiRange.min && longitude <= phasePhiRange.max) {
+        phaseMarkers.push({
+          key: `lagrange-${longitude}`,
+          x: longitude,
+          y: 0,
+          className: 'lagrange-point phase-lagrange-point',
+        })
+      }
+    }
   }
 
   return (
@@ -421,6 +433,14 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
               </button>
               <button
                 type="button"
+                className={`toggle-button${phaseSpaceWidthMode === 'closeup-origin' ? ' active' : ''}`}
+                aria-pressed={phaseSpaceWidthMode === 'closeup-origin'}
+                onClick={() => setPhaseSpaceWidthMode('closeup-origin')}
+              >
+                Close-up with origin
+              </button>
+              <button
+                type="button"
                 className={`toggle-button${phaseSpaceWidthMode === 'closeup' ? ' active' : ''}`}
                 aria-pressed={phaseSpaceWidthMode === 'closeup'}
                 onClick={() => setPhaseSpaceWidthMode('closeup')}
@@ -442,7 +462,7 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
           xTickFormat={(value) => value.toFixed(0)}
           yTickFormat={(value) => Math.abs(value) >= 0.1 ? value.toFixed(1) : value.toFixed(3)}
           horizontalReference={0}
-          verticalReference={phaseSpaceWidthMode === 'closeup' && !phaseCrossesWrap ? lagrangeAnchor : undefined}
+          verticalReference={usesCloseUpTicks ? lagrangeAnchor : undefined}
           markers={phaseMarkers}
           className="phase-space-plot"
           height={phaseHeight}
