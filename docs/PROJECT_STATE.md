@@ -4,14 +4,16 @@ Last updated: 2026-09-16
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, synchronized fixed state plots, three phase-space horizontal-range modes, viewer-selectable display layers, reusable diagnostic data, synchronized current diagnostics, and the user-selectable Custom X-Y diagnostic plot are implemented on `main`.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, fixed state plots, phase-space display controls, reusable diagnostic data, synchronized current diagnostics, and the selectable Custom X-Y diagnostic plot are implemented on `main`.
 
-The latest browser review identified two Custom X-Y readability needs, both now implemented on `main`:
+Recent browser-review refinements are also on `main`:
 
-1. zero-anchored nice-number ticks for linear axes;
-2. independent Linear / `log10` scale selection for X and Y.
+- Custom X-Y linear axes use zero-anchored nice ticks when zero lies in range;
+- Custom X and Y axes independently support Linear / `log10` when the selected data are strictly positive;
+- the fixed `phi` versus `r - 1` panel now uses a tighter zero-anchored vertical range and consistent zero-based ticks in all horizontal-range modes;
+- very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line.
 
-No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by this refinement.
+No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by these display refinements.
 
 ---
 
@@ -34,9 +36,7 @@ GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests 
 
 ---
 
-## Accepted fixed visualization baseline
-
-The rotating/inertial orbit panels and fixed lower plots remain the accepted display baseline.
+## Fixed phase-space panel on main
 
 The fixed `phi` versus `r - 1` panel provides:
 
@@ -45,6 +45,18 @@ The fixed `phi` versus `r - 1` panel provides:
 - wrap-safe fallback to Full width when the trajectory crosses `+180 deg / -180 deg`;
 - the secondary at `(phi, r - 1) = (0, -mu)` whenever the selected horizontal range contains the origin;
 - L4 at `(+60 deg, 0)` and L5 at `(-60 deg, 0)` whenever each lies inside the displayed range and **L4 / L5 points** is enabled.
+
+PR #45 refined the vertical-axis behavior and was merged to `main` at merge commit `c7db93c0675cb8be8ed3883fbe6f477eb0ace5d0` after CI passed.
+
+The phase-space vertical axis now:
+
+- always retains `r - 1 = 0` as the numerical reference;
+- uses one 1-2-5-style interval and rounds both limits to multiples of that same interval;
+- places ordinary vertical ticks at equal spacing anchored to zero for Full width and both Close-up modes;
+- avoids unnecessarily coarse independent endpoint rounding, so a range such as approximately `[-0.018, 0.014]` can display as `[-0.020, 0.020]` rather than `[-0.050, 0.020]`;
+- when a 1:1 plot becomes too shallow for normal tick labels, omits the numeric zero label, retains the dashed zero line, and displays only the upper/lower endpoint values with their labels displaced slightly apart for readability.
+
+Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
 ---
 
@@ -81,67 +93,23 @@ The Custom X-Y plot supports independent X/Y selection among:
 
 Default axes remain `X = t`, `Y = Delta H_gc`.
 
----
+Linear custom axes use 1-2-5-style equal tick spacing and include a labeled zero tick whenever zero is in range.
 
-## Custom X-Y linear-axis behavior
-
-Linear custom axes now use equal tick spacing chosen from simple `1`, `2`, or `5` multiples of powers of ten.
-
-If the displayed range contains zero:
-
-- zero is always a labeled tick;
-- the other ticks are equally spaced relative to zero;
-- the axis range itself need not be symmetric about zero.
-
-This addresses the browser-review case where a zero reference line was visible but the tick labels were offset from zero.
-
----
-
-## Custom X-Y log10 behavior
-
-Each Custom X-Y axis has an independent scale selector:
-
-- **Linear** — default;
-- **log10**.
-
-`log10` is enabled only if every stored value for the selected axis is finite and strictly positive.
-
-If any value is zero or negative:
-
-- the `log10` option is disabled;
-- no samples are silently removed;
-- if a variable change or recalculation invalidates an already selected log scale, that axis returns to Linear.
-
-In `log10` mode:
-
-- coordinates use `log10(value)`;
-- tick labels show the transformed logarithmic value;
-- the axis title explicitly reads `log10(variable)`;
-- only positive reference values can produce reference lines.
-
-X and Y scale modes are independent.
+Each Custom X-Y axis independently supports **Linear** and **log10**. `log10` is enabled only when every stored value on that axis is finite and strictly positive; no nonpositive samples are silently removed. In log mode, coordinates and labels use the base-10 transformed value and the axis title explicitly reads `log10(variable)`.
 
 ---
 
 ## Validation status
 
-PR #43 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `da460e56d4be38bc476193f18d56bfc5745e2ecc`.
+PR #45 passed GitHub Actions with both tests and build successful before merge.
 
-New tests verify:
+New phase-space tests verify:
 
-- a linear range containing zero generates a zero tick and equal nice-number spacing;
-- one-sided nonnegative ranges retain zero cleanly at the boundary;
-- `log10` availability requires every value to be strictly positive;
-- log coordinates use the base-10 transformed value;
-- positive reference values remain usable in log mode;
-- nonpositive data are rejected for log layout;
-- Custom X/Y scale controls default to Linear;
-- nonpositive variables expose `log10` as unavailable;
-- a positive variable can switch to `log10` and receives an explicit `log10(...)` axis title;
-- changing from a logarithmic positive variable to a signed variable automatically returns the axis to Linear;
-- signed `dot r` / `dot phi` custom axes include a zero tick with equal intervals;
-- selector changes still do not change integration-point count;
-- wrapped-phi splitting and shared playback-marker synchronization continue to work.
+- the tighter zero-anchored radial-offset range, including `[-0.018, 0.014] -> [-0.020, 0.020]`;
+- Full-width Magnify includes zero as a vertical tick and keeps equal spacing around it;
+- a very shallow Full-width 1:1 plot shows only the two endpoint labels, omits numeric zero, and still renders the zero reference line.
+
+Earlier diagnostics/custom-plot tests continue to cover the shared diagnostic definitions, wrapped-phi splitting, selector behavior, log-scale eligibility, zero-anchored Custom X-Y ticks, and shared playback-marker synchronization.
 
 ---
 
@@ -149,8 +117,8 @@ New tests verify:
 
 Remaining work is:
 
-1. real-browser review of the refined Custom X-Y tick placement and Linear / `log10` controls for horseshoe, L4, and L5 presets;
-2. adjust diagnostic number formatting, density, axis formatting, or selector layout if browser review shows another usability issue;
+1. real-browser review of the refined phase-space vertical axis together with the Custom X-Y plot for horseshoe, L4, and L5 presets;
+2. adjust remaining number formatting, label density, or selector layout only if browser review shows a usability issue;
 3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
 4. refresh README usage documentation;
 5. configure and verify static GitHub Pages deployment.
@@ -159,23 +127,15 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ---
 
-## Browser-review questions
-
-For the refined Custom X-Y plot, check:
-
-- signed pairs such as `dot r` versus `dot phi` show a clearly labeled zero and evenly spaced ticks around it;
-- `r`, `r2`, or positive `epsilon_tide` cases behave naturally in `log10` mode;
-- the `log10(variable)` axis title is unambiguous;
-- disabled `log10` options for quantities containing zero/negative values are understandable;
-- X/Y variable and scale controls remain readable at normal desktop width and on narrower screens.
-
-These are presentation questions only; the physical definitions remain fixed by `docs/PHYSICS.md`.
-
----
-
 ## Next recommended task
 
-Review the refined Custom X-Y plot in a real browser. If accepted, refresh README and proceed to static GitHub Pages deployment for version 0.1.
+Review the phase-space vertical-axis refinement in a real browser, especially:
+
+- Full width + Magnify: zero-anchored equal vertical ticks;
+- Full width + 1:1: endpoint-only labels without overlap;
+- both Close-up modes + Magnify: tighter vertical range without clipping the trajectory.
+
+If these are acceptable, proceed to README refresh and static GitHub Pages deployment for version 0.1.
 
 ---
 
