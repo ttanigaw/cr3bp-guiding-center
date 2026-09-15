@@ -377,6 +377,7 @@ export default function App() {
           <StatePlots
             trajectory={result.trajectory}
             currentPoint={currentPoint}
+            mu={result.mu}
             showLagrangePoints={sharedDisplayOptions.showLagrangePoints}
           />
 
