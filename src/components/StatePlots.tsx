@@ -12,6 +12,7 @@ import {
 interface StatePlotsProps {
   trajectory: TrajectoryPoint[]
   currentPoint: TrajectoryPoint
+  mu: number
   showLagrangePoints: boolean
 }
 
@@ -289,7 +290,7 @@ function ScaleChoice({
   )
 }
 
-export default function StatePlots({ trajectory, currentPoint, showLagrangePoints }: StatePlotsProps) {
+export default function StatePlots({ trajectory, currentPoint, mu, showLagrangePoints }: StatePlotsProps) {
   const [phaseSpaceScaleMode, setPhaseSpaceScaleMode] = useState<PhaseSpaceScaleMode>('auto')
   const [phaseSpaceWidthMode, setPhaseSpaceWidthMode] = useState<PhaseSpaceWidthMode>('full')
   const sampled = sampleTrajectory(trajectory)
@@ -308,15 +309,17 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
 
   const phasePhiValues = wrappedSegments.flatMap((segment) => segment.map((point) => point.phiDegrees))
   const lagrangeAnchor = selectLagrangeAnchor(phasePhiValues)
-  const phasePhiRange = phaseSpaceWidthMode === 'closeup'
-    ? closeUpPhiRange(phasePhiValues, lagrangeAnchor)
-    : fullPhiRange
-  const rOffsetRange = niceOuterRange(sampled.map((point) => point.r - 1), 0, 0.02)
+  const phaseCrossesWrap = wrappedSegments.length > 1
+  const phaseUsesFullWidth = phaseSpaceWidthMode === 'full' || phaseCrossesWrap
+  const phasePhiRange = phaseUsesFullWidth
+    ? fullPhiRange
+    : closeUpPhiRange([...phasePhiValues, 0], lagrangeAnchor)
+  const rOffsetRange = niceOuterRange([...sampled.map((point) => point.r - 1), -mu], 0, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
     ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
     : DEFAULT_INNER_HEIGHT
   const phaseHeight = MARGIN.top + phaseInnerHeight + MARGIN.bottom
-  const closeUpXTicks = phaseSpaceWidthMode === 'closeup'
+  const closeUpXTicks = phaseSpaceWidthMode === 'closeup' && !phaseCrossesWrap
     ? anchoredTicks(phasePhiRange, lagrangeAnchor)
     : undefined
   const closeUpYTicks = phaseSpaceWidthMode === 'closeup'
@@ -336,9 +339,17 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
   const phaseNote = phaseSpaceScaleMode === 'equal'
     ? '1:1 vertical scale uses (r − 1) × 180/π; horizontal range follows the selected width mode'
     : 'Magnified vertical scale; horizontal range follows the selected width mode'
-  const phaseMarkers = phaseSpaceWidthMode === 'closeup' && showLagrangePoints
-    ? [{ key: `lagrange-${lagrangeAnchor}`, x: lagrangeAnchor, y: 0, className: 'lagrange-point phase-lagrange-point' }]
-    : []
+  const phaseMarkers: PlotMarker[] = [
+    { key: 'secondary', x: 0, y: -mu, className: 'secondary-body phase-secondary-point' },
+  ]
+  if (phaseSpaceWidthMode === 'closeup' && showLagrangePoints) {
+    phaseMarkers.push({
+      key: `lagrange-${lagrangeAnchor}`,
+      x: lagrangeAnchor,
+      y: 0,
+      className: 'lagrange-point phase-lagrange-point',
+    })
+  }
 
   return (
     <section className="state-plot-grid" aria-label="Guiding-center state plots">
@@ -431,7 +442,7 @@ export default function StatePlots({ trajectory, currentPoint, showLagrangePoint
           xTickFormat={(value) => value.toFixed(0)}
           yTickFormat={(value) => Math.abs(value) >= 0.1 ? value.toFixed(1) : value.toFixed(3)}
           horizontalReference={0}
-          verticalReference={phaseSpaceWidthMode === 'closeup' ? lagrangeAnchor : undefined}
+          verticalReference={phaseSpaceWidthMode === 'closeup' && !phaseCrossesWrap ? lagrangeAnchor : undefined}
           markers={phaseMarkers}
           className="phase-space-plot"
           height={phaseHeight}
