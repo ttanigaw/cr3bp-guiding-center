@@ -65,38 +65,59 @@ The phase-space view uses:
 - `r - 1 = 0` is shown as a dashed corotation reference line;
 - line segments are split at the same wrapped-angle discontinuities used in `phi(t)` so the plot never connects `+180 deg` directly to `-180 deg`.
 
-The viewer can choose between two vertical-scaling modes. The horizontal plotting range and horizontal plot width remain unchanged in both modes.
+The viewer has two independent phase-space display choices:
 
-### Auto fit
+1. vertical scale: **Auto fit** or **1:1 scale**;
+2. horizontal range: **Full width** or **Close-up**.
 
-This is the default and preserves the original behavior:
+The physical width of the panel itself remains fixed in all combinations.
+
+### Vertical scale: Auto fit
+
+This is the default vertical behavior:
 
 - the phase-space SVG has the normal fixed plot height;
-- the vertical range is chosen so the complete plotted `r - 1` data fit, with `r - 1 = 0` retained in view;
-- horizontal scale remains `-180 deg` to `+180 deg` across the existing plotting width.
+- the vertical range is chosen to contain the complete plotted `r - 1` data while retaining `r - 1 = 0`;
+- the displayed vertical limits are expanded outward to simple 1-2-5-style values rather than exposing awkward decimal limits;
+- for example, a required positive limit near `0.064` is displayed with an outer limit of `0.1`.
 
-### 1:1 scale
+### Vertical scale: 1:1 scale
 
-This mode preserves the horizontal range and physical plotting width but varies the plot height so that horizontal and vertical display scales are equal after expressing the vertical displacement in degree-equivalent units.
+This mode varies the plot height so that horizontal and vertical display scales are equal after expressing the vertical displacement in degree-equivalent units.
 
 For scaling only, define
 
 `y_display = (r - 1) * 180 / pi`.
 
-The plot height is selected so that one unit of `phi` in degrees and one unit of `y_display` occupy the same physical screen length. Equivalently, a change `Delta(r - 1)` occupies the same physical screen length as a horizontal angular change
-
-`Delta phi [deg] = Delta(r - 1) * 180 / pi`.
+The plot height is selected so that one unit of `phi` in degrees and one unit of `y_display` occupy the same physical screen length.
 
 Important consequences:
 
-- the horizontal plotting width is not changed;
-- the horizontal `phi` range is not changed;
-- only the vertical plotting-area height changes;
-- vertical tick labels continue to show the physical `r - 1` values rather than the degree-equivalent scaling coordinate;
-- the same auto-derived vertical data range, including its display padding, is used to determine the required 1:1 plot height;
-- the current-state marker and phase-space path use the same scaling transformation.
+- the physical horizontal plotting width is unchanged;
+- the selected horizontal `phi` range determines the horizontal scale;
+- only the vertical plotting-area height changes to enforce the 1:1 scale;
+- vertical tick labels continue to show physical `r - 1` values rather than degree-equivalent values;
+- the current-state marker and phase-space path use the same scaling transformation;
+- when the resulting vertical drawing area is shallow, only the lower and upper vertical-axis labels are shown to avoid unreadable label overlap.
 
-This scaling choice is purely visual and does not modify trajectory data or physical variables.
+### Horizontal range: Full width
+
+This is the default horizontal behavior:
+
+- `phi` remains fixed from `-180 deg` to `+180 deg`;
+- the physical plot width remains the normal fixed width.
+
+### Horizontal range: Close-up
+
+Close-up keeps the physical panel width unchanged but narrows the numerical horizontal `phi` range to the range occupied by the wrapped trajectory.
+
+- the trajectory range is padded slightly;
+- limits are rounded outward to convenient 5-degree boundaries;
+- the close-up range is always kept inside `[-180 deg, +180 deg]`;
+- a minimum angular span is retained so nearly stationary tadpole trajectories do not collapse to an unusably narrow horizontal range;
+- if a trajectory genuinely occupies most of the wrapped interval, Close-up may remain close to Full width.
+
+When **Close-up** and **1:1 scale** are selected together, the reduced horizontal angular span increases the vertical panel height as required to preserve the same physical 1:1 scale.
 
 This plot is intended to make horseshoe, tadpole, and circulating behavior easier to distinguish.
 
