@@ -74,6 +74,35 @@ export function niceOuterRange(
   }
 }
 
+export function zeroAnchoredNiceRange(
+  values: number[],
+  minimumSpan: number,
+  targetIntervals = 4,
+): PlotRange {
+  let min = Math.min(0, ...values)
+  let max = Math.max(0, ...values)
+
+  if (max - min < minimumSpan) {
+    const halfMinimumSpan = minimumSpan / 2
+    min = Math.min(min, -halfMinimumSpan)
+    max = Math.max(max, halfMinimumSpan)
+  }
+
+  const rawStep = (max - min) / Math.max(targetIntervals, 1)
+  const step = niceCeilingMagnitude(rawStep)
+  if (!(step > 0)) {
+    return { min: -minimumSpan / 2, max: minimumSpan / 2 }
+  }
+
+  const roundedMin = Math.floor(min / step) * step
+  const roundedMax = Math.ceil(max / step) * step
+
+  return {
+    min: Number(roundedMin.toPrecision(12)),
+    max: Number(roundedMax.toPrecision(12)),
+  }
+}
+
 export function selectLagrangeAnchor(values: number[]): LagrangeAnchorDegrees {
   const min = Math.min(...values)
   const max = Math.max(...values)

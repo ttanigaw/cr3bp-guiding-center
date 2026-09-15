@@ -5,6 +5,7 @@ import {
   niceCeilingMagnitude,
   niceOuterRange,
   selectLagrangeAnchor,
+  zeroAnchoredNiceRange,
 } from '../src/visualization/plotScale'
 
 describe('phase-space plot scale helpers', () => {
@@ -19,6 +20,15 @@ describe('phase-space plot scale helpers', () => {
     expect(niceOuterRange([0.01, 0.064], 0, 0.02)).toEqual({ min: 0, max: 0.1 })
     expect(niceOuterRange([-0.064, -0.01], 0, 0.02)).toEqual({ min: -0.1, max: 0 })
     expect(niceOuterRange([-0.031, 0.064], 0, 0.02)).toEqual({ min: -0.05, max: 0.1 })
+  })
+
+  it('builds a tight zero-anchored range from a shared nice tick step', () => {
+    expect(zeroAnchoredNiceRange([-0.018, 0.014], 0.02)).toEqual({ min: -0.02, max: 0.02 })
+    expect(zeroAnchoredNiceRange([-0.031, 0.014], 0.02)).toEqual({ min: -0.04, max: 0.02 })
+
+    const minimumSpanRange = zeroAnchoredNiceRange([-0.003, 0.004], 0.02)
+    expect(minimumSpanRange.min).toBeLessThanOrEqual(-0.01)
+    expect(minimumSpanRange.max).toBeGreaterThanOrEqual(0.01)
   })
 
   it('chooses the L4 or L5 longitude represented by the close-up data', () => {

@@ -4,8 +4,8 @@ import { sampleTrajectory, wrapPhiDegrees, wrappedPlotSegments } from '../visual
 import {
   anchoredTicks,
   closeUpPhiRange,
-  niceOuterRange,
   selectLagrangeAnchor,
+  zeroAnchoredNiceRange,
   type PlotRange,
 } from '../visualization/plotScale'
 
@@ -107,6 +107,7 @@ function PlotFrame({
   yTickCount = 5,
   xTicks: suppliedXTicks,
   yTicks: suppliedYTicks,
+  spreadEndpointYLabels = false,
 }: {
   ariaLabel: string
   paths: PlotPath[]
@@ -125,6 +126,7 @@ function PlotFrame({
   yTickCount?: number
   xTicks?: number[]
   yTicks?: number[]
+  spreadEndpointYLabels?: boolean
 }) {
   const innerHeight = height - MARGIN.top - MARGIN.bottom
   const xTicks = suppliedXTicks ?? makeTicks(xRange)
@@ -168,6 +170,13 @@ function PlotFrame({
       {yTicks.map((tick) => {
         const y = scaleY(tick, yRange, innerHeight)
         const isReference = horizontalReference !== undefined && Math.abs(tick - horizontalReference) < 1e-12
+        const isUpperEndpoint = Math.abs(tick - yRange.max) < 1e-12
+        const isLowerEndpoint = Math.abs(tick - yRange.min) < 1e-12
+        const labelY = spreadEndpointYLabels && isUpperEndpoint
+          ? MARGIN.top - 4
+          : spreadEndpointYLabels && isLowerEndpoint
+            ? MARGIN.top + innerHeight + 16
+            : y + 4
         return (
           <g key={`y-${tick}`}>
             <line
@@ -180,7 +189,7 @@ function PlotFrame({
             <text
               className="state-tick-label state-y-tick-label"
               x={MARGIN.left - 9}
-              y={y + 4}
+              y={labelY}
               textAnchor="end"
             >
               {yTickFormat(tick)}
@@ -320,7 +329,7 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const phaseShowsOrigin = phasePhiRange.min <= 0 && phasePhiRange.max >= 0
   const phaseVerticalValues = sampled.map((point) => point.r - 1)
   if (phaseShowsOrigin) phaseVerticalValues.push(-mu)
-  const rOffsetRange = niceOuterRange(phaseVerticalValues, 0, 0.02)
+  const rOffsetRange = zeroAnchoredNiceRange(phaseVerticalValues, 0.02)
   const phaseInnerHeight = phaseSpaceScaleMode === 'equal'
     ? equalScaleInnerHeight(phasePhiRange, rOffsetRange)
     : DEFAULT_INNER_HEIGHT
@@ -329,9 +338,14 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const closeUpXTicks = usesCloseUpTicks
     ? anchoredTicks(phasePhiRange, lagrangeAnchor)
     : undefined
-  const closeUpYTicks = phaseSpaceWidthMode !== 'full'
-    ? anchoredTicks(rOffsetRange, 0, phaseInnerHeight < 120 ? 2 : 5)
-    : undefined
+  const condensedPhaseYLabels = phaseSpaceScaleMode === 'equal' && phaseInnerHeight < 48
+  const phaseYTicks = condensedPhaseYLabels
+    ? [rOffsetRange.min, rOffsetRange.max]
+    : anchoredTicks(
+        rOffsetRange,
+        0,
+        phaseSpaceScaleMode === 'equal' && phaseInnerHeight < 120 ? 2 : 5,
+      )
   const phasePaths = wrappedSegments.map((segment, index) => ({
     key: `phase-${index}`,
     d: pathFromPoints(
@@ -467,7 +481,8 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
           className="phase-space-plot"
           height={phaseHeight}
           xTicks={closeUpXTicks}
-          yTicks={closeUpYTicks}
+          yTicks={phaseYTicks}
+          spreadEndpointYLabels={condensedPhaseYLabels}
         />
       </PlotCard>
     </section>
