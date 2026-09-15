@@ -30,19 +30,29 @@ A seven-segment-style font name (`DSEG7` / compatible names) is preferred when a
 
 ---
 
-## Rotating-frame trajectory
+## Rotating-frame trajectory and inertial trajectory overlay
 
-The rotating-frame reduced trajectory remains visible as a complete path for context by default.
+The rotating-frame reduced trajectory remains available as a complete path for context.
 
-Its line is intentionally thinner than in the first prototype so it does not dominate the body markers, coordinate overlays, and Lagrange geometry.
+Its line is intentionally thin so it does not dominate the body markers, coordinate overlays, and Lagrange geometry. The current refinement makes this line slightly thinner again.
 
-The inertial `+X/+Y` axes continue to be shown in rotating-frame coordinates and therefore rotate clockwise with angle `-t`.
+The inertial panel now also has a panel-local **Trajectory** switch. This does **not** draw the time-history curve obtained by transforming every stored sample with that sample's own time. Instead, it draws the same complete rotating-frame orbit shape as a rigid overlay and rotates the entire shape with the current binary phase.
+
+For a rotating-frame sample `(r_i, phi_i)` and current display time `t`, the overlay position is constructed from
+
+`X_i = r_i cos(phi_i + t)`
+
+`Y_i = r_i sin(phi_i + t)`.
+
+The same current `t` is applied to every point of the shape. Therefore the overlay remains phase-locked to the binary/secondary and rotates as one rigid figure. It is an explanatory display layer, not an inertial-frame time-history trajectory and not a second integration.
+
+The inertial `+X/+Y` axes continue to be shown in rotating-frame coordinates and therefore rotate clockwise with angle `-t` in the rotating panel.
 
 ---
 
 ## Third-body marker and pulse
 
-The current third-body marker in both frame panels uses a bright orange fill with no outline. The same orange color family is used for all third-body afterimages and the inertial fading trail.
+The current third-body marker in both frame panels uses a bright green fill with no outline. The same green color family is used for all third-body afterimages and the inertial fading trail.
 
 The marker uses a smooth visual pulse with a one-second display cycle. The pulse is deliberately asymmetric:
 
@@ -54,7 +64,7 @@ This pulse is a visual cue only and is independent of the numerical integration.
 
 Users who request reduced motion through their operating-system/browser preference should receive a non-pulsing marker.
 
-The secondary body uses a blue fill so that it remains clearly distinguishable from the orange third body.
+The secondary body remains blue so that it is clearly distinguishable from the bright-green third body.
 
 ---
 
@@ -88,7 +98,7 @@ These markers are derived by display-time interpolation of the already computed 
 
 ## Inertial fading trail
 
-In addition to the three discrete afterimages, the inertial panel displays a thin orange trail covering the most recent `4T/12 = T/3` of binary time.
+In addition to the three discrete afterimages, the inertial panel displays a thin green trail covering the most recent `4T/12 = T/3` of binary time.
 
 The trail is rendered as short line segments so opacity can vary continuously with age along a curved trajectory:
 
@@ -124,7 +134,7 @@ Shared controls are placed above and outside the two orbit panels so it is clear
 Panel-specific controls are placed inside the corresponding panel header:
 
 - rotating frame: **Trajectory** and **Axes**;
-- inertial frame: **Axes**.
+- inertial frame: **Trajectory** and **Axes**.
 
 All display layers are enabled by default. The current third-body marker, primary, secondary, reference/corotation circle, playback state, and numerical data remain visible regardless of these layer toggles.
 
@@ -132,18 +142,29 @@ When a layer is hidden, its matching legend item should also be hidden so the le
 
 ---
 
+## Legend ordering
+
+The legends in both orbit panels prioritize objects that cannot be hidden. Their leading order is:
+
+1. Primary;
+2. Secondary;
+3. Current position;
+4. `-1/12 period`;
+5. `-2/12 period`;
+6. `-3/12 period`.
+
+Optional entries such as Trajectory, Fading trail, and L4/L5 follow those entries when visible. If afterimages are disabled, their three legend entries are simply omitted without changing the priority of Primary, Secondary, and Current position.
+
+---
+
 ## Browser-validation questions
 
 After this design is merged, browser review should focus on:
 
-1. whether the dark theme improves readability without becoming decorative noise;
-2. whether the digital-style playback numerals remain stable and readable;
-3. whether the orange third body is sufficiently distinct from the blue secondary;
-4. whether the one-second asymmetric pulse feels smooth rather than like hard blinking;
-5. whether all three afterimages are easy to distinguish during normal playback in both frames;
-6. whether rotating-frame afterimage overlap remains readable and unobtrusive;
-7. whether the `3/4`, `2/4`, `1/4` brightness progression is visually useful;
-8. whether the inertial `4T/12` fading trail decays smoothly enough and disappears naturally at its oldest end;
-9. whether the thin orange trail remains subordinate to the current marker and discrete afterimages;
-10. whether the shared versus panel-specific grouping of display controls is immediately understandable;
-11. whether the active/inactive toggle styling is clear without competing visually with the plots.
+1. whether the bright-green third body is sufficiently distinct from the blue secondary and blue trajectory;
+2. whether the thinner trajectory line remains easy to follow;
+3. whether the inertial Trajectory overlay is clearly understood as a rigidly rotating rotating-frame orbit shape rather than an inertial time-history path;
+4. whether the inertial trajectory overlay remains correctly phase-locked to the secondary throughout playback;
+5. whether the shared versus panel-specific grouping of display controls remains immediately understandable;
+6. whether the revised legend ordering makes the stable physical objects easier to scan;
+7. whether the inertial `4T/12` fading trail remains visually subordinate to the marker and discrete afterimages.
