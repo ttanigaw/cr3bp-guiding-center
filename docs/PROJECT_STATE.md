@@ -6,7 +6,7 @@ Last updated: 2026-09-15
 
 The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, bright-green pulsing third-body markers, rotating/inertial discrete afterimages, an inertial fading trail, viewer-selectable display layers, panel-local trajectory overlays, synchronized lower state plots, selectable phase-space vertical scaling, phase-space horizontal close-up, and L4/L5-anchored Close-up axes are implemented on `main`.
 
-The current orbit-panel appearance and interaction design have been reviewed in a real browser by the project owner and are considered broadly acceptable as of 2026-09-15.
+The current orbit-panel appearance and interaction design have been reviewed in a real browser by the project owner and are considered broadly acceptable as of 2026-09-15. The latest phase-space Close-up behavior, including L4/L5 reference markers and anchored ticks, has also been reviewed in a real browser and is considered broadly acceptable as of 2026-09-15.
 
 The application computes one reduced guiding-center trajectory in the browser. Orbit panels and state plots visualize that same numerical solution; no second integration is performed.
 
@@ -105,6 +105,8 @@ The latest tests verify:
 
 PR #30 passed GitHub Actions with both `npm test` and `npm run build` successful before merge.
 
+Real-browser review completed after that merge. The project owner reported that the phase-space presentation is broadly acceptable, so this display refinement is no longer the immediate blocking task.
+
 ---
 
 ## Still required for version 0.1
@@ -121,19 +123,19 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ## Known issues and browser checks
 
-The next browser review should confirm:
+The current orbit panels and phase-space controls are accepted as workable baselines. Non-blocking follow-up questions include:
 
-- the purple L4/L5 phase-space marker is visually consistent with the orbit panels;
-- the `+60` or `-60` anchor line and label are clear without being visually dominant;
-- equal-spacing horizontal ticks look natural even when the Lagrange longitude is off-center;
-- zero-anchored vertical ticks remain readable in shallow 1:1 plots;
-- `Magnify` communicates the default vertical mode more clearly than `Auto fit`.
+- whether the L4/L5 reference styling should be adjusted after current-state diagnostics are added;
+- whether the phase-space control layout needs further compaction on narrow screens;
+- whether the seven-segment-style font is actually selected in target browsers or the monospace fallback is being used.
+
+These items do not block the next functional work.
 
 ---
 
 ## Next recommended task
 
-Inspect Close-up behavior for both L4 and L5 tadpole presets in a real browser. If accepted, proceed to current-state diagnostics synchronized to the shared animation time.
+Proceed to current-state diagnostics synchronized to the shared animation time, then add approximation-validity indicators and warning presentation. After those are stable, configure static deployment suitable for GitHub Pages.
 
 ---
 
