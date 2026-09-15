@@ -4,11 +4,11 @@ Last updated: 2026-09-15
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing third-body markers, and discrete afterimages are implemented on `main`.
-
-The current development branch `feature/orange-afterimages-fade-trail` refines the display language of the third body and its motion history. No governing equation, integration method, stored trajectory sample, or diagnostic definition is changed.
+The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, trajectory diagnostics, rotating/inertial frame visualizations, synchronized animation, dark space theme, pulsing orange third-body markers, rotating/inertial discrete afterimages, and an inertial fading trail are implemented on `main`.
 
 The application computes one reduced guiding-center trajectory in the browser. The rotating and inertial panels are two coordinate representations of that same numerical solution; the inertial view does not perform a second integration.
+
+No governing equation, integration method, stored trajectory sample, or diagnostic definition was changed by the latest visualization work.
 
 ---
 
@@ -55,15 +55,18 @@ Current `main` includes:
 - primary, secondary, corotation/reference orbit, and L4/L5 markers;
 - Play, Pause, Reset, and playback speed controls;
 - one shared animation time for both frame panels;
-- current-position marker in the rotating frame;
-- moving inertial primary, secondary, L4/L5, and guiding-center marker;
+- bright-orange current third-body marker in both frames with no outline;
+- smooth one-second asymmetric pulse for the third body;
+- blue secondary-body marker to distinguish it from the orange third body;
+- three discrete third-body afterimages in both frames at `T/12`, `2T/12`, and `3T/12`;
+- relative afterimage peak strengths `3/4`, `2/4`, and `1/4`;
+- rotating-frame afterimages shown at their true past guiding-center positions even when nearly overlapping;
+- a thin orange inertial fading trail covering the most recent `4T/12 = T/3`;
 - inertial axes shown inside the rotating-frame view;
 - fixed inertial `+X/+Y` arrows and labels in the inertial view;
 - faint primary-secondary-L4/L5 triangle guides in both views;
 - dark space-like application theme;
 - digital-style fixed-width playback numerals;
-- smooth one-second third-body pulse;
-- three inertial third-body afterimages at `T/12`, `2T/12`, and `3T/12`;
 - maximum reduced-Hamiltonian drift diagnostic;
 - minimum distance to the secondary;
 - explicit numerical-failure reporting.
@@ -74,19 +77,18 @@ A successful recalculation pauses playback and resets display time to `t = 0`. P
 
 ---
 
-## Current visualization refinements
+## Current visualization design
 
-The branch `feature/orange-afterimages-fade-trail` adds or changes the following display behavior:
+The latest merged visualization behavior is:
 
-- the third-body current-position marker changes from cyan/green to a bright orange fill;
-- the current marker and all afterimages no longer have a white outline;
-- the three afterimages use the same orange color family as the current marker, retaining relative peak strengths `3/4`, `2/4`, and `1/4`;
-- the secondary body changes to blue so it remains visually distinct from the orange third body;
-- the rotating-frame panel now also displays the same three afterimages at `T/12`, `2T/12`, and `3T/12` in the past;
-- near-overlap of those rotating-frame afterimages is expected and is not artificially separated;
-- the inertial panel retains the three discrete afterimages and additionally displays a thin fading orange trail covering the most recent `4T/12 = T/3`;
-- the inertial trail is divided into short line segments whose opacity increases continuously toward the present and tends to zero at the oldest `4T/12` endpoint;
-- the fading trail uses display-time interpolation only and never feeds back into the solver or diagnostics.
+- the third-body current-position marker and all afterimages use a bright orange fill with no white outline;
+- the secondary body uses blue for clear separation from the third body;
+- both rotating and inertial panels show afterimages at `T/12`, `2T/12`, and `3T/12` in the past;
+- near-overlap of rotating-frame afterimages is expected and is not artificially separated;
+- the inertial panel additionally displays a thin orange fading trail extending back `4T/12 = T/3`;
+- that trail is divided into short line segments whose opacity decreases continuously with age and tends to zero at the oldest endpoint;
+- all afterimage and trail positions are reconstructed from the already computed trajectory for display only;
+- none of these visual elements feed back into the solver or diagnostics.
 
 These choices are documented in `docs/VISUAL_DESIGN.md`.
 
@@ -122,7 +124,7 @@ Existing frame-transform tests verify coordinate conventions, binary rotation, L
 
 Playback tests verify display-time interpolation, endpoint clamping, and recent-trail helper behavior.
 
-The DOM test for the current branch is updated to verify:
+The DOM test verifies:
 
 - both frame views;
 - two current-position markers;
@@ -133,7 +135,7 @@ The DOM test for the current branch is updated to verify:
 - L4/L5 geometry overlays and axis labels;
 - explicit Calculate, diagnostics, and invalid-input reporting.
 
-CI has not yet been run for `feature/orange-afterimages-fade-trail` at the time of this update.
+PR #17 passed GitHub Actions with both `npm test` and `npm run build` successful and was merged to `main` at merge commit `4ee6efd67b77d22d77ab4459a77d4b8068983f30`.
 
 ---
 
@@ -175,7 +177,7 @@ No hard close-encounter validity threshold has been adopted.
 
 ## Next recommended task
 
-Run CI for `feature/orange-afterimages-fade-trail`. If tests and build pass, merge the branch and inspect horseshoe, L4, and L5 animations in a real browser. Pay particular attention to third-body/secondary color separation, rotating-frame afterimage overlap, and the shape and visual decay of the inertial `4T/12` fading trail.
+Inspect the merged visualization in a real browser using the horseshoe, L4, and L5 presets. Pay particular attention to third-body/secondary color separation, rotating-frame afterimage overlap, and whether the inertial `4T/12` fading trail is thin enough and disappears naturally at its oldest end.
 
 After these refinements are accepted, continue with synchronized `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots.
 
