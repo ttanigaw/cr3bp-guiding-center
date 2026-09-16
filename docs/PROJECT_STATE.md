@@ -9,13 +9,15 @@ The reduced guiding-center physics core, fixed-step RK4 integration, validated h
 Recent browser-review refinements are also on `main`:
 
 - Custom X-Y linear axes use zero-anchored nice ticks when zero lies in range;
+- Custom X/Y linear auto-ranging now follows the actual resolved data/reference span and uses each variable's configured span only as a fallback for effectively degenerate data;
+- tiny resolved values below `1e-14` are preserved because tick cleanup is relative to the chosen tick interval rather than a fixed absolute cutoff;
 - Custom X and Y axes independently support Linear / `log10` when the selected data are strictly positive;
 - the fixed `phi` versus `r - 1` panel now uses a tighter zero-anchored vertical range and consistent zero-based ticks in all horizontal-range modes;
 - very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line;
 - the phase-space control rows use a shared label column so the first `Magnify` and `Full width` buttons align horizontally;
 - in the Custom X-Y controls, each axis places its `Scale` selector directly below its `Variable` selector while X and Y remain side by side on normal desktop widths;
 - the fixed `r(t)` plot anchors its vertical ticks to `r = 1` and uses equal 1-2-5-style nice spacing around corotation;
-- the fixed `r(t)` and `phi(t)` panels now share zero-based, equally spaced nice time ticks, with the displayed right edge rounded outward to contain the integration endpoint.
+- the fixed `r(t)` and `phi(t)` panels share zero-based, equally spaced nice time ticks, with the displayed right edge rounded outward to contain the integration endpoint.
 
 No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by these display refinements.
 
@@ -107,7 +109,7 @@ Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
 ## Diagnostics and Custom X-Y plot on main
 
-PR #38 added the reusable diagnostic-data layer. PR #39 added synchronized current-state diagnostics. PR #41 added the Custom X-Y plot. PR #43 refined Custom X-Y axis scaling and ticks.
+PR #38 added the reusable diagnostic-data layer. PR #39 added synchronized current-state diagnostics. PR #41 added the Custom X-Y plot. PR #43 refined Custom X-Y axis scaling and ticks. PR #53 refined the linear auto-range rule and was merged to `main` at merge commit `bb1e33e5d9a94232b231834cfacc2cb40fbd20e8`.
 
 The shared diagnostic layer derives:
 
@@ -138,9 +140,17 @@ The Custom X-Y plot supports independent X/Y selection among:
 
 Default axes remain `X = t`, `Y = Delta H_gc`.
 
-Linear custom axes use 1-2-5-style equal tick spacing and include a labeled zero tick whenever zero is in range.
+Linear Custom X-Y axes now use one common auto-fit rule:
 
-Each Custom X-Y axis independently supports **Linear** and **log10**. `log10` is enabled only when every stored value on that axis is finite and strictly positive; no nonpositive samples are silently removed. In log mode, coordinates and labels use the base-10 transformed value and the axis title explicitly reads `log10(variable)`.
+- actual plotted min/max plus the optional reference determine the required span;
+- a resolved finite-width span is displayed at its real scale with small padding rather than being forced to a per-variable minimum width;
+- if a reference is already an outer boundary, no empty padding is added beyond that reference;
+- each variable's configured `fallbackSpan` is used only when the required range is effectively degenerate;
+- effectively degenerate means zero-width or negligible width relative to a nonzero baseline, which preserves sensible display for nearly constant offset quantities such as `H_gc` or `r` while allowing small near-zero quantities such as `Delta H_gc` to be magnified appropriately;
+- 1-2-5-style equal tick spacing remains in use and zero remains a labeled tick anchor whenever it lies in range;
+- near-zero tick cleanup is proportional to tick spacing, so genuinely resolved tiny values are not collapsed to zero by an absolute threshold.
+
+Each Custom X-Y axis independently supports **Linear** and **log10**. `log10` is enabled only when every stored value on that axis is finite and strictly positive; no nonpositive samples are silently removed. In log mode, coordinates and labels use the base-10 transformed value and the axis title explicitly reads `log10(variable)`. The accepted log10 minimum transformed span was intentionally left unchanged by PR #53.
 
 For control layout, X and Y remain separate axis columns on normal desktop widths. Within each axis column, `Scale` is placed directly below `Variable`; the two controls no longer occupy the same row.
 
@@ -156,15 +166,26 @@ PR #49 passed GitHub Actions with both `npm test` and `npm run build` successful
 
 PR #51 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `bf9009222d63aa3b93a2bd794e95dbd699583e38`.
 
-New fixed-time-axis coverage verifies:
+PR #53 passed the pull-request CI on its code-bearing head with both `npm test` and `npm run build` successful. After merge, push CI run #117 validated the final merged tree `bb1e33e5d9a94232b231834cfacc2cb40fbd20e8`, again with both tests and build successful.
+
+New Custom X-Y auto-fit coverage verifies:
+
+- a tiny but resolved one-sided conservation-error range uses its actual scale rather than the much larger fallback span;
+- an effectively constant nonzero-baseline range uses the fallback span rather than magnifying floating-point-scale variation;
+- ordinary finite-width data remain tightly auto-fitted and are not unnecessarily widened;
+- exactly constant data still receive a finite display range;
+- zero remains a tick anchor with equal nice spacing;
+- the accepted log10 eligibility and transformed-coordinate behavior remain unchanged.
+
+Fixed-time-axis coverage verifies:
 
 - `t_max = 230` produces display range `0..250` with ticks `0, 50, 100, 150, 200, 250`;
 - an exact `t_max = 250` retains the same `0..250` range;
 - `r(t)` and `phi(t)` use identical fixed time-axis ticks.
 
-New radial-plot coverage verifies that a trajectory spanning approximately `0.982 <= r <= 1.018` uses a `0.98` through `1.02` display range with labels `0.98`, `0.99`, `1.00`, `1.01`, and `1.02`, and retains the `r = 1` reference line.
+Radial-plot coverage verifies that a trajectory spanning approximately `0.982 <= r <= 1.018` uses a `0.98` through `1.02` display range with labels `0.98`, `0.99`, `1.00`, `1.01`, and `1.02`, and retains the `r = 1` reference line.
 
-New phase-space tests verify:
+Phase-space tests verify:
 
 - the tighter zero-anchored radial-offset range, including `[-0.018, 0.014] -> [-0.020, 0.020]`;
 - Full-width Magnify includes zero as a vertical tick and keeps equal spacing around it;
@@ -178,7 +199,7 @@ Earlier diagnostics/custom-plot tests continue to cover the shared diagnostic de
 
 Remaining work is:
 
-1. real-browser review of the refined fixed time axes, `r(t)` vertical ticks, phase-space controls, and Custom X-Y layout for horseshoe, L4, and L5 presets;
+1. real-browser review of the refined Custom X-Y auto-fit, especially the default `t` versus `Delta H_gc` view, together with the fixed plots for horseshoe, L4, and L5 presets;
 2. adjust remaining number formatting, label density, or selector layout only if browser review shows a usability issue;
 3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
 4. refresh README usage documentation;
@@ -190,15 +211,15 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 ## Next recommended task
 
-Review the latest fixed-plot and control refinements in a real browser, especially:
+Review the latest Custom X-Y linear auto-fit in a real browser, especially:
 
-- `r(t)` and `phi(t)` use the same zero-based nice time ticks and may extend slightly beyond the requested `t_max`;
-- `r(t)` uses `r = 1` as a labeled vertical tick/grid anchor with equal nice spacing;
-- `Magnify` and `Full width` start at the same horizontal position;
-- Custom X/Y `Scale` appears directly below the corresponding `Variable`;
-- Full width + Magnify retains zero-anchored equal phase-space vertical ticks;
-- Full width + 1:1 retains endpoint-only labels without overlap;
-- both Close-up modes + Magnify retain a tight vertical range without clipping the trajectory.
+- the default `X = t`, `Y = Delta H_gc` plot now expands to the actual conservation-error scale rather than a fixed `1e-13`-class minimum span;
+- tiny nonzero tick labels remain distinct rather than collapsing to `0`;
+- `H_gc` and `r` do not over-magnify effectively constant nonzero-baseline numerical noise;
+- zero-anchored signed quantities such as `dot r` and `dot phi` retain readable equal nice ticks;
+- existing log10 views remain visually unchanged.
+
+Also retain the earlier browser checks for the fixed time axes, `r(t)` vertical ticks, phase-space 1:1 labeling, and Close-up modes.
 
 If these are acceptable, proceed to README refresh and static GitHub Pages deployment for version 0.1.
 
