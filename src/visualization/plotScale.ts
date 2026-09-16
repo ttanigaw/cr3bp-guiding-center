@@ -3,6 +3,12 @@ export interface PlotRange {
   max: number
 }
 
+export interface ZeroBasedNiceAxis {
+  range: PlotRange
+  ticks: number[]
+  step: number
+}
+
 export type LagrangeAnchorDegrees = -60 | 60
 
 const DEFAULT_PADDING_FRACTION = 0.08
@@ -100,6 +106,28 @@ export function zeroAnchoredNiceRange(
   return {
     min: Number(roundedMin.toPrecision(12)),
     max: Number(roundedMax.toPrecision(12)),
+  }
+}
+
+export function zeroBasedNiceAxis(
+  maxValue: number,
+  targetIntervals = 5,
+): ZeroBasedNiceAxis {
+  const safeMax = Number.isFinite(maxValue) && maxValue > 0 ? maxValue : 1
+  const step = niceCeilingMagnitude(safeMax / Math.max(targetIntervals, 1))
+  const resolvedStep = step > 0 ? step : 1
+  const epsilon = resolvedStep * 1e-10
+  const intervalCount = Math.max(1, Math.ceil((safeMax - epsilon) / resolvedStep))
+  const roundedMax = Number((intervalCount * resolvedStep).toPrecision(12))
+  const ticks = Array.from(
+    { length: intervalCount + 1 },
+    (_, index) => Number((index * resolvedStep).toPrecision(12)),
+  )
+
+  return {
+    range: { min: 0, max: roundedMax },
+    ticks,
+    step: resolvedStep,
   }
 }
 
