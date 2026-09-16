@@ -1,76 +1,198 @@
 # CR3BP Guiding-Center Visualizer
 
-A browser-based visualization tool for co-orbital motion in the planar circular restricted three-body problem (PCR3BP).
+A browser-based visualization tool for reduced co-orbital dynamics in the planar circular restricted three-body problem (PCR3BP).
 
-The project focuses on a reduced guiding-center model that suppresses free epicyclic motion while retaining the slow co-orbital dynamics responsible for horseshoe and tadpole trajectories.
+The application focuses on a guiding-center model that suppresses free epicyclic motion and retains the slow co-orbital dynamics responsible for horseshoe and tadpole motion. It is intended for physical exploration, numerical checking, and education rather than as a full-PCR3BP integrator.
 
-## Current capabilities
+## Current v0.1 feature set
 
-The browser application currently supports:
+The application currently provides:
 
 - direct input of mass ratio `mu`, initial guiding-center radius `r0`, initial rotating-frame angle `phi0`, and integration duration;
-- validated horseshoe, L4 tadpole, and L5 tadpole presets;
-- client-side fixed-step RK4 integration of the reduced guiding-center equations;
-- rotating-frame and inertial-frame visualizations of the same reduced trajectory;
-- shared animation controls for the two frame views;
-- a full rotating-frame orbit with a moving current-position marker;
-- an inertial-frame current position with a recent trail, rotating primary/secondary, and rotating L4/L5 markers;
-- reduced-Hamiltonian drift and minimum-secondary-distance diagnostics.
+- Horseshoe, L4 tadpole, and L5 tadpole presets;
+- deterministic client-side fixed-step RK4 integration of the reduced guiding-center equations;
+- rotating-frame and inertial-frame views of the same reduced trajectory;
+- shared playback controls, current-position markers, afterimages, axes, L4/L5 markers, and selectable display layers;
+- synchronized fixed plots of `r(t)`, wrapped `phi(t)`, and reduced phase space `phi` versus `r - 1`;
+- phase-space controls for **Magnify / 1:1 scale** and **Full width / Close-up with origin / Close-up**;
+- synchronized current-state diagnostics;
+- whole-trajectory diagnostics including reduced-Hamiltonian conservation error and minimum distance to the secondary;
+- approximation-validity indicators such as `r2`, `epsilon_tide`, and `|dot r / r|`;
+- a selectable Custom X-Y diagnostic plot with independent X/Y variables and independent Linear / `log10` display scales.
 
-The inertial view is a coordinate transformation of the already calculated reduced solution. It does not perform a second dynamical integration.
-
-Time-series and phase-space plots are planned next. Full PCR3BP comparison is intentionally deferred until the reduced model has been validated further.
+All plots and diagnostics are derived from the same stored reduced trajectory. Changing display options or Custom X-Y selectors does not trigger a second integration.
 
 ## Physical model
 
-The authoritative physical model is documented in:
+The authoritative model definition is in [`docs/PHYSICS.md`](docs/PHYSICS.md).
 
-`docs/PHYSICS.md`
+The reduced variables are the guiding-center radius `r` and rotating-frame co-orbital angle `phi`. In the adopted nondimensional units,
 
-The reduced variables are the guiding-center radius `r` and rotating-frame co-orbital angle `phi`. In the adopted nondimensional units, the inertial azimuth is
+```text
+theta = phi + t
+```
 
-`theta = phi + t`.
+where `theta` is the inertial azimuth and the binary angular frequency is unity.
 
-The reduced radial variable is a guiding-center radius, not in general the instantaneous physical radius of a full PCR3BP trajectory.
+The reduced guiding-center equations are
 
-## Application specification and project state
+```text
+dr/dt   = 2 sqrt(r) dR/dphi
 
-Application behavior and visualization requirements are defined in:
+dphi/dt = r^(-3/2) - 1 - 2 sqrt(r) dR/dr
+```
 
-`docs/APP_SPEC.md`
+with the perturbing potential and analytic derivatives defined in `docs/PHYSICS.md`.
 
-Current implementation status, validation notes, open questions, and the next recommended task are recorded in:
+The reduced conserved quantity is
 
-`docs/PROJECT_STATE.md`
+```text
+H_gc = -1/(2r) - sqrt(r) - R(r, phi).
+```
 
-Contributors and coding agents should also read `AGENTS.md` before substantial work.
+The application monitors `Delta H_gc = H_gc(t) - H_gc(0)` as a numerical-conservation diagnostic.
+
+This is distinct from the Jacobi constant of the full PCR3BP. The current application does **not** integrate the full PCR3BP, so it does not present the full-system Jacobi constant as though it were the conserved quantity of the reduced model.
+
+## Rotating and inertial views
+
+The rotating-frame trajectory is the directly integrated reduced solution.
+
+The inertial view is a coordinate transformation of that same solution,
+
+```text
+X = r cos(phi + t)
+Y = r sin(phi + t)
+```
+
+not a second dynamical model or a separate integration.
+
+The two orbit panels share one animation time. Current markers, bodies, L4/L5 points, afterimages, and lower-plot markers therefore remain synchronized.
+
+## Fixed state plots
+
+### `r(t)`
+
+Shows the guiding-center radius against nondimensional time. The dashed reference is `r = 1`, and vertical ticks are anchored to that reference with equal 1-2-5-style spacing.
+
+### wrapped `phi(t)`
+
+Uses
+
+```text
+-180 deg < phi <= 180 deg
+```
+
+and splits the plotted path at wrap discontinuities rather than connecting `+180 deg` directly to `-180 deg`.
+
+### `phi` versus `r - 1`
+
+The reduced phase-space panel includes:
+
+- **Magnify**: vertically enlarges the radial excursion for readability;
+- **1:1 scale**: uses `(r - 1) * 180/pi` for display scaling so one degree horizontally and one degree-equivalent vertically have the same screen scale;
+- **Full width**: fixed `-180 deg .. +180 deg`;
+- **Close-up with origin**: contracts the range while retaining `phi = 0` and the relevant L4/L5 longitude;
+- **Close-up**: contracts the range without forcing `phi = 0` into view.
+
+If a trajectory crosses the wrapped `+180 deg / -180 deg` boundary, both Close-up modes fall back to Full width.
+
+## Diagnostics
+
+The diagnostics UI separates different roles rather than combining them into one score.
+
+### Current state
+
+Values synchronized to the shared animation time include quantities such as:
+
+- `t`;
+- `r`;
+- wrapped `phi`;
+- `r2`;
+- `epsilon_tide`;
+- `H_gc`;
+- `Delta H_gc`;
+- `|dot r / r|`.
+
+### Numerical conservation
+
+`H_gc`, `Delta H_gc`, and `max |Delta H_gc|` indicate how well the numerical integration respects the conserved quantity of the reduced Hamiltonian system.
+
+### Approximation-validity indicators
+
+`r2`, `epsilon_tide = mu / r2^3`, and `|dot r / r|` help assess whether the reduced guiding-center approximation is being used in a controlled regime.
+
+Version 0.1 intentionally does not impose an unsupported universal hard threshold that labels a trajectory simply “valid” or “invalid”.
+
+## Custom X-Y diagnostic plot
+
+The Custom X-Y panel can independently select either axis from:
+
+- `t`;
+- `r`;
+- `r - 1`;
+- wrapped `phi`;
+- `r2`;
+- `epsilon_tide`;
+- `H_gc`;
+- `Delta H_gc`;
+- `|Delta H_gc|`;
+- `dot r`;
+- `dot phi`;
+- `|dot r / r|`.
+
+The default is `X = t`, `Y = Delta H_gc`.
+
+For Linear axes, the range is fitted to the actual resolved data/reference span with small padding. A per-variable fallback span is used only when the displayed quantity is effectively constant. If zero is in range, ticks are anchored to zero with equal 1-2-5-style spacing.
+
+Each axis independently supports `log10` when every plotted value for that variable is finite and strictly positive. In log mode, coordinates and tick values are the actual base-10 logarithms and the axis title explicitly changes to `log10(variable)`.
+
+## Documentation
+
+The repository documentation is part of the project specification:
+
+- [`docs/PHYSICS.md`](docs/PHYSICS.md) — authoritative physical model and conventions;
+- [`docs/APP_SPEC.md`](docs/APP_SPEC.md) — high-level application behavior;
+- [`docs/PLOT_SPEC.md`](docs/PLOT_SPEC.md) — concrete plotting rules;
+- [`docs/DIAGNOSTICS_SPEC.md`](docs/DIAGNOSTICS_SPEC.md) — diagnostics and Custom X-Y definitions;
+- [`docs/VISUAL_DESIGN.md`](docs/VISUAL_DESIGN.md) — orbit-panel visual conventions;
+- [`docs/PROJECT_STATE.md`](docs/PROJECT_STATE.md) — current implementation state, validation, and next work;
+- [`AGENTS.md`](AGENTS.md) — repository working rules for contributors and coding agents.
 
 ## Repository structure
 
-The main source layout is:
+The main source layout is approximately:
 
-    src/
-      physics/
-        guidingCenter.ts
-        integrator.ts
-        diagnostics.ts
-        presets.ts
-      visualization/
-        frames.ts
-        playback.ts
-      components/
-        TrajectoryPlot.tsx
-        InertialTrajectoryPlot.tsx
-      App.tsx
+```text
+src/
+  physics/
+    guidingCenter.ts
+    integrator.ts
+    diagnostics.ts
+    presets.ts
+  diagnostics/
+    diagnosticData.ts
+    diagnosticVariables.ts
+  visualization/
+    frames.ts
+    playback.ts
+    customPlotScale.ts
+  components/
+    TrajectoryPlot.tsx
+    InertialTrajectoryPlot.tsx
+    StatePlots.tsx
+    CustomDiagnosticPlot.tsx
+  App.tsx
 
-    tests/
-    docs/
+tests/
+docs/
+```
 
-Physics, integration, frame transforms, playback helpers, and React rendering are kept separate so the numerical model can be tested independently of the UI.
+Physics, numerical integration, diagnostic derivation, frame transforms, playback helpers, plot scaling, and React rendering are kept separate so that the numerical model can be tested independently from the UI.
 
 ## Local development
 
-Use Node.js 24.20.0, also recorded in `.nvmrc`:
+The project uses Node.js 24.20.0, also recorded in `.nvmrc`.
 
 ```sh
 npm ci
@@ -98,7 +220,7 @@ Start the development server with:
 npm run dev
 ```
 
-Leave that process running, then open forwarded port 5173 from the VS Code **Ports** panel. Opening the application in the local desktop browser through the forwarded `*.app.github.dev` address is the normal Codespaces workflow.
+Leave that process running, then open forwarded port 5173 from the VS Code **Ports** panel. Opening the application through the current forwarded `*.app.github.dev` URL is the normal Codespaces workflow; stale forwarded URLs should not be reused after a Codespace or forwarding session changes.
 
 ## Development workflow
 
@@ -106,26 +228,19 @@ GitHub is the canonical source of truth. Codespaces, local workspaces, and chat 
 
 Substantial changes should normally be developed on a branch, checked by GitHub Actions (`npm ci`, `npm test`, `npm run build`), reviewed, and then merged into `main`.
 
-Important design decisions and changes in implementation order must be recorded in the repository documentation rather than left only in chat history or commit messages.
+Important design decisions and changes in implementation order should be recorded in the repository documentation rather than left only in chat history or commit messages.
 
 ## Deployment
 
-The intended deployment target is GitHub Pages. The application is entirely client-side and requires no numerical backend or database.
+The application is entirely client-side and requires no numerical backend or database.
 
-GitHub Pages deployment is not yet configured.
+The v0.1 deployment target is GitHub Pages. Deployment configuration is the next release-preparation step after this README refresh.
 
-## Planned next features
+## Scope after v0.1
 
-Near-term work includes:
+The main deferred extension is a full PCR3BP model for direct comparison with the reduced guiding-center solution. Possible later additions include low-free-eccentricity initialization, full-versus-reduced comparison diagnostics, additional Lagrange points, shareable URLs, and trajectory export.
 
-- `r(t)` visualization synchronized to animation time;
-- wrapped `phi(t)` visualization;
-- `phi` versus `r - 1` phase-space visualization;
-- current-state diagnostics synchronized to animation;
-- approximation-validity indicators;
-- GitHub Pages deployment.
-
-Later work may add full PCR3BP integration, low-free-eccentricity initialization, direct full-versus-reduced comparison, additional Lagrange points, shareable URLs, and trajectory export.
+Full-PCR3BP development is intentionally deferred until the reduced-model v0.1 baseline is stable.
 
 ## License
 
