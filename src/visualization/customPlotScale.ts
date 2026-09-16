@@ -41,8 +41,8 @@ function niceStep(rawStep: number): number {
   return niceNormalized * scale
 }
 
-function cleanTick(value: number): number {
-  if (Math.abs(value) < 1e-14) return 0
+function cleanTick(value: number, zeroTolerance: number): number {
+  if (Math.abs(value) <= zeroTolerance) return 0
   return Number(value.toPrecision(12))
 }
 
@@ -88,7 +88,7 @@ export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INT
     const firstIndex = Math.ceil((range.min - epsilon) / step)
     const lastIndex = Math.floor((range.max + epsilon) / step)
     for (let index = firstIndex; index <= lastIndex; index += 1) {
-      ticks.push(cleanTick(index * step))
+      ticks.push(cleanTick(index * step, epsilon))
     }
     if (!ticks.some((tick) => tick === 0)) ticks.push(0)
     return ticks.sort((a, b) => a - b)
@@ -96,11 +96,11 @@ export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INT
 
   const first = Math.ceil((range.min - epsilon) / step) * step
   for (let tick = first; tick <= range.max + epsilon; tick += step) {
-    ticks.push(cleanTick(tick))
+    ticks.push(cleanTick(tick, epsilon))
   }
 
   if (ticks.length >= 2) return ticks
-  return [cleanTick(range.min), cleanTick(range.max)]
+  return [cleanTick(range.min, epsilon), cleanTick(range.max, epsilon)]
 }
 
 export function buildAxisScale(
