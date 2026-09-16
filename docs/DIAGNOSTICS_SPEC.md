@@ -190,7 +190,8 @@ The variable registry stores, for each variable:
 - units / nondimensional status where relevant;
 - a value accessor;
 - a preferred numeric formatter;
-- optional reference value such as `r = 1`, `r - 1 = 0`, or `Delta H_gc = 0`.
+- optional reference value such as `r = 1`, `r - 1 = 0`, or `Delta H_gc = 0`;
+- a fallback display span used only when the plotted range is effectively degenerate.
 
 This registry is shared by axis selectors and plotting logic.
 
@@ -235,9 +236,17 @@ Where a selected variable has a physically useful reference value, the plot may 
 
 Reference lines are display aids only and must not be interpreted as warning thresholds.
 
-### 5.6 Linear tick generation
+### 5.6 Linear auto-range and tick generation
 
-For a linear custom axis, ticks use equal spacing chosen from simple `1`, `2`, or `5` multiples of a power of ten.
+Linear custom axes use one general auto-fit rule rather than variable-specific special cases.
+
+1. The required range is determined from the actual plotted minimum and maximum plus the optional reference value.
+2. If that required range has a resolved finite width, the actual data span is respected; a variable's fallback span does **not** force the axis to be wider.
+3. A small display padding is added. When a reference value is already an outer boundary, that boundary remains fixed rather than adding empty space beyond the reference.
+4. Only when the required range is effectively degenerate is the variable's fallback span used to create a finite visible range.
+5. Ticks then use equal spacing chosen from simple `1`, `2`, or `5` multiples of a power of ten.
+
+A range is considered effectively degenerate when it is exactly zero-width or when its width is negligible relative to a nonzero baseline. This prevents quantities such as an almost constant `H_gc` or `r` from being magnified into meaningless floating-point-scale variations, while allowing genuinely small quantities centered near zero, such as `Delta H_gc`, to be displayed at their actual scale.
 
 If the displayed range contains zero:
 
@@ -246,6 +255,8 @@ If the displayed range contains zero:
 - the axis range need not be symmetric about zero.
 
 If zero is outside the displayed range, the same nice-number spacing is used without forcing zero into the plot.
+
+The zero-cleanup tolerance used when constructing ticks is proportional to the selected tick interval, so physically resolved values much smaller than `1e-14` are not collapsed to zero merely because of their absolute magnitude.
 
 ### 5.7 Independent Linear / log10 axis scales
 
@@ -266,6 +277,8 @@ When `log10` is active:
 - a reference line is shown only when the reference value is positive;
 - if a variable change or recalculation makes the current log scale invalid, that axis reverts to Linear.
 
+The existing logarithmic minimum transformed span is retained for version 0.1 so the linear auto-fit refinement does not alter already accepted log10 behavior.
+
 The fixed `phi` versus `r - 1` panel keeps its own specialized `Magnify / 1:1 scale` and horizontal-range controls; those controls are not reused for the generic custom plot.
 
 ---
@@ -277,7 +290,8 @@ Completed diagnostics-stage work:
 1. reusable diagnostic data model and tests;
 2. synchronized current diagnostics;
 3. Custom X-Y diagnostic plot;
-4. zero-anchored nice linear ticks and independent Linear / log10 axis controls.
+4. zero-anchored nice linear ticks and independent Linear / log10 axis controls;
+5. resolved-span linear auto-fit with fallback only for effectively degenerate data.
 
 Remaining version-0.1 work is browser review, presentation refinement if needed, README refresh, and static deployment.
 
@@ -297,6 +311,10 @@ Tests should verify:
 - wrapped-phi custom plots split across wrap discontinuities;
 - display-only sampling does not change current diagnostics or extrema;
 - a linear axis containing zero labels zero and uses equal nice-number spacing around it;
+- a tiny but resolved nonzero span is fitted to the data instead of being expanded to the fallback span;
+- an effectively constant nonzero-baseline quantity uses the fallback span;
+- exactly constant data still receive a finite display range;
+- ordinary finite-width ranges are not unnecessarily widened by the fallback span;
 - `log10` is disabled for variables containing nonpositive values;
 - independent log10 axes transform coordinates and clearly label the transformed axis;
 - numerical-conservation and validity quantities are not mislabeled as one another.
