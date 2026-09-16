@@ -6,6 +6,7 @@ import {
   closeUpPhiRange,
   selectLagrangeAnchor,
   zeroAnchoredNiceRange,
+  zeroBasedNiceAxis,
   type PlotRange,
 } from '../visualization/plotScale'
 
@@ -71,6 +72,11 @@ function equalScaleInnerHeight(xRange: PlotRange, yRange: PlotRange): number {
   const xSpanDegrees = xRange.max - xRange.min
   const ySpanDegreesEquivalent = (yRange.max - yRange.min) * RAD_TO_DEG
   return INNER_WIDTH * (ySpanDegreesEquivalent / xSpanDegrees)
+}
+
+function tickDecimals(step: number): number {
+  if (!(step > 0) || !Number.isFinite(step)) return 0
+  return Math.max(0, Math.ceil(-Math.log10(step)))
 }
 
 function PlotFrame({
@@ -288,7 +294,10 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
   const [phaseSpaceWidthMode, setPhaseSpaceWidthMode] = useState<PhaseSpaceWidthMode>('full')
   const sampled = sampleTrajectory(trajectory)
   const timeMax = Math.max(trajectory[trajectory.length - 1]?.t ?? 0, 1e-9)
-  const timeRange = { min: 0, max: timeMax }
+  const timeAxis = zeroBasedNiceAxis(timeMax)
+  const timeRange = timeAxis.range
+  const timeTicks = timeAxis.ticks
+  const timeDecimals = tickDecimals(timeAxis.step)
 
   const rOffsetDisplayRange = zeroAnchoredNiceRange(sampled.map((point) => point.r - 1), 0.02)
   const rRange = {
@@ -377,10 +386,11 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
           xLabel="t"
           yLabel="r"
           current={{ x: currentPoint.t, y: currentPoint.r }}
-          xTickFormat={(value) => value.toFixed(timeMax >= 100 ? 0 : timeMax >= 10 ? 1 : 2)}
+          xTickFormat={(value) => value.toFixed(timeDecimals)}
           yTickFormat={(value) => value.toFixed(2)}
           horizontalReference={1}
           className="r-time-plot"
+          xTicks={timeTicks}
           yTicks={rTicks}
         />
       </PlotCard>
@@ -394,10 +404,11 @@ export default function StatePlots({ trajectory, currentPoint, mu, showLagrangeP
           xLabel="t"
           yLabel="φ [deg]"
           current={{ x: currentPoint.t, y: currentPhiDegrees }}
-          xTickFormat={(value) => value.toFixed(timeMax >= 100 ? 0 : timeMax >= 10 ? 1 : 2)}
+          xTickFormat={(value) => value.toFixed(timeDecimals)}
           yTickFormat={(value) => value.toFixed(0)}
           horizontalReference={0}
           className="phi-time-plot"
+          xTicks={timeTicks}
         />
       </PlotCard>
 
