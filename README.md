@@ -2,6 +2,8 @@
 
 A browser-based visualization tool for reduced co-orbital dynamics in the planar circular restricted three-body problem (PCR3BP).
 
+**Live v0.1 site:** https://ttanigaw.github.io/cr3bp-guiding-center/
+
 The application focuses on a guiding-center model that suppresses free epicyclic motion and retains the slow co-orbital dynamics responsible for horseshoe and tadpole motion. It is intended for physical exploration, numerical checking, and education rather than as a full-PCR3BP integrator.
 
 ## Current v0.1 feature set
@@ -234,7 +236,13 @@ Important design decisions and changes in implementation order should be recorde
 
 The application is entirely client-side and requires no numerical backend or database.
 
-The v0.1 deployment target is GitHub Pages. Deployment configuration is the next release-preparation step after this README refresh.
+Version 0.1 is deployed with GitHub Pages from `main` using `.github/workflows/pages.yml`:
+
+https://ttanigaw.github.io/cr3bp-guiding-center/
+
+The Pages build uses the repository project-site base path `/cr3bp-guiding-center/`, while local and Codespaces development continue to use `/`. A successful deployment therefore does not change the existing local development workflow.
+
+Pushes to `main` automatically rebuild and redeploy the static site through GitHub Actions. The workflow can also be started manually with `workflow_dispatch`.
 
 ## Scope after v0.1
 
