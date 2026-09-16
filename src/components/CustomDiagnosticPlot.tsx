@@ -115,11 +115,11 @@ export default function CustomDiagnosticPlot({
   }, [yScaleMode, yLogAvailable])
 
   const xLayout = useMemo(
-    () => buildAxisScale(xValues, xDefinition.minimumSpan, xDefinition.referenceValue, resolvedXScale),
+    () => buildAxisScale(xValues, xDefinition.fallbackSpan, xDefinition.referenceValue, resolvedXScale),
     [xValues, xDefinition, resolvedXScale],
   )
   const yLayout = useMemo(
-    () => buildAxisScale(yValues, yDefinition.minimumSpan, yDefinition.referenceValue, resolvedYScale),
+    () => buildAxisScale(yValues, yDefinition.fallbackSpan, yDefinition.referenceValue, resolvedYScale),
     [yValues, yDefinition, resolvedYScale],
   )
   const paths = useMemo(
