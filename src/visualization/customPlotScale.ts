@@ -14,6 +14,7 @@ export interface AxisScaleLayout {
 const DEFAULT_TARGET_INTERVALS = 4
 const PADDING_FRACTION = 0.08
 const MINIMUM_LOG_SPAN = 0.25
+const RELATIVE_DEGENERATE_TOLERANCE = 1e-12
 
 export function isLogScaleAvailable(values: readonly number[]): boolean {
   return values.length > 0 && values.every((value) => Number.isFinite(value) && value > 0)
@@ -45,6 +46,37 @@ function cleanTick(value: number): number {
   return Number(value.toPrecision(12))
 }
 
+function isEffectivelyDegenerate(min: number, max: number): boolean {
+  const span = max - min
+  if (!(span > 0) || !Number.isFinite(span)) return true
+
+  const characteristicMagnitude = Math.max(Math.abs(min), Math.abs(max))
+  if (!(characteristicMagnitude > 0)) return false
+
+  return span <= characteristicMagnitude * RELATIVE_DEGENERATE_TOLERANCE
+}
+
+function expandDegenerateRange(
+  min: number,
+  max: number,
+  fallbackSpan: number,
+  referenceAtLowerBoundary: boolean,
+  referenceAtUpperBoundary: boolean,
+): PlotRange {
+  if (referenceAtLowerBoundary) {
+    return { min, max: min + fallbackSpan }
+  }
+  if (referenceAtUpperBoundary) {
+    return { min: max - fallbackSpan, max }
+  }
+
+  const center = (min + max) / 2
+  return {
+    min: center - fallbackSpan / 2,
+    max: center + fallbackSpan / 2,
+  }
+}
+
 export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INTERVALS): number[] {
   const span = range.max - range.min
   const step = niceStep(span / Math.max(targetIntervals, 1))
@@ -73,7 +105,7 @@ export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INT
 
 export function buildAxisScale(
   values: readonly number[],
-  minimumLinearSpan: number,
+  fallbackLinearSpan: number,
   referenceValue: number | undefined,
   mode: AxisScaleMode,
 ): AxisScaleLayout {
@@ -103,18 +135,20 @@ export function buildAxisScale(
     transformedReference !== undefined && transformedReference === rawMin && rawMin < rawMax
   const referenceAtUpperBoundary =
     transformedReference !== undefined && transformedReference === rawMax && rawMin < rawMax
-  const minimumSpan = mode === 'linear' ? minimumLinearSpan : MINIMUM_LOG_SPAN
 
-  if (max - min < minimumSpan) {
-    if (referenceAtLowerBoundary) {
-      max = min + minimumSpan
-    } else if (referenceAtUpperBoundary) {
-      min = max - minimumSpan
-    } else {
-      const center = (min + max) / 2
-      min = center - minimumSpan / 2
-      max = center + minimumSpan / 2
-    }
+  const shouldUseFallback = mode === 'linear'
+    ? isEffectivelyDegenerate(min, max)
+    : max - min < MINIMUM_LOG_SPAN
+
+  if (shouldUseFallback) {
+    const fallbackSpan = mode === 'linear' ? fallbackLinearSpan : MINIMUM_LOG_SPAN
+    ;({ min, max } = expandDegenerateRange(
+      min,
+      max,
+      fallbackSpan,
+      referenceAtLowerBoundary,
+      referenceAtUpperBoundary,
+    ))
   }
 
   const span = max - min
