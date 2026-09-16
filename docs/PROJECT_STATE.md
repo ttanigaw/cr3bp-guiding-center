@@ -4,126 +4,117 @@ Last updated: 2026-09-16
 
 ## Current phase
 
-The reduced guiding-center physics core, fixed-step RK4 integration, validated horseshoe/L4/L5 presets, editable initial conditions, rotating/inertial visualizations, synchronized animation, fixed state plots, phase-space display controls, reusable diagnostic data, synchronized current diagnostics, and the selectable Custom X-Y diagnostic plot are implemented on `main`.
+Version 0.1 of the reduced guiding-center visualizer is implemented on `main` and deployed publicly with GitHub Pages.
 
-Recent browser-review refinements are also on `main`:
+Live site:
 
-- Custom X-Y linear axes use zero-anchored nice ticks when zero lies in range;
-- Custom X/Y linear auto-ranging now follows the actual resolved data/reference span and uses each variable's configured span only as a fallback for effectively degenerate data;
-- tiny resolved values below `1e-14` are preserved because tick cleanup is relative to the chosen tick interval rather than a fixed absolute cutoff;
-- Custom X and Y axes independently support Linear / `log10` when the selected data are strictly positive;
-- the fixed `phi` versus `r - 1` panel now uses a tighter zero-anchored vertical range and consistent zero-based ticks in all horizontal-range modes;
-- very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line;
-- the phase-space control rows use a shared label column so the first `Magnify` and `Full width` buttons align horizontally;
-- in the Custom X-Y controls, each axis places its `Scale` selector directly below its `Variable` selector while X and Y remain side by side on normal desktop widths;
-- the fixed `r(t)` plot anchors its vertical ticks to `r = 1` and uses equal 1-2-5-style nice spacing around corotation;
-- the fixed `r(t)` and `phi(t)` panels share zero-based, equally spaced nice time ticks, with the displayed right edge rounded outward to contain the integration endpoint.
+https://ttanigaw.github.io/cr3bp-guiding-center/
 
-No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by these display refinements.
+The v0.1 baseline includes:
+
+- reduced guiding-center physics and deterministic fixed-step RK4 integration;
+- Horseshoe, L4 tadpole, and L5 tadpole presets;
+- editable initial conditions and integration duration;
+- synchronized rotating-frame and inertial-frame visualization;
+- shared playback, current markers, afterimages, display-layer controls, and L4/L5 markers;
+- fixed `r(t)`, wrapped `phi(t)`, and `phi` versus `r - 1` plots;
+- phase-space `Magnify / 1:1 scale` and `Full width / Close-up with origin / Close-up` controls;
+- synchronized current-state diagnostics;
+- numerical-conservation monitoring using the reduced Hamiltonian `H_gc`;
+- approximation-validity indicators including `r2`, `epsilon_tide`, and `|dot r / r|`;
+- a selectable Custom X-Y diagnostic plot with independent X/Y variables and Linear / `log10` axis modes;
+- GitHub Actions CI for tests/build and GitHub Pages deployment from `main`.
+
+No full-PCR3BP integration is included in v0.1. The inertial panel remains a coordinate transformation of the reduced solution rather than a separate dynamical integration.
 
 ---
 
 ## Repository and documentation status
 
-GitHub is the canonical project record. Maintained documents include:
+GitHub is the canonical project record. The repository is now public so GitHub Pages can be used on the current GitHub plan.
+
+Maintained documents are:
 
 - `AGENTS.md`
 - `docs/PHYSICS.md`
 - `docs/APP_SPEC.md`
-- `docs/PROJECT_STATE.md`
-- `docs/VISUAL_DESIGN.md`
 - `docs/PLOT_SPEC.md`
 - `docs/DIAGNOSTICS_SPEC.md`
+- `docs/VISUAL_DESIGN.md`
+- `docs/PROJECT_STATE.md`
 - `README.md`
 
-`docs/PHYSICS.md` remains authoritative for the physical model. `docs/PLOT_SPEC.md` records concrete fixed-plot and Custom X-Y behavior. `docs/DIAGNOSTICS_SPEC.md` records the diagnostics architecture and Custom X-Y data/scale rules.
+`docs/PHYSICS.md` remains authoritative for equations, signs, coordinates, nondimensionalization, approximation assumptions, and the reduced conserved quantity.
 
-GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
-
----
-
-## Fixed time-series horizontal axes on main
-
-The fixed `r(t)` and wrapped `phi(t)` panels share the same nondimensional-time horizontal axis.
-
-PR #51 refined this axis behavior and was merged to `main` at merge commit `bf9009222d63aa3b93a2bd794e95dbd699583e38` after CI passed.
-
-The shared fixed time axis now:
-
-- starts at `t = 0`;
-- uses equal spacing chosen from convenient `1`, `2`, or `5` multiples of a power of ten;
-- rounds the displayed right edge outward to the first tick that contains the actual trajectory endpoint;
-- does not require the integration endpoint to coincide with the right edge;
-- uses exactly the same time range and tick positions in `r(t)` and `phi(t)`.
-
-For example, an endpoint at `t = 230` displays ticks `0, 50, 100, 150, 200, 250`; an endpoint at `t = 250` uses the same ticks with the right edge at `250`.
-
-This is display-only; the stored trajectory still ends at the requested integration time.
+`README.md` was refreshed in PR #55 to match the implemented v0.1 application rather than the earlier development-stage roadmap.
 
 ---
 
-## Fixed radial plot on main
+## Physics and numerical baseline
 
-The fixed `r(t)` plot shows the guiding-center radius against nondimensional time and retains the dashed `r = 1` corotation reference.
+The reduced state is `(r, phi)`, with rotating-frame polar coordinates
 
-PR #49 refined the vertical-axis behavior and was merged to `main` at merge commit `a899cc49dffb57c9a2f6cad12b0eff25b05e7a9f` after CI passed.
+```text
+x = r cos(phi)
+y = r sin(phi)
+```
 
-The radial vertical axis now:
+and inertial azimuth
 
-- derives its displayed range from the trajectory's `r - 1` excursion;
-- always retains `r = 1` as the numerical reference;
-- makes `r = 1` a labeled tick/grid anchor;
-- places ticks above and below `r = 1` at equal 1-2-5-style nice intervals;
-- rounds the displayed limits outward to simple values without requiring symmetry about `r = 1`;
-- uses readable labels such as `0.98`, `0.99`, `1.00`, `1.01`, and `1.02` for a trajectory spanning roughly `0.982` through `1.018`.
+```text
+theta = phi + t.
+```
 
-Concrete behavior is documented in `docs/PLOT_SPEC.md`.
+The reduced conserved quantity is
 
----
+```text
+H_gc = -1/(2r) - sqrt(r) - R(r, phi).
+```
 
-## Fixed phase-space panel on main
+`Delta H_gc = H_gc(t) - H_gc(0)` is treated as a numerical-conservation diagnostic.
 
-The fixed `phi` versus `r - 1` panel provides:
+This is explicitly distinct from the Jacobi constant of the full PCR3BP. A future full-PCR3BP model should introduce its own `C_J` / `Delta C_J` diagnostics without relabeling the present reduced quantity.
 
-- vertical choices **Magnify** and **1:1 scale**;
-- horizontal choices **Full width**, **Close-up with origin**, and **Close-up**;
-- wrap-safe fallback to Full width when the trajectory crosses `+180 deg / -180 deg`;
-- the secondary at `(phi, r - 1) = (0, -mu)` whenever the selected horizontal range contains the origin;
-- L4 at `(+60 deg, 0)` and L5 at `(-60 deg, 0)` whenever each lies inside the displayed range and **L4 / L5 points** is enabled.
-
-PR #45 refined the vertical-axis behavior and was merged to `main` at merge commit `c7db93c0675cb8be8ed3883fbe6f477eb0ace5d0` after CI passed.
-
-The phase-space vertical axis now:
-
-- always retains `r - 1 = 0` as the numerical reference;
-- uses one 1-2-5-style interval and rounds both limits to multiples of that same interval;
-- places ordinary vertical ticks at equal spacing anchored to zero for Full width and both Close-up modes;
-- avoids unnecessarily coarse independent endpoint rounding, so a range such as approximately `[-0.018, 0.014]` can display as `[-0.020, 0.020]` rather than `[-0.050, 0.020]`;
-- when a 1:1 plot becomes too shallow for normal tick labels, omits the numeric zero label, retains the dashed zero line, and displays only the upper/lower endpoint values with their labels displaced slightly apart for readability.
-
-The phase-space display controls align the first option button in each row: `Magnify` and `Full width` start at the same horizontal position. On narrow screens the controls may stack responsively.
-
-Concrete behavior is documented in `docs/PLOT_SPEC.md`.
+The reduced approximation has no universal hard validity threshold in v0.1. `r2`, `epsilon_tide = mu/r2^3`, and `|dot r/r|` are shown as continuous indicators rather than collapsed into an unsupported binary valid/invalid judgment.
 
 ---
 
-## Diagnostics and Custom X-Y plot on main
+## Plotting baseline
 
-PR #38 added the reusable diagnostic-data layer. PR #39 added synchronized current-state diagnostics. PR #41 added the Custom X-Y plot. PR #43 refined Custom X-Y axis scaling and ticks. PR #53 refined the linear auto-range rule and was merged to `main` at merge commit `bb1e33e5d9a94232b231834cfacc2cb40fbd20e8`.
+### Fixed time-series plots
 
-The shared diagnostic layer derives:
+`r(t)` and wrapped `phi(t)` share one nondimensional time axis:
 
-- `t` and binary periods;
-- `r` and `r - 1`;
-- raw and wrapped `phi`;
-- `r2`;
-- `epsilon_tide`;
-- `H_gc`, `Delta H_gc`, and `|Delta H_gc|`;
-- `dot r`, `dot phi`, and `|dot r / r|`.
+- left edge anchored at `t = 0`;
+- equal 1-2-5-style nice tick spacing;
+- displayed right edge rounded outward to the first tick containing the requested integration endpoint;
+- identical time ticks in both panels.
 
-The Diagnostics panel keeps numerical-conservation quantities distinct from approximation-validity indicators.
+`r(t)` uses `r = 1` as a true vertical tick/grid anchor with equal nice spacing around it.
 
-The Custom X-Y plot supports independent X/Y selection among:
+Wrapped `phi(t)` uses
+
+```text
+-180 deg < phi <= 180 deg
+```
+
+and does not connect across wrap discontinuities.
+
+### Reduced phase space
+
+The `phi` versus `r - 1` panel provides:
+
+- **Magnify** and **1:1 scale** vertical modes;
+- **Full width**, **Close-up with origin**, and **Close-up** horizontal modes;
+- wrap fallback to Full width when a contracted interval would cross `+180/-180 deg`;
+- secondary marker at `(0, -mu)` when the origin lies in view;
+- L4/L5 markers at `(+60 deg, 0)` and `(-60 deg, 0)` when the shared L4/L5 switch is on and each point lies in the displayed range;
+- zero-anchored vertical ticks in ordinary Magnify views;
+- endpoint-only vertical labels for very shallow 1:1 views where ordinary labels would overlap.
+
+### Custom X-Y plot
+
+Selectable variables are:
 
 - `t`;
 - `r`;
@@ -138,90 +129,103 @@ The Custom X-Y plot supports independent X/Y selection among:
 - `dot phi`;
 - `|dot r / r|`.
 
-Default axes remain `X = t`, `Y = Delta H_gc`.
+Default axes are `X = t`, `Y = Delta H_gc`.
 
-Linear Custom X-Y axes now use one common auto-fit rule:
+Linear Custom X-Y axes follow one common auto-fit rule:
 
-- actual plotted min/max plus the optional reference determine the required span;
-- a resolved finite-width span is displayed at its real scale with small padding rather than being forced to a per-variable minimum width;
-- if a reference is already an outer boundary, no empty padding is added beyond that reference;
-- each variable's configured `fallbackSpan` is used only when the required range is effectively degenerate;
-- effectively degenerate means zero-width or negligible width relative to a nonzero baseline, which preserves sensible display for nearly constant offset quantities such as `H_gc` or `r` while allowing small near-zero quantities such as `Delta H_gc` to be magnified appropriately;
-- 1-2-5-style equal tick spacing remains in use and zero remains a labeled tick anchor whenever it lies in range;
-- near-zero tick cleanup is proportional to tick spacing, so genuinely resolved tiny values are not collapsed to zero by an absolute threshold.
+- actual plotted min/max plus any reference value define the required span;
+- resolved finite-width data are displayed at their real scale with small padding;
+- a variable-specific `fallbackSpan` is used only for effectively degenerate data;
+- if zero lies in range, zero is a labeled tick anchor with equal 1-2-5-style spacing;
+- tiny resolved values are preserved because tick cleanup is relative to the selected tick interval rather than a fixed absolute cutoff.
 
-Each Custom X-Y axis independently supports **Linear** and **log10**. `log10` is enabled only when every stored value on that axis is finite and strictly positive; no nonpositive samples are silently removed. In log mode, coordinates and labels use the base-10 transformed value and the axis title explicitly reads `log10(variable)`. The accepted log10 minimum transformed span was intentionally left unchanged by PR #53.
-
-For control layout, X and Y remain separate axis columns on normal desktop widths. Within each axis column, `Scale` is placed directly below `Variable`; the two controls no longer occupy the same row.
+Each axis independently supports `log10` only when every stored plotted value is finite and strictly positive. No samples are silently discarded to enable logarithmic plotting.
 
 ---
 
 ## Validation status
 
-PR #45 passed GitHub Actions with both tests and build successful before merge.
+GitHub Actions CI runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
 
-PR #47 was a CSS/layout-only refinement and passed the existing `npm test` and `npm run build` CI checks before merge to `main` at merge commit `1577329be6827eb484ec883f564ea00af09c9093`.
+The recent v0.1 stabilization sequence includes:
 
-PR #49 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `a899cc49dffb57c9a2f6cad12b0eff25b05e7a9f`.
+- PR #45: phase-space vertical-range/tick refinement;
+- PR #47: phase-space and Custom X-Y control-layout refinement;
+- PR #49: `r(t)` vertical axis anchored to `r = 1`;
+- PR #51: shared nice time axis for `r(t)` and `phi(t)`;
+- PR #53: common Custom X-Y linear auto-fit and tiny-value preservation;
+- PR #55: README refresh for the implemented v0.1 feature set;
+- PR #56: GitHub Pages workflow and Pages-specific Vite base path.
 
-PR #51 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `bf9009222d63aa3b93a2bd794e95dbd699583e38`.
+Regression tests cover, among other items:
 
-PR #53 passed the pull-request CI on its code-bearing head with both `npm test` and `npm run build` successful. After merge, push CI run #117 validated the final merged tree `bb1e33e5d9a94232b231834cfacc2cb40fbd20e8`, again with both tests and build successful.
+- reduced-model conservation and `mu = 0` behavior;
+- rotating/inertial coordinate transformations;
+- wrapped-angle discontinuity handling;
+- shared playback-marker synchronization;
+- phase-space Close-up and 1:1 display behavior;
+- zero-anchored nice ticks;
+- fixed `r(t)` / `phi(t)` time-axis agreement;
+- Custom X-Y selector behavior;
+- Linear / `log10` eligibility and transformation;
+- tiny resolved `Delta H_gc` ranges versus effectively constant nonzero-baseline quantities.
 
-New Custom X-Y auto-fit coverage verifies:
-
-- a tiny but resolved one-sided conservation-error range uses its actual scale rather than the much larger fallback span;
-- an effectively constant nonzero-baseline range uses the fallback span rather than magnifying floating-point-scale variation;
-- ordinary finite-width data remain tightly auto-fitted and are not unnecessarily widened;
-- exactly constant data still receive a finite display range;
-- zero remains a tick anchor with equal nice spacing;
-- the accepted log10 eligibility and transformed-coordinate behavior remain unchanged.
-
-Fixed-time-axis coverage verifies:
-
-- `t_max = 230` produces display range `0..250` with ticks `0, 50, 100, 150, 200, 250`;
-- an exact `t_max = 250` retains the same `0..250` range;
-- `r(t)` and `phi(t)` use identical fixed time-axis ticks.
-
-Radial-plot coverage verifies that a trajectory spanning approximately `0.982 <= r <= 1.018` uses a `0.98` through `1.02` display range with labels `0.98`, `0.99`, `1.00`, `1.01`, and `1.02`, and retains the `r = 1` reference line.
-
-Phase-space tests verify:
-
-- the tighter zero-anchored radial-offset range, including `[-0.018, 0.014] -> [-0.020, 0.020]`;
-- Full-width Magnify includes zero as a vertical tick and keeps equal spacing around it;
-- a very shallow Full-width 1:1 plot shows only the two endpoint labels, omits numeric zero, and still renders the zero reference line.
-
-Earlier diagnostics/custom-plot tests continue to cover the shared diagnostic definitions, wrapped-phi splitting, selector behavior, log-scale eligibility, zero-anchored Custom X-Y ticks, and shared playback-marker synchronization.
+The PR #56 code-bearing CI passed before merge, and the ordinary `main` CI also passed after merge.
 
 ---
 
-## Still required for version 0.1
+## GitHub Pages deployment
 
-Remaining work is:
+PR #56 added `.github/workflows/pages.yml` and Pages-aware Vite configuration.
 
-1. real-browser review of the refined Custom X-Y auto-fit, especially the default `t` versus `Delta H_gc` view, together with the fixed plots for horseshoe, L4, and L5 presets;
-2. adjust remaining number formatting, label density, or selector layout only if browser review shows a usability issue;
-3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
-4. refresh README usage documentation;
-5. configure and verify static GitHub Pages deployment.
+Deployment behavior is:
 
-Full PCR3BP comparison remains deferred until the reduced model has been validated further.
+- local/Codespaces development uses the normal `/` base path;
+- Pages builds use `/cr3bp-guiding-center/`;
+- pushes to `main` automatically build and deploy `dist/`;
+- the workflow can also be started manually with `workflow_dispatch`.
+
+The first Pages run failed at `actions/configure-pages` because Pages had not yet been enabled for the repository. After the repository was made public and **Settings -> Pages -> Source: GitHub Actions** was enabled, the failed workflow was re-run.
+
+The re-run completed successfully:
+
+- build: success;
+- Configure GitHub Pages: success;
+- upload Pages artifact: success;
+- deploy: success.
+
+The deployment job reported the environment URL:
+
+https://ttanigaw.github.io/cr3bp-guiding-center/
+
+This establishes the public v0.1 deployment baseline.
+
+---
+
+## Version 0.1 status
+
+The planned v0.1 implementation, documentation refresh, CI validation, and static deployment are complete.
+
+Further v0.1 work should be limited to bug fixes or browser-specific presentation issues discovered while using the public site. New model scope should not be mixed into v0.1 stabilization unless required to correct a physical or numerical error.
 
 ---
 
 ## Next recommended task
 
-Review the latest Custom X-Y linear auto-fit in a real browser, especially:
+Use the deployed GitHub Pages application as the baseline and do one short public-site smoke test of:
 
-- the default `X = t`, `Y = Delta H_gc` plot now expands to the actual conservation-error scale rather than a fixed `1e-13`-class minimum span;
-- tiny nonzero tick labels remain distinct rather than collapsing to `0`;
-- `H_gc` and `r` do not over-magnify effectively constant nonzero-baseline numerical noise;
-- zero-anchored signed quantities such as `dot r` and `dot phi` retain readable equal nice ticks;
-- existing log10 views remain visually unchanged.
+- Horseshoe preset;
+- L4 tadpole preset;
+- L5 tadpole preset;
+- Play / Pause / Reset;
+- phase-space Full width and both Close-up modes;
+- Magnify and 1:1 scale;
+- Custom `t` versus `Delta H_gc`;
+- one positive variable in `log10` mode.
 
-Also retain the earlier browser checks for the fixed time axes, `r(t)` vertical ticks, phase-space 1:1 labeling, and Close-up modes.
+If no deployment-specific issue is found, tag or otherwise record the current state as the v0.1 baseline before beginning the next major phase.
 
-If these are acceptable, proceed to README refresh and static GitHub Pages deployment for version 0.1.
+The main deferred development direction is full-PCR3BP integration and direct comparison against the reduced guiding-center model. That work should begin as a separate phase with its own design update to `APP_SPEC.md`, `PHYSICS.md`, and `PROJECT_STATE.md` before implementation.
 
 ---
 
