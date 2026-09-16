@@ -212,9 +212,17 @@ Current baseline behavior is:
 - selector changes and scale-mode changes are display-only and do not trigger a second integration or alter the stored trajectory;
 - no progressive-trail mode is used in the initial implementation.
 
-### Custom linear-axis ticks
+### Custom linear-axis range and ticks
 
-Each custom axis uses automatically chosen equal tick spacing based on simple `1`, `2`, or `5` multiples of a power of ten.
+Each linear custom axis uses one shared auto-fit rule.
+
+- the required numerical range comes from the actual plotted data plus an optional reference value;
+- if that range has a resolved finite width, the actual data span controls the display and is not forced to a variable-specific minimum width;
+- a small padding is added, except that a reference value already forming an outer boundary remains fixed at that edge;
+- a variable-specific fallback span is used only when the required range is effectively degenerate;
+- ticks use equal spacing based on simple `1`, `2`, or `5` multiples of a power of ten.
+
+"Effectively degenerate" means either zero width or a width negligible relative to a nonzero baseline. This avoids magnifying near-constant offset quantities such as `H_gc` or `r` down to meaningless floating-point noise, while allowing genuinely small near-zero quantities such as `Delta H_gc` to be viewed at their real scale.
 
 When the displayed numerical range contains zero:
 
@@ -225,6 +233,8 @@ When the displayed numerical range contains zero:
 This prevents a zero reference line from falling between unrelated tick values and makes signed quantities such as `dot r` and `dot phi` easier to read.
 
 When zero is not inside the displayed range, the same nice-number spacing is used without forcing zero into view.
+
+Tick cleanup near zero is relative to the chosen tick interval rather than to a fixed absolute threshold, so resolved values below `1e-14` remain visible when that is the natural scale of the selected quantity.
 
 ### Custom axis scale mode
 
@@ -242,11 +252,11 @@ In log10 mode:
 - the axis title explicitly changes to `log10(variable)` so the transformation is unambiguous;
 - a reference value is shown only if that reference is positive and therefore has a defined logarithm.
 
-No samples are silently dropped to make a logarithmic plot possible.
+No samples are silently dropped to make a logarithmic plot possible. The existing transformed minimum span is retained in version 0.1 so this linear auto-fit refinement does not alter already accepted log10 behavior.
 
 If wrapped `phi` is selected for either axis, path construction splits at wrap discontinuities rather than drawing across `+180 deg` and `-180 deg`.
 
-The variable registry owns the stable key, user-facing label, axis label, accessor, tick formatter, minimum display span, and optional reference value for each selectable quantity.
+The variable registry owns the stable key, user-facing label, axis label, accessor, tick formatter, fallback display span, and optional reference value for each selectable quantity.
 
 The specialized **Magnify / 1:1 scale** and **Full width / Close-up with origin / Close-up** controls remain specific to the fixed `phi` versus `r - 1` panel and are not copied into the generic custom plot.
 

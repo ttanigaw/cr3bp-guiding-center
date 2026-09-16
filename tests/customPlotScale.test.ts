@@ -25,6 +25,42 @@ describe('custom diagnostic plot axis scaling', () => {
     expect(layout.ticks.every((tick) => tick >= 0)).toBe(true)
   })
 
+  it('fits tiny but resolved conservation errors to their actual span instead of the fallback span', () => {
+    const layout = buildAxisScale([0, -4e-16, -1.7e-15, -8e-16], 1e-13, 0, 'linear')
+
+    expect(layout.range.max).toBe(0)
+    expect(layout.range.min).toBeLessThanOrEqual(-1.7e-15)
+    expect(layout.range.min).toBeGreaterThan(-1e-14)
+    expect(layout.ticks).toContain(0)
+    expect(layout.ticks.some((tick) => tick < 0)).toBe(true)
+  })
+
+  it('uses the fallback span only when a nonzero-baseline range is effectively degenerate', () => {
+    const layout = buildAxisScale([1, 1 + 1e-14], 0.002, 1, 'linear')
+
+    expect(layout.range.min).toBe(1)
+    expect(layout.range.max - layout.range.min).toBeGreaterThanOrEqual(0.002)
+    expect(layout.range.max - layout.range.min).toBeLessThan(0.003)
+  })
+
+  it('preserves ordinary finite-width auto-fit without forcing the fallback span', () => {
+    const layout = buildAxisScale([0.982, 1, 1.018], 0.002, 1, 'linear')
+
+    expect(layout.range.min).toBeLessThan(0.982)
+    expect(layout.range.max).toBeGreaterThan(1.018)
+    expect(layout.range.max - layout.range.min).toBeLessThan(0.05)
+    expect(layout.transformedReference).toBe(1)
+  })
+
+  it('creates a finite fallback range for exactly constant data', () => {
+    const layout = buildAxisScale([0, 0, 0], 0.002, 0, 'linear')
+
+    expect(layout.range.min).toBeLessThan(0)
+    expect(layout.range.max).toBeGreaterThan(0)
+    expect(layout.range.max - layout.range.min).toBeGreaterThanOrEqual(0.002)
+    expect(layout.ticks).toContain(0)
+  })
+
   it('allows log10 only when every plotted value is strictly positive', () => {
     expect(isLogScaleAvailable([0.001, 1, 10])).toBe(true)
     expect(isLogScaleAvailable([0, 1, 10])).toBe(false)

@@ -21,7 +21,7 @@ export interface DiagnosticVariableDefinition {
   value: (sample: DiagnosticSample) => number
   formatTick: (value: number) => string
   referenceValue?: number
-  minimumSpan: number
+  fallbackSpan: number
   wrappedAngle?: boolean
 }
 
@@ -41,18 +41,18 @@ function degreeTick(value: number): string {
 }
 
 export const diagnosticVariables: readonly DiagnosticVariableDefinition[] = [
-  { key: 't', label: 't', axisLabel: 't', value: (sample) => sample.t, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-3 },
-  { key: 'r', label: 'r', axisLabel: 'r', value: (sample) => sample.r, formatTick: adaptiveTick, referenceValue: 1, minimumSpan: 0.002 },
-  { key: 'rOffset', label: 'r − 1', axisLabel: 'r − 1', value: (sample) => sample.rOffset, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 0.002 },
-  { key: 'phiWrapped', label: 'φ [deg]', axisLabel: 'φ [deg]', value: (sample) => sample.phiDegreesWrapped, formatTick: degreeTick, minimumSpan: 10, wrappedAngle: true },
-  { key: 'r2', label: 'r₂', axisLabel: 'r₂', value: (sample) => sample.r2, formatTick: adaptiveTick, minimumSpan: 0.005 },
-  { key: 'epsilonTide', label: 'ε_tide', axisLabel: 'ε_tide', value: (sample) => sample.epsilonTide, formatTick: adaptiveTick, minimumSpan: 1e-6 },
-  { key: 'hGc', label: 'H_gc', axisLabel: 'H_gc', value: (sample) => sample.hGc, formatTick: adaptiveTick, minimumSpan: 1e-8 },
-  { key: 'deltaHGc', label: 'ΔH_gc', axisLabel: 'ΔH_gc', value: (sample) => sample.deltaHGc, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-13 },
-  { key: 'absDeltaHGc', label: '|ΔH_gc|', axisLabel: '|ΔH_gc|', value: (sample) => sample.absDeltaHGc, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-13 },
-  { key: 'rDot', label: 'ṙ', axisLabel: 'ṙ', value: (sample) => sample.rDot, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-6 },
-  { key: 'phiDot', label: 'φ̇', axisLabel: 'φ̇', value: (sample) => sample.phiDot, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-6 },
-  { key: 'absRadialRate', label: '|ṙ / r|', axisLabel: '|ṙ / r|', value: (sample) => sample.absRadialRate, formatTick: adaptiveTick, referenceValue: 0, minimumSpan: 1e-6 },
+  { key: 't', label: 't', axisLabel: 't', value: (sample) => sample.t, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-3 },
+  { key: 'r', label: 'r', axisLabel: 'r', value: (sample) => sample.r, formatTick: adaptiveTick, referenceValue: 1, fallbackSpan: 0.002 },
+  { key: 'rOffset', label: 'r − 1', axisLabel: 'r − 1', value: (sample) => sample.rOffset, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 0.002 },
+  { key: 'phiWrapped', label: 'φ [deg]', axisLabel: 'φ [deg]', value: (sample) => sample.phiDegreesWrapped, formatTick: degreeTick, fallbackSpan: 10, wrappedAngle: true },
+  { key: 'r2', label: 'r₂', axisLabel: 'r₂', value: (sample) => sample.r2, formatTick: adaptiveTick, fallbackSpan: 0.005 },
+  { key: 'epsilonTide', label: 'ε_tide', axisLabel: 'ε_tide', value: (sample) => sample.epsilonTide, formatTick: adaptiveTick, fallbackSpan: 1e-6 },
+  { key: 'hGc', label: 'H_gc', axisLabel: 'H_gc', value: (sample) => sample.hGc, formatTick: adaptiveTick, fallbackSpan: 1e-8 },
+  { key: 'deltaHGc', label: 'ΔH_gc', axisLabel: 'ΔH_gc', value: (sample) => sample.deltaHGc, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-13 },
+  { key: 'absDeltaHGc', label: '|ΔH_gc|', axisLabel: '|ΔH_gc|', value: (sample) => sample.absDeltaHGc, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-13 },
+  { key: 'rDot', label: 'ṙ', axisLabel: 'ṙ', value: (sample) => sample.rDot, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-6 },
+  { key: 'phiDot', label: 'φ̇', axisLabel: 'φ̇', value: (sample) => sample.phiDot, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-6 },
+  { key: 'absRadialRate', label: '|ṙ / r|', axisLabel: '|ṙ / r|', value: (sample) => sample.absRadialRate, formatTick: adaptiveTick, referenceValue: 0, fallbackSpan: 1e-6 },
 ] as const
 
 export const diagnosticVariableByKey = Object.fromEntries(

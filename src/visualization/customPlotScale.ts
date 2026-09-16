@@ -14,6 +14,7 @@ export interface AxisScaleLayout {
 const DEFAULT_TARGET_INTERVALS = 4
 const PADDING_FRACTION = 0.08
 const MINIMUM_LOG_SPAN = 0.25
+const RELATIVE_DEGENERATE_TOLERANCE = 1e-12
 
 export function isLogScaleAvailable(values: readonly number[]): boolean {
   return values.length > 0 && values.every((value) => Number.isFinite(value) && value > 0)
@@ -40,9 +41,40 @@ function niceStep(rawStep: number): number {
   return niceNormalized * scale
 }
 
-function cleanTick(value: number): number {
-  if (Math.abs(value) < 1e-14) return 0
+function cleanTick(value: number, zeroTolerance: number): number {
+  if (Math.abs(value) <= zeroTolerance) return 0
   return Number(value.toPrecision(12))
+}
+
+function isEffectivelyDegenerate(min: number, max: number): boolean {
+  const span = max - min
+  if (!(span > 0) || !Number.isFinite(span)) return true
+
+  const characteristicMagnitude = Math.max(Math.abs(min), Math.abs(max))
+  if (!(characteristicMagnitude > 0)) return false
+
+  return span <= characteristicMagnitude * RELATIVE_DEGENERATE_TOLERANCE
+}
+
+function expandDegenerateRange(
+  min: number,
+  max: number,
+  fallbackSpan: number,
+  referenceAtLowerBoundary: boolean,
+  referenceAtUpperBoundary: boolean,
+): PlotRange {
+  if (referenceAtLowerBoundary) {
+    return { min, max: min + fallbackSpan }
+  }
+  if (referenceAtUpperBoundary) {
+    return { min: max - fallbackSpan, max }
+  }
+
+  const center = (min + max) / 2
+  return {
+    min: center - fallbackSpan / 2,
+    max: center + fallbackSpan / 2,
+  }
 }
 
 export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INTERVALS): number[] {
@@ -56,7 +88,7 @@ export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INT
     const firstIndex = Math.ceil((range.min - epsilon) / step)
     const lastIndex = Math.floor((range.max + epsilon) / step)
     for (let index = firstIndex; index <= lastIndex; index += 1) {
-      ticks.push(cleanTick(index * step))
+      ticks.push(cleanTick(index * step, epsilon))
     }
     if (!ticks.some((tick) => tick === 0)) ticks.push(0)
     return ticks.sort((a, b) => a - b)
@@ -64,16 +96,16 @@ export function niceTicks(range: PlotRange, targetIntervals = DEFAULT_TARGET_INT
 
   const first = Math.ceil((range.min - epsilon) / step) * step
   for (let tick = first; tick <= range.max + epsilon; tick += step) {
-    ticks.push(cleanTick(tick))
+    ticks.push(cleanTick(tick, epsilon))
   }
 
   if (ticks.length >= 2) return ticks
-  return [cleanTick(range.min), cleanTick(range.max)]
+  return [cleanTick(range.min, epsilon), cleanTick(range.max, epsilon)]
 }
 
 export function buildAxisScale(
   values: readonly number[],
-  minimumLinearSpan: number,
+  fallbackLinearSpan: number,
   referenceValue: number | undefined,
   mode: AxisScaleMode,
 ): AxisScaleLayout {
@@ -103,18 +135,20 @@ export function buildAxisScale(
     transformedReference !== undefined && transformedReference === rawMin && rawMin < rawMax
   const referenceAtUpperBoundary =
     transformedReference !== undefined && transformedReference === rawMax && rawMin < rawMax
-  const minimumSpan = mode === 'linear' ? minimumLinearSpan : MINIMUM_LOG_SPAN
 
-  if (max - min < minimumSpan) {
-    if (referenceAtLowerBoundary) {
-      max = min + minimumSpan
-    } else if (referenceAtUpperBoundary) {
-      min = max - minimumSpan
-    } else {
-      const center = (min + max) / 2
-      min = center - minimumSpan / 2
-      max = center + minimumSpan / 2
-    }
+  const shouldUseFallback = mode === 'linear'
+    ? isEffectivelyDegenerate(min, max)
+    : max - min < MINIMUM_LOG_SPAN
+
+  if (shouldUseFallback) {
+    const fallbackSpan = mode === 'linear' ? fallbackLinearSpan : MINIMUM_LOG_SPAN
+    ;({ min, max } = expandDegenerateRange(
+      min,
+      max,
+      fallbackSpan,
+      referenceAtLowerBoundary,
+      referenceAtUpperBoundary,
+    ))
   }
 
   const span = max - min
