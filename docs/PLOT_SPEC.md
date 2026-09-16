@@ -18,13 +18,27 @@ Each plot displays that current state with the same bright-green marker family u
 
 Playback, pause, reset, and recalculation therefore move or reset all plot markers synchronously with the rotating and inertial orbit panels.
 
+### Fixed time-series horizontal axis
+
+The fixed `r(t)` and wrapped `phi(t)` panels share the same nondimensional-time horizontal axis.
+
+- the left edge is anchored at `t = 0`;
+- tick spacing is chosen from convenient `1`, `2`, or `5` multiples of a power of ten;
+- ticks are equally spaced from `t = 0`;
+- the displayed right edge is rounded outward to the first such tick that contains the calculated maximum time;
+- therefore the right edge does not need to coincide exactly with the integration endpoint.
+
+For example, if the calculated trajectory ends at `t = 230`, both fixed time-series panels display `0, 50, 100, 150, 200, 250`. If the trajectory ends exactly at `t = 250`, the same ticks are used with the right edge at `250`.
+
+This is a display-only extension of the horizontal plotting range; the stored trajectory still ends at its requested integration time.
+
 ---
 
 ## Radial evolution: `r(t)`
 
 The radial plot shows the reduced guiding-center radius `r` against nondimensional time `t`.
 
-- horizontal axis: nondimensional `t`;
+- horizontal axis: nondimensional `t`, using the shared fixed time-series rule above;
 - vertical axis: guiding-center `r`;
 - the full calculated trajectory is shown as a thin blue line;
 - `r = 1` is shown as a dashed reference line;
@@ -46,7 +60,7 @@ The display convention is
 
 or equivalently `-pi < phi <= pi` internally.
 
-- horizontal axis: nondimensional `t`;
+- horizontal axis: nondimensional `t`, using the shared fixed time-series rule above;
 - vertical axis: wrapped `phi` in degrees;
 - vertical range: fixed `-180` through `+180` degrees;
 - dashed reference line at `phi = 0`;
