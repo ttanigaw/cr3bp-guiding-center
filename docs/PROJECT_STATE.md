@@ -14,7 +14,8 @@ Recent browser-review refinements are also on `main`:
 - very shallow 1:1 phase-space views use condensed endpoint-only vertical labels while retaining the dashed zero line;
 - the phase-space control rows use a shared label column so the first `Magnify` and `Full width` buttons align horizontally;
 - in the Custom X-Y controls, each axis places its `Scale` selector directly below its `Variable` selector while X and Y remain side by side on normal desktop widths;
-- the fixed `r(t)` plot now anchors its vertical ticks to `r = 1` and uses equal 1-2-5-style nice spacing around corotation.
+- the fixed `r(t)` plot anchors its vertical ticks to `r = 1` and uses equal 1-2-5-style nice spacing around corotation;
+- the fixed `r(t)` and `phi(t)` panels now share zero-based, equally spaced nice time ticks, with the displayed right edge rounded outward to contain the integration endpoint.
 
 No governing equation, integration algorithm, stored trajectory, playback-time definition, or diagnostic quantity definition was changed by these display refinements.
 
@@ -36,6 +37,26 @@ GitHub is the canonical project record. Maintained documents include:
 `docs/PHYSICS.md` remains authoritative for the physical model. `docs/PLOT_SPEC.md` records concrete fixed-plot and Custom X-Y behavior. `docs/DIAGNOSTICS_SPEC.md` records the diagnostics architecture and Custom X-Y data/scale rules.
 
 GitHub Actions runs `npm ci`, `npm test`, and `npm run build` for pull requests and pushes to `main`.
+
+---
+
+## Fixed time-series horizontal axes on main
+
+The fixed `r(t)` and wrapped `phi(t)` panels share the same nondimensional-time horizontal axis.
+
+PR #51 refined this axis behavior and was merged to `main` at merge commit `bf9009222d63aa3b93a2bd794e95dbd699583e38` after CI passed.
+
+The shared fixed time axis now:
+
+- starts at `t = 0`;
+- uses equal spacing chosen from convenient `1`, `2`, or `5` multiples of a power of ten;
+- rounds the displayed right edge outward to the first tick that contains the actual trajectory endpoint;
+- does not require the integration endpoint to coincide with the right edge;
+- uses exactly the same time range and tick positions in `r(t)` and `phi(t)`.
+
+For example, an endpoint at `t = 230` displays ticks `0, 50, 100, 150, 200, 250`; an endpoint at `t = 250` uses the same ticks with the right edge at `250`.
+
+This is display-only; the stored trajectory still ends at the requested integration time.
 
 ---
 
@@ -78,7 +99,7 @@ The phase-space vertical axis now:
 - avoids unnecessarily coarse independent endpoint rounding, so a range such as approximately `[-0.018, 0.014]` can display as `[-0.020, 0.020]` rather than `[-0.050, 0.020]`;
 - when a 1:1 plot becomes too shallow for normal tick labels, omits the numeric zero label, retains the dashed zero line, and displays only the upper/lower endpoint values with their labels displaced slightly apart for readability.
 
-The phase-space display controls now align the first option button in each row: `Magnify` and `Full width` start at the same horizontal position. On narrow screens the controls may stack responsively.
+The phase-space display controls align the first option button in each row: `Magnify` and `Full width` start at the same horizontal position. On narrow screens the controls may stack responsively.
 
 Concrete behavior is documented in `docs/PLOT_SPEC.md`.
 
@@ -133,6 +154,14 @@ PR #47 was a CSS/layout-only refinement and passed the existing `npm test` and `
 
 PR #49 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `a899cc49dffb57c9a2f6cad12b0eff25b05e7a9f`.
 
+PR #51 passed GitHub Actions with both `npm test` and `npm run build` successful before merge to `main` at merge commit `bf9009222d63aa3b93a2bd794e95dbd699583e38`.
+
+New fixed-time-axis coverage verifies:
+
+- `t_max = 230` produces display range `0..250` with ticks `0, 50, 100, 150, 200, 250`;
+- an exact `t_max = 250` retains the same `0..250` range;
+- `r(t)` and `phi(t)` use identical fixed time-axis ticks.
+
 New radial-plot coverage verifies that a trajectory spanning approximately `0.982 <= r <= 1.018` uses a `0.98` through `1.02` display range with labels `0.98`, `0.99`, `1.00`, `1.01`, and `1.02`, and retains the `r = 1` reference line.
 
 New phase-space tests verify:
@@ -149,7 +178,7 @@ Earlier diagnostics/custom-plot tests continue to cover the shared diagnostic de
 
 Remaining work is:
 
-1. real-browser review of the refined `r(t)` vertical ticks together with the phase-space and Custom X-Y refinements for horseshoe, L4, and L5 presets;
+1. real-browser review of the refined fixed time axes, `r(t)` vertical ticks, phase-space controls, and Custom X-Y layout for horseshoe, L4, and L5 presets;
 2. adjust remaining number formatting, label density, or selector layout only if browser review shows a usability issue;
 3. refine approximation-validity presentation only if needed; do not introduce unsupported hard thresholds;
 4. refresh README usage documentation;
@@ -163,6 +192,7 @@ Full PCR3BP comparison remains deferred until the reduced model has been validat
 
 Review the latest fixed-plot and control refinements in a real browser, especially:
 
+- `r(t)` and `phi(t)` use the same zero-based nice time ticks and may extend slightly beyond the requested `t_max`;
 - `r(t)` uses `r = 1` as a labeled vertical tick/grid anchor with equal nice spacing;
 - `Magnify` and `Full width` start at the same horizontal position;
 - Custom X/Y `Scale` appears directly below the corresponding `Variable`;
